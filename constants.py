@@ -1,13 +1,20 @@
 from enum import Enum
 
 class Direction(Enum):
-    NORTH = "N"
-    EAST = "E"
-    SOUTH = "S"
-    WEST = "W"
+    NORTH = 0
+    EAST = 1
+    SOUTH = 2
+    WEST = 3
+
+    @staticmethod
+    def next_direction(current_direction):
+        return Direction((current_direction.value + 5)% 4)
+
+    @staticmethod
+    def prev_direction(current_direction):
+        return Direction((current_direction.value + 3)% 4)
 
 class MOVEMENT(Enum):
-    FORWARD = "F"
-    LEFT = "L"
-    RIGHT = "R"
-    #BACKWARD = "B"
+    FORWARD = 0
+    LEFT = 1
+    RIGHT = 2

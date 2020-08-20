@@ -2,7 +2,8 @@ from tkinter import *
 import tkinter.ttk as ttk
 import config
 from constants import *
-from robot import Robot
+from handler import Handler
+
 
 class Simulator:
     def __init__(self):
@@ -16,7 +17,8 @@ class Simulator:
         self.map_safe_explored = PhotoImage(file=config.image_paths['green'])
         self.map_obstacle_explored = PhotoImage(file=config.image_paths['pink'])
 
-        self.robot = Robot()
+        self.handler = Handler()
+        self.robot = self.handler.get_robot()
         self.robot_n = []
         self.robot_e = []
         self.robot_s = []
@@ -28,9 +30,9 @@ class Simulator:
             self.robot_w.append([])
             for j in range(3):
                 self.robot_n[i].append(PhotoImage(file=config.robot_grid['north'][i][j]))
-                self.robot_e[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
-                self.robot_s[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
-                self.robot_w[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
+                self.robot_e[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
+                self.robot_s[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
+                self.robot_w[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
 
         t = Toplevel(self.root)
         t.title("Control Panel")
@@ -54,11 +56,11 @@ class Simulator:
         explore_button.grid(column=0, row=0, sticky=(W, E))
         fastest_path_button = ttk.Button(action_pane, text='Fastest Path')
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
-        move_button = ttk.Button(action_pane, text='Move')
+        move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
-        left_button = ttk.Button(action_pane, text='Left')
+        left_button = ttk.Button(action_pane, text='Left',  command=self.left)
         left_button.grid(column=0, row=3, sticky=(W, E))
-        right_button = ttk.Button(action_pane, text='Right')
+        right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
 
         step_per_second = StringVar()
@@ -93,10 +95,6 @@ class Simulator:
         # self.root.bind("<Right>", lambda e: self.right())
         # self.root.bind("<Up>", lambda e: self.move())
         # self.root.bind("<Down>", lambda e: self.back())
-
-        # for y in range(config.map_size['height']):
-        #     for x in range(config.map_size['width']):
-        #         self.put_map(x, y)
 
         for y in range(config.map_size['height']):
             for x in range(config.map_size['width']):
@@ -153,12 +151,36 @@ class Simulator:
 
         for i in range(3):
             for j in range(3):
-                cell = ttk.Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
+                cell = Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
                 try:
-                    self.map_panel[x][y].destroy()
+                    self.map_panel[x-1+j][y-1+i].destroy()
                 except Exception:
                     pass
-                cell.grid(column=j, row=y-1+i)
+                cell.grid(column=x-1+j, row=y-1+i)
+
+    #rerender only 25 grids
+    def update_map(self):
+        for y in range(config.map_size['height']):
+            for x in range(config.map_size['width']):
+                if (self.robot.y - 2 <= y <= self.robot.y + 2 and
+                        self.robot.x - 2 <= x <= self.robot.x + 2):
+                    self.put_map(x, y)
+
+        self.put_robot(self.robot.x, self.robot.y, self.robot.direction)
+
+    #Robot's movement
+
+    def move(self):
+        self.handler.move()
+        self.update_map()
+
+    def left(self):
+        self.handler.left()
+        self.update_map()
+
+    def right(self):
+        self.handler.right()
+        self.update_map()
 
 
 # def start():
