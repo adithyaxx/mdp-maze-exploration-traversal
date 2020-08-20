@@ -1,7 +1,8 @@
 from tkinter import *
 import tkinter.ttk as ttk
 import config
-
+from constants import *
+from robot import Robot
 
 class Simulator:
     def __init__(self):
@@ -14,6 +15,22 @@ class Simulator:
         self.map_obstacle = PhotoImage(file=config.image_paths['blue'])
         self.map_safe_explored = PhotoImage(file=config.image_paths['green'])
         self.map_obstacle_explored = PhotoImage(file=config.image_paths['pink'])
+
+        self.robot = Robot()
+        self.robot_n = []
+        self.robot_e = []
+        self.robot_s = []
+        self.robot_w = []
+        for i in range(3):
+            self.robot_n.append([])
+            self.robot_e.append([])
+            self.robot_s.append([])
+            self.robot_w.append([])
+            for j in range(3):
+                self.robot_n[i].append(PhotoImage(file=config.robot_grid['north'][i][j]))
+                self.robot_e[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
+                self.robot_s[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
+                self.robot_w[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
 
         t = Toplevel(self.root)
         t.title("Control Panel")
@@ -77,9 +94,18 @@ class Simulator:
         # self.root.bind("<Up>", lambda e: self.move())
         # self.root.bind("<Down>", lambda e: self.back())
 
+        # for y in range(config.map_size['height']):
+        #     for x in range(config.map_size['width']):
+        #         self.put_map(x, y)
+
         for y in range(config.map_size['height']):
             for x in range(config.map_size['width']):
-                self.put_map(x, y)
+                if (self.robot.y - 1 <= y <= self.robot.y + 1 and
+                        self.robot.x - 1 <= x <= self.robot.x + 1):
+                    if y == self.robot.y and x == self.robot.x:
+                        self.put_robot(x, y, self.robot.direction)
+                else:
+                    self.put_map(x, y)
 
         self.root.mainloop()
 
@@ -114,6 +140,25 @@ class Simulator:
         else:
             config.map_explored[y][x] = 0
         self.put_map(x, y)
+
+    def put_robot(self, x, y, direction):
+        if direction == Direction.NORTH:
+            robot_label = self.robot_n
+        elif direction == Direction.EAST:
+            robot_label = self.robot_e
+        elif direction == Direction.SOUTH:
+            robot_label = self.robot_s
+        else:
+            robot_label = self.robot_w
+
+        for i in range(3):
+            for j in range(3):
+                cell = ttk.Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
+                try:
+                    self.map_panel[x][y].destroy()
+                except Exception:
+                    pass
+                cell.grid(column=j, row=y-1+i)
 
 
 # def start():

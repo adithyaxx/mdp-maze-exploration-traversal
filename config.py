@@ -66,3 +66,43 @@ image_paths = dict(
     red='images/red.gif',
     yellow='images/yellow.gif'
 )
+
+robot_grid = dict(
+    north=[['images/robot/front_left.png',
+           'images/robot/front_center.png',
+           'images/robot/front_right.png'],
+           ['images/robot/center_left.png',
+           'images/robot/center_center.png',
+           'images/robot/center_right.png'],
+           ['images/robot/back_left.png',
+           'images/robot/back_center.png',
+           'images/robot/back_right.png']],
+    east=[['images/robot/back_left.png',
+           'images/robot/center_left.png',
+           'images/robot/front_left.png'],
+           ['images/robot/back_center.png',
+           'images/robot/center_center.png',
+           'images/robot/front_center.png'],
+           ['images/robot/back_right.png',
+           'images/robot/center_right.png',
+           'images/robot/front_right.png']],
+    south=[['images/robot/back_right.png',
+           'images/robot/back_center.png',
+           'images/robot/back_left.png'],
+           ['images/robot/center_right.png',
+           'images/robot/center_center.png',
+           'images/robot/center_left.png'],
+           ['images/robot/front_right.png',
+           'images/robot/front_center.png',
+           'images/robot/front_left.png']],
+    west=[['images/robot/front_right.png',
+           'images/robot/center_right.png',
+           'images/robot/back_right.png'],
+           ['images/robot/front_center.png',
+           'images/robot/center_center.png',
+           'images/robot/back_center.png'],
+           ['images/robot/front_left.png',
+           'images/robot/center_left.png',
+           'images/robot/back_left.png']]
+
+)
