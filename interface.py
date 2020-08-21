@@ -1,6 +1,8 @@
 from tkinter import *
 import tkinter.ttk as ttk
 import config
+from constants import *
+from handler import Handler
 
 
 class Simulator:
@@ -14,6 +16,23 @@ class Simulator:
         self.map_obstacle = PhotoImage(file=config.image_paths['blue'])
         self.map_safe_explored = PhotoImage(file=config.image_paths['green'])
         self.map_obstacle_explored = PhotoImage(file=config.image_paths['pink'])
+
+        self.handler = Handler()
+        self.robot = self.handler.get_robot()
+        self.robot_n = []
+        self.robot_e = []
+        self.robot_s = []
+        self.robot_w = []
+        for i in range(3):
+            self.robot_n.append([])
+            self.robot_e.append([])
+            self.robot_s.append([])
+            self.robot_w.append([])
+            for j in range(3):
+                self.robot_n[i].append(PhotoImage(file=config.robot_grid['north'][i][j]))
+                self.robot_e[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
+                self.robot_s[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
+                self.robot_w[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
 
         t = Toplevel(self.root)
         t.title("Control Panel")
@@ -37,11 +56,11 @@ class Simulator:
         explore_button.grid(column=0, row=0, sticky=(W, E))
         fastest_path_button = ttk.Button(action_pane, text='Fastest Path')
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
-        move_button = ttk.Button(action_pane, text='Move')
+        move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
-        left_button = ttk.Button(action_pane, text='Left')
+        left_button = ttk.Button(action_pane, text='Left',  command=self.left)
         left_button.grid(column=0, row=3, sticky=(W, E))
-        right_button = ttk.Button(action_pane, text='Right')
+        right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
 
         step_per_second = StringVar()
@@ -79,7 +98,12 @@ class Simulator:
 
         for y in range(config.map_size['height']):
             for x in range(config.map_size['width']):
-                self.put_map(x, y)
+                if (self.robot.y - 1 <= y <= self.robot.y + 1 and
+                        self.robot.x - 1 <= x <= self.robot.x + 1):
+                    if y == self.robot.y and x == self.robot.x:
+                        self.put_robot(x, y, self.robot.direction)
+                else:
+                    self.put_map(x, y)
 
         self.root.mainloop()
 
@@ -114,6 +138,49 @@ class Simulator:
         else:
             config.map_explored[y][x] = 0
         self.put_map(x, y)
+
+    def put_robot(self, x, y, direction):
+        if direction == Direction.NORTH:
+            robot_label = self.robot_n
+        elif direction == Direction.EAST:
+            robot_label = self.robot_e
+        elif direction == Direction.SOUTH:
+            robot_label = self.robot_s
+        else:
+            robot_label = self.robot_w
+
+        for i in range(3):
+            for j in range(3):
+                cell = Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
+                try:
+                    self.map_panel[x-1+j][y-1+i].destroy()
+                except Exception:
+                    pass
+                cell.grid(column=x-1+j, row=y-1+i)
+
+    #rerender only 25 grids
+    def update_map(self):
+        for y in range(config.map_size['height']):
+            for x in range(config.map_size['width']):
+                if (self.robot.y - 2 <= y <= self.robot.y + 2 and
+                        self.robot.x - 2 <= x <= self.robot.x + 2):
+                    self.put_map(x, y)
+
+        self.put_robot(self.robot.x, self.robot.y, self.robot.direction)
+
+    #Robot's movement
+
+    def move(self):
+        self.handler.move()
+        self.update_map()
+
+    def left(self):
+        self.handler.left()
+        self.update_map()
+
+    def right(self):
+        self.handler.right()
+        self.update_map()
 
 
 # def start():
