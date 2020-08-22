@@ -1,8 +1,12 @@
+from time import sleep
 from tkinter import *
 import tkinter.ttk as ttk
+
 import config
 from constants import *
+from core import Core
 from handler import Handler
+from map import Map
 
 
 class Simulator:
@@ -13,11 +17,13 @@ class Simulator:
 
         self.map_start_end = PhotoImage(file=config.image_paths['red'])
         self.map_unexplored = PhotoImage(file=config.image_paths['gray'])
-        self.map_obstacle = PhotoImage(file=config.image_paths['blue'])
-        self.map_safe_explored = PhotoImage(file=config.image_paths['green'])
-        self.map_obstacle_explored = PhotoImage(file=config.image_paths['pink'])
+        self.map_obstacle_unexplored = PhotoImage(file=config.image_paths['blue'])
+        self.map_free = PhotoImage(file=config.image_paths['green'])
+        self.map_obstacle = PhotoImage(file=config.image_paths['pink'])
 
-        self.handler = Handler()
+        self.handler = Handler(self)
+        self.map = self.handler.map
+        self.core = self.handler.core
         self.robot = self.handler.get_robot()
         self.robot_n = []
         self.robot_e = []
@@ -52,13 +58,13 @@ class Simulator:
         control_pane_window.add(parameter_pane, weight=4)
         control_pane_window.add(action_pane, weight=1)
 
-        explore_button = ttk.Button(action_pane, text='Explore', width=16)
+        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.core.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
         fastest_path_button = ttk.Button(action_pane, text='Fastest Path')
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
-        left_button = ttk.Button(action_pane, text='Left',  command=self.left)
+        left_button = ttk.Button(action_pane, text='Left', command=self.left)
         left_button.grid(column=0, row=3, sticky=(W, E))
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
@@ -81,46 +87,28 @@ class Simulator:
         time_limit_entry = ttk.Entry(parameter_pane, textvariable=time_limit)
         time_limit_entry.grid(column=0, row=5, pady=(0, 10))
 
-        # self.root.columnconfigure(0, weight=1)
-        # self.root.rowconfigure(0, weight=1)
         self.control_panel.columnconfigure(0, weight=1)
         self.control_panel.rowconfigure(0, weight=1)
 
-        # for i in range(10):
-        #     map_pane.rowconfigure(i, weight=1)
-        # for j in range(15):
-        #     map_pane.columnconfigure(j, weight=1)
-
-        # self.root.bind("<Left>", lambda e: self.left())
-        # self.root.bind("<Right>", lambda e: self.right())
-        # self.root.bind("<Up>", lambda e: self.move())
-        # self.root.bind("<Down>", lambda e: self.back())
-
-        for y in range(config.map_size['height']):
-            for x in range(config.map_size['width']):
-                if (self.robot.y - 1 <= y <= self.robot.y + 1 and
-                        self.robot.x - 1 <= x <= self.robot.x + 1):
-                    if y == self.robot.y and x == self.robot.x:
-                        self.put_robot(x, y, self.robot.direction)
-                else:
-                    self.put_map(x, y)
-
+        self.update_map(full=True)
         self.root.mainloop()
 
-    def put_map(self, x, y):
+    def update_cell(self, x, y):
         # Start & End box
         if ((0 <= y < 3) and (config.map_size['width'] - 3 <= x < config.map_size['width'])) or \
                 ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
             map_image = self.map_start_end
         else:
-            if config.map_explored[y][x] == 0:
-                map_image = self.map_unexplored
-            elif config.map_explored[y][x] == 1:
-                map_image = self.map_obstacle
-            elif config.map_explored[y][x] == 2:
-                map_image = self.map_safe_explored
+            if self.map.map_is_explored[y][x] == 0:
+                if self.map.map_virtual[y][x] == 0:
+                    map_image = self.map_unexplored
+                else:
+                    map_image = self.map_obstacle_unexplored
             else:
-                map_image = self.map_obstacle_explored
+                if self.map.map_virtual[y][x] == 0:
+                    map_image = self.map_free
+                else:
+                    map_image = self.map_obstacle
 
         # Change map
         cell = Label(self.map_panel, image=map_image, borderwidth=1)
@@ -133,18 +121,18 @@ class Simulator:
         config.map_cells[y][x] = cell
 
     def on_click(self, x, y, event):
-        if config.map_explored[y][x] == 0:
-            config.map_explored[y][x] = 1
+        if self.map.map_sim[y][x] == 0:
+            self.map.map_sim[y][x] = 1
         else:
-            config.map_explored[y][x] = 0
-        self.put_map(x, y)
+            self.map.map_sim[y][x] = 0
+        self.update_cell(x, y)
 
-    def put_robot(self, x, y, direction):
-        if direction == Direction.NORTH:
+    def put_robot(self, x, y, bearing):
+        if bearing == Bearing.NORTH:
             robot_label = self.robot_n
-        elif direction == Direction.EAST:
+        elif bearing == Bearing.EAST:
             robot_label = self.robot_e
-        elif direction == Direction.SOUTH:
+        elif bearing == Bearing.SOUTH:
             robot_label = self.robot_s
         else:
             robot_label = self.robot_w
@@ -153,22 +141,21 @@ class Simulator:
             for j in range(3):
                 cell = Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
                 try:
-                    self.map_panel[x-1+j][y-1+i].destroy()
+                    self.map_panel[x - 1 + j][y - 1 + i].destroy()
                 except Exception:
                     pass
-                cell.grid(column=x-1+j, row=y-1+i)
+                cell.grid(column=x - 1 + j, row=y - 1 + i)
 
-    #rerender only 25 grids
-    def update_map(self):
+    def update_map(self, radius=2, full=False):
         for y in range(config.map_size['height']):
             for x in range(config.map_size['width']):
-                if (self.robot.y - 2 <= y <= self.robot.y + 2 and
-                        self.robot.x - 2 <= x <= self.robot.x + 2):
-                    self.put_map(x, y)
+                if (
+                        self.robot.y - radius <= y <= self.robot.y + radius and self.robot.x - radius <= x <= self.robot.x + radius) or full:
+                    self.update_cell(x, y)
 
-        self.put_robot(self.robot.x, self.robot.y, self.robot.direction)
+        self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
-    #Robot's movement
+    # Robot's movement manual control
 
     def move(self):
         self.handler.move()
@@ -181,20 +168,3 @@ class Simulator:
     def right(self):
         self.handler.right()
         self.update_map()
-
-
-# def start():
-#     for i, row in enumerate(board):
-#         for j, column in enumerate(row):
-#             L = Label(left_frame, text='     ', bg='grey', borderwidth=0.5, relief='solid')
-#             L.grid(row=i + 1, column=j)
-#             L.bind('<Button-1>', lambda e, i=i, j=j: on_click(i, j, e))
-#
-#     n = StringVar()
-#     selection = ttk.Combobox(right_frame, width=25, textvariable=n, font=("Fixed", 16))
-#     selection['values'] = ('Exploration', 'Find Fastest Path')
-#     selection.grid(row=0)
-#
-#     root.mainloop()
-
-x = Simulator()

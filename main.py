@@ -1,3 +1,3 @@
-from interface import start
+from simulator import Simulator
 
-start()
+x = Simulator()

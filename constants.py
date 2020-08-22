@@ -1,20 +1,22 @@
-from enum import Enum
+from enum import IntEnum
 
-class Direction(Enum):
+
+class Bearing(IntEnum):
     NORTH = 0
     EAST = 1
     SOUTH = 2
     WEST = 3
 
     @staticmethod
-    def next_direction(current_direction):
-        return Direction((current_direction.value + 5)% 4)
+    def next_bearing(current_bearing):
+        return Bearing((current_bearing.value + 5) % 4)
 
     @staticmethod
-    def prev_direction(current_direction):
-        return Direction((current_direction.value + 3)% 4)
+    def prev_bearing(current_bearing):
+        return Bearing((current_bearing.value + 3) % 4)
 
-class MOVEMENT(Enum):
+
+class MOVEMENT(IntEnum):
     FORWARD = 0
     LEFT = 1
     RIGHT = 2
