@@ -29,7 +29,7 @@ class Core:
                 if self.check_front() > 0:
                     self.handler.move(steps=1)
 
-        # self.handler.simulator.root.after(500, self.periodic_check)
+        self.handler.simulator.root.after(500, self.periodic_check)
 
     def sense(self):
         self.handler.robot.sense()
