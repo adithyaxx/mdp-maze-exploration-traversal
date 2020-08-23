@@ -110,3 +110,7 @@ class Map:
             self.__map[y][x] = self.mapStat.index(stat)
         # else:
         #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
+
+    def mark_explored(self, x, y , is_explored , is_obstacle):
+        self.map_is_explored[y][x] = is_explored
+        self.map_virtual[y][x] = is_obstacle

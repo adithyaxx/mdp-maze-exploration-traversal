@@ -33,12 +33,12 @@ class SimulatedRobot(Robot):
         detect_range = config.sensor_range['front_left']
         robot_x, robot_y = self.handler.robot.get_location()
         direction = self.handler.robot.bearing
-        if direction == Bearing.EAST:
+        if direction == Bearing.WEST:
             sensor_location = [robot_x - 1, robot_y + 1]
-            ret = self.get_sensor_data(sensor_location, Bearing.EAST, detect_range)
-        elif direction == Bearing.WEST:
-            sensor_location = [robot_x + 1, robot_y - 1]
             ret = self.get_sensor_data(sensor_location, Bearing.WEST, detect_range)
+        elif direction == Bearing.EAST:
+            sensor_location = [robot_x + 1, robot_y - 1]
+            ret = self.get_sensor_data(sensor_location, Bearing.EAST, detect_range)
         elif direction == Bearing.SOUTH:
             sensor_location = [robot_x + 1, robot_y + 1]
             ret = self.get_sensor_data(sensor_location, Bearing.SOUTH, detect_range)
@@ -62,10 +62,10 @@ class SimulatedRobot(Robot):
             sensor_location = [robot_x - 1, robot_y - 1]
             return self.get_sensor_data(sensor_location, Bearing.WEST, detect_range)
         elif direction == Bearing.SOUTH:
-            sensor_location = [robot_x + 1, robot_y - 1]
+            sensor_location = [robot_x - 1, robot_y + 1]
             return self.get_sensor_data(sensor_location, Bearing.SOUTH, detect_range)
         elif direction == Bearing.NORTH:
-            sensor_location = [robot_x - 1, robot_y + 1]
+            sensor_location = [robot_x + 1, robot_y - 1]
             return self.get_sensor_data(sensor_location, Bearing.NORTH, detect_range)
         else:
             print("    [ERROR] Invalid direction!")
@@ -75,16 +75,16 @@ class SimulatedRobot(Robot):
         robot_x, robot_y = self.handler.robot.get_location()
         direction = self.handler.robot.bearing
         if direction == Bearing.NORTH:
-            sensor_location = [robot_x - 1, robot_y]
+            sensor_location = [robot_x - 1, robot_y - 1]
             return self.get_sensor_data(sensor_location, Bearing.WEST, detect_range)
         elif direction == Bearing.SOUTH:
-            sensor_location = [robot_x + 1, robot_y]
+            sensor_location = [robot_x + 1, robot_y + 1]
             return self.get_sensor_data(sensor_location, Bearing.EAST, detect_range)
         elif direction == Bearing.WEST:
-            sensor_location = [robot_x, robot_y + 1]
+            sensor_location = [robot_x - 1, robot_y + 1]
             return self.get_sensor_data(sensor_location, Bearing.SOUTH, detect_range)
         elif direction == Bearing.EAST:
-            sensor_location = [robot_x, robot_y - 1]
+            sensor_location = [robot_x + 1, robot_y - 1]
             return self.get_sensor_data(sensor_location, Bearing.NORTH, detect_range)
         else:
             print("    [ERROR] Invalid direction!")
