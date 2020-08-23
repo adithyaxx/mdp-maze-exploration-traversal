@@ -1,5 +1,4 @@
 import config
-from constants import Bearing
 
 
 class Core:
@@ -33,77 +32,7 @@ class Core:
         # self.handler.simulator.root.after(500, self.periodic_check)
 
     def sense(self):
-        sensor_data = self.handler.robot.receive()
-        location = self.handler.robot.get_location()
-        bearing = self.handler.robot.bearing
-
-        print(sensor_data)
-
-        if bearing == Bearing.NORTH:
-            for i in range(3):
-                self.update_map(location[0] + i - 1, location[1] - 1, sensor_data[i], Bearing.NORTH,
-                                                     config.sensor_range['front_middle'])
-            self.update_map(location[0] - 1, location[1] - 1, sensor_data[3], Bearing.WEST, config.sensor_range['left'])
-            self.update_map(location[0] + 1, location[1], sensor_data[4], bearing.EAST, config.sensor_range['right'])
-
-        elif bearing == Bearing.EAST:
-            for i in range(3):
-                self.update_map(location[0] + 1, location[1] + i - 1, sensor_data[i], Bearing.EAST,
-                                                     config.sensor_range['front_middle'])
-            self.update_map(location[0] + 1, location[1] - 1, sensor_data[3], Bearing.NORTH,
-                                                 config.sensor_range['left'])
-            self.update_map(location[0], location[1] + 1, sensor_data[4], bearing.SOUTH,
-                                                 config.sensor_range['right'])
-
-        elif bearing == Bearing.SOUTH:
-            for i in range(3):
-                self.update_map(location[0] - i + 1, location[1] + 1, sensor_data[i], Bearing.SOUTH,
-                                                     config.sensor_range['front_middle'])
-            self.update_map(location[0] + 1, location[1] + 1, sensor_data[3], Bearing.EAST,
-                                                 config.sensor_range['left'])
-            self.update_map(location[0] - 1, location[1], sensor_data[4], bearing.WEST,
-                                                 config.sensor_range['right'])
-
-        else:
-            for i in range(3):
-                self.update_map(location[0] - 1, location[1] - i + 1, sensor_data[i], Bearing.WEST,
-                                                     config.sensor_range['front_middle'])
-            self.update_map(location[0] - 1, location[1] + 1, sensor_data[3], Bearing.SOUTH,
-                                                 config.sensor_range['left'])
-            self.update_map(location[0], location[1] - 1, sensor_data[4], bearing.NORTH,
-                                                 config.sensor_range['right'])
-
-
-    def update_map(self, x, y, dis, bearing, sensor_range):
-
-        if bearing == Bearing.NORTH:
-            for i in range(dis):
-                self.update_and_render(x , y - i - 1 , 1 , 0)
-            if(dis < sensor_range and self.map.valid_range(y - dis - 1, x)):
-                self.update_and_render(x, y - dis - 1, 1, 1)
-
-        elif bearing == Bearing.EAST:
-            for i in range(dis):
-                self.update_and_render(x + i + 1 , y, 1, 0)
-            if(dis < sensor_range and self.map.valid_range(y, x + dis + 1)):
-                self.update_and_render(x + dis + 1, y, 1, 1)
-
-        elif bearing == Bearing.SOUTH:
-            for i in range(dis):
-                self.update_and_render(x, y + i + 1, 1, 0)
-
-            if(dis < sensor_range and self.map.valid_range(y + dis + 1, x )):
-                self.update_and_render(x, y + dis + 1, 1, 1)
-
-        else:
-            for i in range(dis):
-                self.update_and_render(x - i - 1, y, 1, 0)
-            if(dis < sensor_range and self.map.valid_range(y, x - dis - 1)):
-                self.update_and_render(x - dis - 1, y, 1, 1)
-
-    def update_and_render(self, x , y , is_explore, is_obstacle):
-        self.map.mark_explored(x , y , is_explore , is_obstacle)
-        self.handler.simulator.update_cell(x , y)
+        self.handler.robot.sense()
 
     def findSP(self):
         pass

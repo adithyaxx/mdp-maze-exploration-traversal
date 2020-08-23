@@ -205,3 +205,58 @@ class SimulatedRobot(Robot):
     #         print("[Map Lock] Released by ", threading.current_thread())
     #         print('[Thread] ', threading.current_thread(), 'Giving up control')
     #         time.sleep(1)
+
+    # call update map for each front sensor
+    def sense_front(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [[-1, 0, 1], [-1, -1, -1]],
+            [[1, 1, 1], [-1, 0, 1]],
+            [[1, 0, -1], [1, 1, 1]],
+            [[-1, -1, -1], [1, 0, -1]]
+        ]
+        offset = sensor_offsets[bearing]
+
+        self.handler.update_map(location[0] + offset[0][0], location[1] + offset[1][0], sensor_data[0],
+                                bearing, config.sensor_range['front_left'])
+        self.handler.update_map(location[0] + offset[0][1], location[1] + offset[1][1], sensor_data[1],
+                                bearing, config.sensor_range['front_middle'])
+        self.handler.update_map(location[0] + offset[0][2], location[1] + offset[1][2], sensor_data[2],
+                                bearing, config.sensor_range['front_right'])
+
+    # call update map for left sensor
+    def sense_left(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [-1, -1 ],
+            [1, -1],
+            [1, 1],
+            [-1, 1]
+        ]
+        offset = sensor_offsets[bearing]
+        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data, Bearing.prev_bearing(bearing), config.sensor_range['left'])
+
+    # call update map for right sensor
+    def sense_right(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+            [0, -1]
+        ]
+        offset = sensor_offsets[bearing]
+
+        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
+                                Bearing.next_bearing(bearing), config.sensor_range['right'])
+
+    #sense simulated sensor
+    def sense(self):
+        sensor_data = self.receive()
+        location = self.get_location()
+        bearing = self.bearing
+
+        self.sense_front(location, bearing, sensor_data[:3])
+        self.sense_left(location, bearing, sensor_data[3])
+        self.sense_right(location, bearing, sensor_data[4])
+
