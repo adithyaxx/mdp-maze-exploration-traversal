@@ -60,7 +60,7 @@ class Simulator:
 
         explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.core.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
-        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.handler.findFP)
+        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.core.findFP)
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
@@ -100,7 +100,7 @@ class Simulator:
             map_image = self.map_start_end
         else:
             if self.map.map_is_explored[y][x] == 0:
-                if self.map.map_virtual[y][x] == 0:
+                if self.map.map_sim[y][x] == 0:
                     map_image = self.map_unexplored
                 else:
                     map_image = self.map_obstacle_unexplored
