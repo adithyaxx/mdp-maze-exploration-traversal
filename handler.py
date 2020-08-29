@@ -4,19 +4,18 @@ import real_robot
 from core import Core
 from map import Map
 from constants import Bearing
-from FastestPathAlgo import FastestPathAlgo
+
 
 
 class Handler:
     def __init__(self, simulator):
         self.map = Map()
         self.simulator = simulator
-        self.core = Core(self)
         if config.robot_simulation:
             self.robot = simulated_robot.SimulatedRobot(self)
         else:
             self.robot = real_robot.RealRobot(self)
-        self.algo = FastestPathAlgo(self.map, self.robot)
+        self.core = Core(self)
 
     def get_robot(self):
         return self.robot
@@ -67,6 +66,3 @@ class Handler:
     def update_and_render(self, x , y , is_explore, is_obstacle):
         self.map.mark_explored(x , y , is_explore , is_obstacle)
         self.simulator.update_cell(x , y)
-
-    def findFP(self):
-        self.algo.find_fastest_path()

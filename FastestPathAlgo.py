@@ -1,4 +1,4 @@
-import robot
+import config
 from constants import Bearing
 
 
@@ -29,18 +29,29 @@ class FastestPathAlgo():
         self.open_list = []
         self.closed_list = []
         self.curDir = self.robot.bearing
+
         self.start_node = Node(robot.x, robot.y, parent=None, dir = self.curDir)
         self.goal_node = Node(goalX, goalY, None)
         self.start_node.g = 0
-        # self.goal_node.g = self.goal_node.h = 0
         self.start_node.h = self.cost_h(self.start_node)
 
         self.open_list.append(self.start_node)
 
+        # create virtual wall
+        for i in range(config.map_size['height']):
+            for j in range(config.map_size['width']):
+                # if self.map.map_virtual[i][j] == 1:
+                #     print("---- ",i , j)
+
+                if self.map.map_virtual[i][j] == 1:
+                    self.map.set_virtual_wall_around(j, i)
+
+        print(self.map.map_virtual)
+
 
     def check_valid_open(self, node):
-        return self.map.valid_range(node.y, node.x) and self.map.is_free(node.x, node.y, True)
-        # return self.map.valid_range(node.y, node.x) and self.map.is_explored(node.x, node.y) and self.map.is_free(node.x, node.y, True) and not self.map.is_virtual_wall(node.x, node.y)
+        return self.map.valid_range(node.y, node.x) and self.map.map_virtual[node.y][node.x] == 0 and not self.map.is_virtual_wall(node.x, node.y)
+        # return self.map.valid_range(node.y, node.x) and self.map.is_explored(node.x, node.y) and self.map.is_free(node.x, node.y, False) and not self.map.is_virtual_wall(node.x, node.y)
 
 
     def best_first(self):
@@ -48,8 +59,9 @@ class FastestPathAlgo():
         best_node_index = -1
 
         for i in range(len(self.open_list)):
-            print("({} , {}): {} , {} ".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h))
+            # print("({} , {}): {} , {} ".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h))
             f = self.open_list[i].g + self.open_list[i].h
+            print("({} , {}): g = {} h = {} f = {} dir = {}".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h, f, self.open_list[i].dir))
             if(f < min_cost):
                 min_cost = f
                 best_node_index = i
@@ -65,9 +77,7 @@ class FastestPathAlgo():
         if(node.x != self.goal_node.x and node.y != self.goal_node.y):
             turn_cost = TURN_COST
 
-        return move_cost + turn_cost
-
-
+        return move_cost * MOVE_COST + turn_cost
 
     def get_turn_cost(self, from_dir, to_dir):
         if(from_dir == to_dir):
@@ -87,9 +97,9 @@ class FastestPathAlgo():
         return Bearing.NORTH
 
 
-    def cost_g(self, from_node, to_node, current_dir):
-        next_dir = self.get_target_dir(from_node, to_node)
-        turn_cost = self.get_turn_cost(current_dir, next_dir)
+    def cost_g(self, current_dir , next_dir):
+        turn_cost = self.get_turn_cost(current_dir, next_dir )
+        # print("turn cost: {}".format(turn_cost))
         return MOVE_COST + turn_cost
 
 
@@ -105,6 +115,7 @@ class FastestPathAlgo():
 
             current_node = self.open_list.pop(best_index)
             self.closed_list.append(current_node)
+            curDir = current_node.dir
 
             # if(parent != None):
             #     curDir = self.get_target_dir(parent, current_node)
@@ -114,7 +125,7 @@ class FastestPathAlgo():
                 self.print_path(current_node)
                 return
 
-            # print("parent: {}  {}".format(current_node.x, current_node.y))
+            print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g, current_node.h, current_node.g + current_node.h, current_node.dir))
 
             for neighbour_position in [(0, -1), (1, 0), (0, 1), (-1, 0)]:
 
@@ -127,20 +138,23 @@ class FastestPathAlgo():
                 if(neighbour in self.closed_list):
                     continue
 
+                dir = self.get_target_dir(current_node, neighbour)
                 if(neighbour not in self.open_list):
-                    dir = self.get_target_dir(current_node, neighbour)
                     neighbour.dir = dir
-                    neighbour.g = self.cost_g(current_node, neighbour, dir)
+                    neighbour.g = self.cost_g(dir, curDir) + current_node.g
+                    # print("neighbour g: {} , parent g: {}".format( self.cost_g(current_node, neighbour, dir) , current_node.g))
                     neighbour.h = self.cost_h(neighbour)
                     self.open_list.append(neighbour)
+                    if (neighbour.x == 3 and neighbour.y == 18):
+                        print("=========="*5,self.get_turn_cost(curDir, dir))
 
                 else:
-                    g_cost = self.cost_g(current_node, neighbour, curDir) + current_node.g
+                    g_cost = self.cost_g(dir, curDir) + current_node.g
                     h_cost = self.cost_h(neighbour)
                     f_cost = g_cost + h_cost
                     index = self.open_list.index(neighbour)
                     if(f_cost < self.open_list[index].g + self.open_list[index].h):
-                        self.open_list[index].dir = self.get_target_dir(current_node, neighbour)
+                        self.open_list[index].dir = dir
                         self.open_list[index].g = g_cost
                         self.open_list[index].h = h_cost
                         self.open_list[index].parent = current_node
@@ -156,10 +170,16 @@ class FastestPathAlgo():
         node = goal_node
         path = []
         while node != None:
-            path.append(node)
+            # path.append(node)
+            self.map.map_virtual[node.y][node.x] = 3
             node = node.parent
-        for node in path:
-            print("({}, {})\n".format(node.x, node.y))
+
+        for y in range(config.map_size['height']):
+            print((self.map.map_virtual)[y],"\n")
+
+        # for node in path:
+        #     print("({}, {})\n".format(node.x, node.y))
+        print("Total cost: {}".format(goal_node.g))
 
 
 

@@ -1,10 +1,11 @@
 import config
-
+from FastestPathAlgo import FastestPathAlgo
 
 class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
+        self.algo = FastestPathAlgo(self.map, self.handler.robot)
 
     def explore(self):
         self.periodic_check()
@@ -34,8 +35,8 @@ class Core:
     def sense(self):
         self.handler.robot.sense()
 
-    def findSP(self):
-        pass
+    def findFP(self):
+        self.algo.find_fastest_path()
 
     def run(self):
         pass
