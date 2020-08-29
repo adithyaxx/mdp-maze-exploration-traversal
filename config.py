@@ -65,5 +65,3 @@ sensor_range = dict(
     left=3,
     right=5
 )
-
-# TODO: Distinguish between start , goal and obstacle. Robot cannot enter start/goal now because the areas are marked as wall

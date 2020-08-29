@@ -61,6 +61,7 @@ class Map:
         #   Map Legend:
         #   0 - free
         #   1 - obstacle
+        #   2 - virtual wall
         # ----------------------------------------------------------------------
         self.map_virtual = \
             [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -114,3 +115,10 @@ class Map:
     def mark_explored(self, x, y , is_explored , is_obstacle):
         self.map_is_explored[y][x] = is_explored
         self.map_virtual[y][x] = is_obstacle
+
+    def set_virtual_wall(self, x, y):
+        if(self.valid_range(y, x)):
+            self.map_virtual[y][x] = 2
+
+    def is_virtual_wall(self, x, y):
+        return self.map_virtual[y][x] == 2

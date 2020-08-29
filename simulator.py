@@ -60,7 +60,7 @@ class Simulator:
 
         explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.core.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
-        fastest_path_button = ttk.Button(action_pane, text='Fastest Path')
+        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.handler.findFP)
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))

@@ -259,4 +259,3 @@ class SimulatedRobot(Robot):
         self.sense_front(location, bearing, sensor_data[:3])
         self.sense_left(location, bearing, sensor_data[3])
         self.sense_right(location, bearing, sensor_data[4])
-
