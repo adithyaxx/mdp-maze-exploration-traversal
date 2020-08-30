@@ -64,7 +64,7 @@ class Map:
         #   1 - obstacle
         #   2 - virtual wall
         # ----------------------------------------------------------------------
-        #
+
         # self.map_virtual = \
         #     [[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
         #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -151,3 +151,9 @@ class Map:
 
     def is_virtual_wall(self, x, y):
         return self.map_virtual[y][x] == 2
+
+    def is_valid_open(self, x, y):
+        return self.map_virtual[y][x] == 0
+
+    def is_physical_wall(self, x, y):
+        return self.map_virtual[y][x] == 1
