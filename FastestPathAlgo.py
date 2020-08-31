@@ -43,10 +43,10 @@ class FastestPathAlgo():
                 # if self.map.map_virtual[i][j] == 1:
                 #     print("---- ",i , j)
 
-                if self.map.is_physical_wall(j, i):
+                if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
                     self.map.set_virtual_wall_around(j, i)
 
-        # print(self.map.map_virtual)
+        print(self.map.map_virtual)
 
 
     def check_valid_open(self, node):
