@@ -58,7 +58,11 @@ class Simulator:
         control_pane_window.add(parameter_pane, weight=4)
         control_pane_window.add(action_pane, weight=1)
 
-        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.core.explore)
+        self.steps_per_second = StringVar()
+        self.coverage_figure = StringVar()
+        self.time_limit = StringVar()
+
+        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
         fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.core.findFP)
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
@@ -69,29 +73,34 @@ class Simulator:
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
 
-        step_per_second = StringVar()
-        step_per_second_label = ttk.Label(parameter_pane, text="Step Per Second:")
+        step_per_second_label = ttk.Label(parameter_pane, text="Steps Per Second:")
         step_per_second_label.grid(column=0, row=0, sticky=W)
-        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=step_per_second)
+        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second)
         step_per_second_entry.grid(column=0, row=1, pady=(0, 10))
 
-        coverage_figure = StringVar()
         coverage_figure_label = ttk.Label(parameter_pane, text="Coverage Figure(%):")
         coverage_figure_label.grid(column=0, row=2, sticky=W)
-        coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=coverage_figure)
+        coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=self.coverage_figure)
         coverage_figure_entry.grid(column=0, row=3, pady=(0, 10))
 
-        time_limit = StringVar()
         time_limit_label = ttk.Label(parameter_pane, text="Time Limit(s):")
         time_limit_label.grid(column=0, row=4, sticky=W)
-        time_limit_entry = ttk.Entry(parameter_pane, textvariable=time_limit)
+        time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
         time_limit_entry.grid(column=0, row=5, pady=(0, 10))
+
+        self.coverage_figure.set(100)
+        self.time_limit.set(3600)
+        self.steps_per_second.set(1)
 
         self.control_panel.columnconfigure(0, weight=1)
         self.control_panel.rowconfigure(0, weight=1)
 
         self.update_map(full=True)
         self.root.mainloop()
+
+    def explore(self):
+        self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
+                          int(self.time_limit.get()))
 
     def update_cell(self, x, y):
         # Start & End box

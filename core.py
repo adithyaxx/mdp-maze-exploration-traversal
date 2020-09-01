@@ -1,36 +1,60 @@
+import time
+
 import config
 from FastestPathAlgo import FastestPathAlgo
+from constants import Bearing
+
 
 class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
         self.algo = FastestPathAlgo(self.map, self.handler.robot)
+        self.steps_per_second = -1
+        self.coverage = 100
+        self.time_limit = 3600
+        self.start = 0
 
-    def explore(self):
+    def explore(self, steps_per_second, coverage, time_limit):
+        self.steps_per_second = steps_per_second
+        self.coverage = coverage
+        self.time_limit = time_limit
+        self.start = time.time()
         self.periodic_check()
 
     def periodic_check(self):
+        current = time.time()
+        elapsed = current - self.start
+
+        if elapsed >= self.time_limit or self.map.get_coverage() >= self.coverage:
+            self.map.get_map_descriptor()
+            return
+
+        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
+            self.handler.right()
+            self.map.get_map_descriptor()
+            return
+
         self.sense()
         # print('Robot bearing: ', str(self.handler.robot.bearing))
         if self.check_left():
             self.handler.left()
             self.sense()
             if self.check_front() > 0:
-                self.handler.move(steps = 1)
+                self.handler.move(steps=1)
         else:
             steps = self.check_front()
 
             if steps > 0:
                 self.handler.move(steps=1)
-                print(steps)
+                # print(steps)
             else:
                 self.handler.right()
                 self.sense()
                 if self.check_front() > 0:
                     self.handler.move(steps=1)
 
-        self.handler.simulator.root.after(500, self.periodic_check)
+        self.handler.simulator.root.after(10, self.periodic_check)
 
     def sense(self):
         self.handler.robot.sense()

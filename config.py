@@ -59,9 +59,9 @@ robot_grid = dict(
 )
 
 sensor_range = dict(
-    front_middle=3,
-    front_left=3,
-    front_right=3,
+    front_middle=4,
+    front_left=4,
+    front_right=4,
     left=3,
-    right=5
+    right=6
 )

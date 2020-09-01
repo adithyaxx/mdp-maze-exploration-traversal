@@ -134,7 +134,7 @@ class SimulatedRobot(Robot):
         if dis > detect_range:
             dis = -detect_range
 
-        print("loc=", location, "sb=", sensor_bearing, "range=", detect_range, "steps=", dis)
+        # print("loc=", location, "sb=", sensor_bearing, "range=", detect_range, "steps=", dis)
 
         return dis
 
