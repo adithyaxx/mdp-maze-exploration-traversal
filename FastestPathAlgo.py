@@ -37,19 +37,7 @@ class FastestPathAlgo():
 
         self.open_list.append(self.start_node)
 
-        # create virtual wall
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
-                # if self.map.map_virtual[i][j] == 1:
-                #     print("---- ",i , j)
 
-                if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
-                    self.map.set_virtual_wall_around(j, i)
-
-        self.map.set_virtual_wall_border()
-
-        for i in range(config.map_size['height']):
-            print(self.map.map_virtual[i])
 
 
 
@@ -108,9 +96,25 @@ class FastestPathAlgo():
 
 
     def find_fastest_path(self):
+        # create virtual wall
+        for i in range(config.map_size['height']):
+            for j in range(config.map_size['width']):
+                # if self.map.map_virtual[i][j] == 1:
+                #     print("---- ",i , j)
+
+                if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
+                    self.map.set_virtual_wall_around(j, i)
+
+        self.map.set_virtual_wall_border()
+
+        for i in range(config.map_size['height']):
+            print(self.map.map_virtual[i])
+
+
         print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y, self.goal_node.x, self.goal_node.y))
         parent = None
         curDir = self.curDir
+
 
         while len(self.open_list) > 0:
 
@@ -179,7 +183,7 @@ class FastestPathAlgo():
             node = node.parent
 
         for y in range(config.map_size['height']):
-            print((self.map.map_virtual)[y],"\n")
+            print((self.map.map_virtual)[y])
 
         # for node in path:
         #     print("({}, {})\n".format(node.x, node.y))
