@@ -23,22 +23,15 @@ class Node():
 
 class FastestPathAlgo():
 
-    def __init__(self, map, robot, goalX = 13, goalY = 1):
+    def __init__(self, map, robot):
         self.map = map
         self.robot = robot
         self.open_list = []
         self.closed_list = []
-        self.curDir = self.robot.bearing
-
-        self.start_node = Node(robot.x, robot.y, parent=None, dir = self.curDir)
-        self.goal_node = Node(goalX, goalY, None)
-        self.start_node.g = 0
-        self.start_node.h = self.cost_h(self.start_node)
-
-        self.open_list.append(self.start_node)
-
-
-
+        self.waypoint = None
+        self.start_node = None
+        self.destination_node = None
+        self.goal_node = None
 
 
     def check_valid_open(self, node):
@@ -53,7 +46,7 @@ class FastestPathAlgo():
         for i in range(len(self.open_list)):
             # print("({} , {}): {} , {} ".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h))
             f = self.open_list[i].g + self.open_list[i].h
-            print("({} , {}): g = {} h = {} f = {} dir = {}".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h, f, self.open_list[i].dir))
+            # print("({} , {}): g = {} h = {} f = {} dir = {}".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h, f, self.open_list[i].dir))
             if(f < min_cost):
                 min_cost = f
                 best_node_index = i
@@ -94,9 +87,7 @@ class FastestPathAlgo():
         # print("turn cost: {}".format(turn_cost))
         return MOVE_COST + turn_cost
 
-
-    def find_fastest_path(self):
-        # create virtual wall
+    def create_virtual_wall(self):
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
                 # if self.map.map_virtual[i][j] == 1:
@@ -111,11 +102,48 @@ class FastestPathAlgo():
             print(self.map.map_virtual[i])
 
 
-        print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y, self.goal_node.x, self.goal_node.y))
-        parent = None
-        curDir = self.curDir
+    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 13, waypointY = 18, bearing = None):
+        self.create_virtual_wall()
+
+        if (bearing == None):
+            self.curDir = self.robot.bearing
+        else:
+            self.curDir = bearing
+
+        self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
+        self.start_node = Node(startX, startY, parent=None, dir=self.curDir)
+        self.destination_node = Node(goalX, goalY, None)
+        self.goal_node = self.waypoint
+
+        self.start_node.g = 0
+        self.start_node.h = self.cost_h(self.start_node)
+
+        self.open_list.append(self.start_node)
+
+        path_found = self.run()
+        if(not path_found):
+            print("no path found from start to waypoint")
+            return
+
+        self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
+        self.goal_node = self.destination_node
+        self.start_node.h = self.cost_h(self.start_node)
+        self.open_list.clear()
+        self.open_list.append(self.start_node)
+
+        path_found = self.run()
+
+        if(not path_found):
+            print("no path found from waypoint to goal")
+            return
+
+        self.print_path(self.closed_list.pop(len(self.closed_list) - 1))
 
 
+    def run(self):
+
+        print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
+                                                                          self.goal_node.x, self.goal_node.y))
         while len(self.open_list) > 0:
 
             best_index = self.best_first()
@@ -128,40 +156,44 @@ class FastestPathAlgo():
             # if(parent != None):
             #     curDir = self.get_target_dir(parent, current_node)
 
-            if(current_node == self.goal_node):
+            if (current_node == self.goal_node):
                 print("Fastest path found")
                 self.print_path(current_node)
-                return
+                return True
 
-            print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g, current_node.h, current_node.g + current_node.h, current_node.dir))
+            # print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g,
+            #                                                              current_node.h,
+            #                                                              current_node.g + current_node.h,
+            #                                                              current_node.dir))
 
             for neighbour_position in [(0, -1), (1, 0), (0, 1), (-1, 0)]:
 
-                neighbour = Node(current_node.x + neighbour_position[0], current_node.y + neighbour_position[1],  current_node)
+                neighbour = Node(current_node.x + neighbour_position[0], current_node.y + neighbour_position[1],
+                                 current_node)
                 # print("children: {}  {} ".format(neighbour.x, neighbour.y))
-                if(not self.check_valid_open(neighbour)):
+                if (not self.check_valid_open(neighbour)):
                     # print("Invalid children: {}  {} ".format(neighbour.x, neighbour.y))
                     continue
 
-                if(neighbour in self.closed_list):
+                if (neighbour in self.closed_list):
                     continue
 
                 dir = self.get_target_dir(current_node, neighbour)
-                if(neighbour not in self.open_list):
+                if (neighbour not in self.open_list):
                     neighbour.dir = dir
                     neighbour.g = self.cost_g(dir, curDir) + current_node.g
                     # print("neighbour g: {} , parent g: {}".format( self.cost_g(current_node, neighbour, dir) , current_node.g))
                     neighbour.h = self.cost_h(neighbour)
                     self.open_list.append(neighbour)
                     if (neighbour.x == 3 and neighbour.y == 18):
-                        print("=========="*5,self.get_turn_cost(curDir, dir))
+                        print("==========" * 5, self.get_turn_cost(curDir, dir))
 
                 else:
                     g_cost = self.cost_g(dir, curDir) + current_node.g
                     h_cost = self.cost_h(neighbour)
                     f_cost = g_cost + h_cost
                     index = self.open_list.index(neighbour)
-                    if(f_cost < self.open_list[index].g + self.open_list[index].h):
+                    if (f_cost < self.open_list[index].g + self.open_list[index].h):
                         self.open_list[index].dir = dir
                         self.open_list[index].g = g_cost
                         self.open_list[index].h = h_cost
@@ -170,8 +202,7 @@ class FastestPathAlgo():
 
             parent = current_node
 
-        print("No path found")
-        return None
+        return False
 
     def print_path(self, goal_node):
         # pass
