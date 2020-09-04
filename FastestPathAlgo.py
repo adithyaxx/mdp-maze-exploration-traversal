@@ -1,4 +1,5 @@
 import time
+from copy import deepcopy
 import config
 from constants import Bearing, MOVEMENT
 
@@ -6,6 +7,7 @@ from constants import Bearing, MOVEMENT
 INFINITE_COST = 9999
 MOVE_COST = 10
 TURN_COST = 20
+WAYPONT_PENALTY = 10
 
 class Node():
     def __init__(self, x, y, parent=None, dir=None, g=INFINITE_COST, h=INFINITE_COST):
@@ -104,7 +106,7 @@ class FastestPathAlgo():
         #     print(self.map.map_virtual[i])
 
 
-    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 13, waypointY = 18, bearing = None):
+    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 1, waypointY = 2, bearing = None):
         self.create_virtual_wall()
 
         if (bearing == None):
@@ -112,9 +114,10 @@ class FastestPathAlgo():
         else:
             self.curDir = bearing
 
+        self.initial_node = Node(startX, startY, parent=None, dir=self.curDir)
         self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
-        self.start_node = Node(startX, startY, parent=None, dir=self.curDir)
         self.destination_node = Node(goalX, goalY, None)
+        self.start_node = self.initial_node
         self.goal_node = self.waypoint
 
         self.start_node.g = 0
@@ -140,7 +143,28 @@ class FastestPathAlgo():
             print("no path found from waypoint to goal")
             return
 
-        self.print_path(self.closed_list.pop(len(self.closed_list) - 1))
+        self.temp_path = deepcopy(self.closed_list)
+        self.closed_list.clear()
+        self.open_list.clear()
+
+        self.start_node = self.initial_node
+        self.goal_node = self.destination_node
+        self.start_node.g = 0
+        self.start_node.h = self.cost_h(self.start_node)
+        self.open_list.append(self.start_node)
+
+        path_found = self.run()
+        if( not path_found):
+            print("no path found from start to goal")
+
+        print(self.closed_list[len(self.closed_list)-1].g , self.temp_path[len(self.temp_path) - 1].g)
+
+        if( self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY):
+            self.fastest_path_goal_node = self.closed_list[len(self.closed_list)-1]
+        else:
+            self.fastest_path_goal_node = self.temp_path[len(self.temp_path) - 1]
+
+        self.print_path(self.fastest_path_goal_node)
 
 
     def run(self):
@@ -244,7 +268,7 @@ class FastestPathAlgo():
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):
-            self.handler.simulator.root.after(500, self.execute_fastest_path)
+            self.handler.simulator.root.after(100, self.execute_fastest_path)
 
 
     def get_target_movement(self, from_dir, to_dir):
