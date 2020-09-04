@@ -9,7 +9,7 @@ class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
-        self.algo = FastestPathAlgo(self.map, self.handler.robot)
+        self.algo = FastestPathAlgo(self.map, self.handler.robot, self.handler)
         self.steps_per_second = -1
         self.coverage = 100
         self.time_limit = 3600
