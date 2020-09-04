@@ -1,41 +1,76 @@
+import time
+
 import config
+from FastestPathAlgo import FastestPathAlgo
+from constants import Bearing
 
 
 class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
+        self.algo = FastestPathAlgo(self.map, self.handler.robot, self.handler)
+        self.steps_per_second = -1
+        self.coverage = 100
+        self.time_limit = 3600
+        self.start = 0
 
-    def explore(self):
+    def explore(self, steps_per_second, coverage, time_limit):
+        self.steps_per_second = steps_per_second
+        self.coverage = coverage
+        self.time_limit = time_limit
+        self.start = time.time()
         self.periodic_check()
 
     def periodic_check(self):
+        current = time.time()
+        elapsed = current - self.start
+
+        if elapsed >= self.time_limit or self.map.get_coverage() >= self.coverage:
+            self.map.get_map_descriptor()
+            return
+
+        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
+            self.handler.right()
+            self.map.get_map_descriptor()
+            return
+
         self.sense()
-        # print('Robot bearing: ', str(self.handler.robot.bearing))
+        # Turn left and move forward if left is free
         if self.check_left():
             self.handler.left()
             self.sense()
-            if self.check_front() > 0:
-                self.handler.move(steps = 1)
+            steps = self.check_front()
+            if steps > 0:
+                self.handler.move(steps=1)
         else:
             steps = self.check_front()
 
+            # Move forward if front is free
             if steps > 0:
+                # Move forward by 1 step only if front left is free
+                # if self.check_top_left():
+                #     self.handler.move(steps=1)
+                # else:
+                #     self.handler.move(steps=steps)
+                #     self.sense(steps - 1)
+                #     self.handler.simulator.update_map(radius=5)
+
                 self.handler.move(steps=1)
-                print(steps)
             else:
                 self.handler.right()
                 self.sense()
-                if self.check_front() > 0:
+                steps = self.check_front()
+                if steps > 0:
                     self.handler.move(steps=1)
 
-        self.handler.simulator.root.after(500, self.periodic_check)
+        self.handler.simulator.root.after(400, self.periodic_check)
 
-    def sense(self):
-        self.handler.robot.sense()
+    def sense(self, backtrack=0):
+        self.handler.robot.sense(backtrack)
 
-    def findSP(self):
-        pass
+    def findFP(self):
+        self.algo.find_fastest_path()
 
     def run(self):
         pass
@@ -113,6 +148,33 @@ class Core:
         #
         # else:
         #     print("[Error] Invalid direction.")
+        return False
+
+    def check_top_left(self):
+        robot_x, robot_y = self.handler.robot.get_location()
+
+        offsets = [
+            [[-1, 0, 1], [-2, -2, -2]],
+            [[2, 2, 2], [-1, 0, 1]],
+            [[-1, 0, 1], [2, 2, 2]],
+            [[-2, -2, -2], [-1, 0, 1]]
+        ]
+        is_wall = [
+            robot_y < 2,
+            robot_x >= (config.map_size['width'] - 2),
+            robot_y >= (config.map_size['height'] - 2),
+            robot_x < 2
+        ]
+
+        bearing = self.handler.robot.get_left_bearing()
+        offset = offsets[bearing]
+
+        if is_wall[bearing]:
+            return False
+
+        if self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
+            return True
+
         return False
 
     def check_front(self):

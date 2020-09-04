@@ -1,12 +1,9 @@
-from time import sleep
 from tkinter import *
 import tkinter.ttk as ttk
 
 import config
 from constants import *
-from core import Core
 from handler import Handler
-from map import Map
 
 
 class Simulator:
@@ -58,9 +55,13 @@ class Simulator:
         control_pane_window.add(parameter_pane, weight=4)
         control_pane_window.add(action_pane, weight=1)
 
-        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.core.explore)
+        self.steps_per_second = StringVar()
+        self.coverage_figure = StringVar()
+        self.time_limit = StringVar()
+
+        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
-        fastest_path_button = ttk.Button(action_pane, text='Fastest Path')
+        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.core.findFP)
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
@@ -69,29 +70,34 @@ class Simulator:
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
 
-        step_per_second = StringVar()
-        step_per_second_label = ttk.Label(parameter_pane, text="Step Per Second:")
+        step_per_second_label = ttk.Label(parameter_pane, text="Steps Per Second:")
         step_per_second_label.grid(column=0, row=0, sticky=W)
-        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=step_per_second)
+        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second)
         step_per_second_entry.grid(column=0, row=1, pady=(0, 10))
 
-        coverage_figure = StringVar()
         coverage_figure_label = ttk.Label(parameter_pane, text="Coverage Figure(%):")
         coverage_figure_label.grid(column=0, row=2, sticky=W)
-        coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=coverage_figure)
+        coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=self.coverage_figure)
         coverage_figure_entry.grid(column=0, row=3, pady=(0, 10))
 
-        time_limit = StringVar()
         time_limit_label = ttk.Label(parameter_pane, text="Time Limit(s):")
         time_limit_label.grid(column=0, row=4, sticky=W)
-        time_limit_entry = ttk.Entry(parameter_pane, textvariable=time_limit)
+        time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
         time_limit_entry.grid(column=0, row=5, pady=(0, 10))
+
+        self.coverage_figure.set(100)
+        self.time_limit.set(3600)
+        self.steps_per_second.set(1)
 
         self.control_panel.columnconfigure(0, weight=1)
         self.control_panel.rowconfigure(0, weight=1)
 
         self.update_map(full=True)
         self.root.mainloop()
+
+    def explore(self):
+        self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
+                          int(self.time_limit.get()))
 
     def update_cell(self, x, y):
         # Start & End box
@@ -100,25 +106,27 @@ class Simulator:
             map_image = self.map_start_end
         else:
             if self.map.map_is_explored[y][x] == 0:
-                if self.map.map_virtual[y][x] == 0:
+                if self.map.map_sim[y][x] == 0:
                     map_image = self.map_unexplored
                 else:
                     map_image = self.map_obstacle_unexplored
             else:
-                if self.map.map_virtual[y][x] == 0:
+                if self.map.is_free(x, y, False):
                     map_image = self.map_free
                 else:
                     map_image = self.map_obstacle
 
         # Change map
-        cell = Label(self.map_panel, image=map_image, borderwidth=1)
-        cell.bind('<Button-1>', lambda e, i=x, j=y: self.on_click(i, j, e))
-        try:
-            self.map_panel[x][y].destroy()
-        except Exception:
-            pass
-        cell.grid(column=x, row=y)
-        config.map_cells[y][x] = cell
+        # if config.map_cells[y][x]:
+        #     config.map_cells[y][x].config(image=map_image)
+        # else:
+        #     config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+
+        if config.map_cells[y][x]:
+            config.map_cells[y][x].destroy()
+        config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+
+        config.map_cells[y][x].grid(column=x, row=y)
 
     def on_click(self, x, y, event):
         if self.map.map_sim[y][x] == 0:
@@ -147,16 +155,31 @@ class Simulator:
                 cell.grid(column=x - 1 + j, row=y - 1 + i)
 
     def update_map(self, radius=2, full=False):
-        for y in range(config.map_size['height']):
-            for x in range(config.map_size['width']):
-                if (
-                        self.robot.y - radius <= y <= self.robot.y + radius and self.robot.x - radius <= x <= self.robot.x + radius) or full:
-                    self.update_cell(x, y)
+        # for y in range(config.map_size['height']):
+        #     for x in range(config.map_size['width']):
+        #         if (self.robot.y - radius <= y <= self.robot.y + radius and
+        #             self.robot.x - radius <= x <= self.robot.x + radius) or full:
+        #             self.update_cell(x, y)
+        if full:
+            y_range = range(config.map_size['height'])
+            x_range = range(config.map_size['width'])
+        else:
+            y_range = range(
+                max(0, self.robot.y - radius),
+                min(self.robot.y + radius, config.map_size['height'] - 1) + 1
+            )
+            x_range = range(
+                max(0, self.robot.x - radius),
+                min(self.robot.x + radius, config.map_size['width'] - 1) + 1
+            )
+
+        for y in y_range:
+            for x in x_range:
+                self.update_cell(x, y)
 
         self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
     # Robot's movement manual control
-
     def move(self):
         self.handler.move()
         self.update_map()
