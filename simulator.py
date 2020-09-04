@@ -114,7 +114,7 @@ class Simulator:
                 else:
                     map_image = self.map_obstacle_unexplored
             else:
-                if self.map.map_virtual[y][x] == 0:
+                if self.map.is_free(x, y, False):
                     map_image = self.map_free
                 else:
                     map_image = self.map_obstacle
