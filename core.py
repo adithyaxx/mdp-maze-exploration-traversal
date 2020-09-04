@@ -36,28 +36,38 @@ class Core:
             return
 
         self.sense()
-        # print('Robot bearing: ', str(self.handler.robot.bearing))
+        # Turn left and move forward if left is free
         if self.check_left():
             self.handler.left()
             self.sense()
-            if self.check_front() > 0:
+            steps = self.check_front()
+            if steps > 0:
                 self.handler.move(steps=1)
         else:
             steps = self.check_front()
 
+            # Move forward if front is free
             if steps > 0:
+                # Move forward by 1 step only if front left is free
+                # if self.check_top_left():
+                #     self.handler.move(steps=1)
+                # else:
+                #     self.handler.move(steps=steps)
+                #     self.sense(steps - 1)
+                #     self.handler.simulator.update_map(radius=5)
+
                 self.handler.move(steps=1)
-                # print(steps)
             else:
                 self.handler.right()
                 self.sense()
-                if self.check_front() > 0:
+                steps = self.check_front()
+                if steps > 0:
                     self.handler.move(steps=1)
 
-        self.handler.simulator.root.after(10, self.periodic_check)
+        self.handler.simulator.root.after(400, self.periodic_check)
 
-    def sense(self):
-        self.handler.robot.sense()
+    def sense(self, backtrack=0):
+        self.handler.robot.sense(backtrack)
 
     def findFP(self):
         self.algo.find_fastest_path()
@@ -138,6 +148,33 @@ class Core:
         #
         # else:
         #     print("[Error] Invalid direction.")
+        return False
+
+    def check_top_left(self):
+        robot_x, robot_y = self.handler.robot.get_location()
+
+        offsets = [
+            [[-1, 0, 1], [-2, -2, -2]],
+            [[2, 2, 2], [-1, 0, 1]],
+            [[-1, 0, 1], [2, 2, 2]],
+            [[-2, -2, -2], [-1, 0, 1]]
+        ]
+        is_wall = [
+            robot_y < 2,
+            robot_x >= (config.map_size['width'] - 2),
+            robot_y >= (config.map_size['height'] - 2),
+            robot_x < 2
+        ]
+
+        bearing = self.handler.robot.get_left_bearing()
+        offset = offsets[bearing]
+
+        if is_wall[bearing]:
+            return False
+
+        if self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
+            return True
+
         return False
 
     def check_front(self):

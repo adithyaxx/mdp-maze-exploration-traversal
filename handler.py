@@ -21,15 +21,15 @@ class Handler:
 
     def move(self, steps=1):
         self.robot.move(steps=steps)
-        self.simulator.update_map(radius=4)
+        self.simulator.update_map(radius=3)
 
     def left(self):
         self.robot.left()
-        self.simulator.update_map(radius=4)
+        self.simulator.update_map(radius=3)
 
     def right(self):
         self.robot.right()
-        self.simulator.update_map(radius=4)
+        self.simulator.update_map(radius=3)
 
     def get_location(self):
         self.robot.get_location()

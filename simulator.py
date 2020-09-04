@@ -1,12 +1,9 @@
-from time import sleep
 from tkinter import *
 import tkinter.ttk as ttk
 
 import config
 from constants import *
-from core import Core
 from handler import Handler
-from map import Map
 
 
 class Simulator:
@@ -120,14 +117,16 @@ class Simulator:
                     map_image = self.map_obstacle
 
         # Change map
-        cell = Label(self.map_panel, image=map_image, borderwidth=1)
-        cell.bind('<Button-1>', lambda e, i=x, j=y: self.on_click(i, j, e))
-        try:
-            self.map_panel[x][y].destroy()
-        except Exception:
-            pass
-        cell.grid(column=x, row=y)
-        config.map_cells[y][x] = cell
+        # if config.map_cells[y][x]:
+        #     config.map_cells[y][x].config(image=map_image)
+        # else:
+        #     config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+
+        if config.map_cells[y][x]:
+            config.map_cells[y][x].destroy()
+        config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+
+        config.map_cells[y][x].grid(column=x, row=y)
 
     def on_click(self, x, y, event):
         if self.map.map_sim[y][x] == 0:
@@ -156,16 +155,31 @@ class Simulator:
                 cell.grid(column=x - 1 + j, row=y - 1 + i)
 
     def update_map(self, radius=2, full=False):
-        for y in range(config.map_size['height']):
-            for x in range(config.map_size['width']):
-                if (
-                        self.robot.y - radius <= y <= self.robot.y + radius and self.robot.x - radius <= x <= self.robot.x + radius) or full:
-                    self.update_cell(x, y)
+        # for y in range(config.map_size['height']):
+        #     for x in range(config.map_size['width']):
+        #         if (self.robot.y - radius <= y <= self.robot.y + radius and
+        #             self.robot.x - radius <= x <= self.robot.x + radius) or full:
+        #             self.update_cell(x, y)
+        if full:
+            y_range = range(config.map_size['height'])
+            x_range = range(config.map_size['width'])
+        else:
+            y_range = range(
+                max(0, self.robot.y - radius),
+                min(self.robot.y + radius, config.map_size['height'] - 1) + 1
+            )
+            x_range = range(
+                max(0, self.robot.x - radius),
+                min(self.robot.x + radius, config.map_size['width'] - 1) + 1
+            )
+
+        for y in y_range:
+            for x in x_range:
+                self.update_cell(x, y)
 
         self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
     # Robot's movement manual control
-
     def move(self):
         self.handler.move()
         self.update_map()

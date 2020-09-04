@@ -158,6 +158,7 @@ class SimulatedRobot(Robot):
                 self.get_front_right(),
                 self.get_left(),
                 self.get_right()]
+
     # ----------------------------------------------------------------------
 
     # # ----------------------------------------------------------------------
@@ -228,13 +229,14 @@ class SimulatedRobot(Robot):
     def sense_left(self, location, bearing, sensor_data):
 
         sensor_offsets = [
-            [-1, -1 ],
+            [-1, -1],
             [1, -1],
             [1, 1],
             [-1, 1]
         ]
         offset = sensor_offsets[bearing]
-        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data, Bearing.prev_bearing(bearing), config.sensor_range['left'])
+        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
+                                Bearing.prev_bearing(bearing), config.sensor_range['left'])
 
     # call update map for right sensor
     def sense_right(self, location, bearing, sensor_data):
@@ -250,8 +252,8 @@ class SimulatedRobot(Robot):
         self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
                                 Bearing.next_bearing(bearing), config.sensor_range['right'])
 
-    #sense simulated sensor
-    def sense(self):
+    # sense simulated sensor
+    def sense(self, backtrack=0):
         sensor_data = self.receive()
         location = self.get_location()
         bearing = self.bearing
@@ -259,3 +261,26 @@ class SimulatedRobot(Robot):
         self.sense_front(location, bearing, sensor_data[:3])
         self.sense_left(location, bearing, sensor_data[3])
         self.sense_right(location, bearing, sensor_data[4])
+
+        for i in range(1, backtrack + 1):
+            if bearing == Bearing.NORTH:
+                x, y = location
+                y += i
+            elif bearing == Bearing.SOUTH:
+                x, y = location
+                y -= i
+            elif bearing == Bearing.EAST:
+                x, y = location
+                x -= i
+            else:
+                x, y = location
+                x += i
+
+            self.set_location(x, y)
+            sensor_data = self.receive()
+            self.sense_front((x, y), bearing, sensor_data[:3])
+            self.sense_left((x, y), bearing, sensor_data[3])
+            self.sense_right((x, y), bearing, sensor_data[4])
+
+        x, y = location
+        self.set_location(x, y)
