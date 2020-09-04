@@ -7,7 +7,7 @@ from constants import Bearing, MOVEMENT
 INFINITE_COST = 9999
 MOVE_COST = 10
 TURN_COST = 20
-WAYPONT_PENALTY = 10
+WAYPONT_PENALTY = 1000
 
 class Node():
     def __init__(self, x, y, parent=None, dir=None, g=INFINITE_COST, h=INFINITE_COST):
@@ -106,7 +106,7 @@ class FastestPathAlgo():
         #     print(self.map.map_virtual[i])
 
 
-    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 1, waypointY = 2, bearing = None):
+    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 2, waypointY = 1, bearing = None):
         self.create_virtual_wall()
 
         if (bearing == None):
@@ -125,23 +125,22 @@ class FastestPathAlgo():
 
         self.open_list.append(self.start_node)
 
-        path_found = self.run()
-        if(not path_found):
+        path_found_wp = self.run()
+        if(not path_found_wp):
             print("no path found from start to waypoint")
-            return
 
-        self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
-        self.goal_node = self.destination_node
-        self.start_node.h = self.cost_h(self.start_node)
-        self.open_list.clear()
-        self.closed_list.clear()
-        self.open_list.append(self.start_node)
+        else:
+            self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
+            self.goal_node = self.destination_node
+            self.start_node.h = self.cost_h(self.start_node)
+            self.open_list.clear()
+            self.closed_list.clear()
+            self.open_list.append(self.start_node)
 
-        path_found = self.run()
+            path_found_wp = self.run()
 
-        if(not path_found):
+        if(not path_found_wp):
             print("no path found from waypoint to goal")
-            return
 
         self.temp_path = deepcopy(self.closed_list)
         self.closed_list.clear()
@@ -153,14 +152,19 @@ class FastestPathAlgo():
         self.start_node.h = self.cost_h(self.start_node)
         self.open_list.append(self.start_node)
 
-        path_found = self.run()
-        if( not path_found):
+        path_found_fp = self.run()
+        if( not path_found_fp):
             print("no path found from start to goal")
 
         print(self.closed_list[len(self.closed_list)-1].g , self.temp_path[len(self.temp_path) - 1].g)
 
-        if( self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY):
-            self.fastest_path_goal_node = self.closed_list[len(self.closed_list)-1]
+        if path_found_wp and path_found_fp:
+            if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY:
+                self.fastest_path_goal_node = self.closed_list[len(self.closed_list)-1]
+            else:
+                self.fastest_path_goal_node = self.temp_path[len(self.temp_path) - 1]
+        elif path_found_fp:
+            self.fastest_path_goal_node = self.closed_list[len(self.closed_list) - 1]
         else:
             self.fastest_path_goal_node = self.temp_path[len(self.temp_path) - 1]
 
