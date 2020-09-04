@@ -268,7 +268,7 @@ class FastestPathAlgo():
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):
-            self.handler.simulator.root.after(100, self.execute_fastest_path)
+            self.handler.simulator.root.after(400, self.execute_fastest_path)
 
 
     def get_target_movement(self, from_dir, to_dir):
