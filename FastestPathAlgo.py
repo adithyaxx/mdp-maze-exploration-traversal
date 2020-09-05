@@ -108,6 +108,8 @@ class FastestPathAlgo():
 
     def find_fastest_path(self,  goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2):
         self.create_virtual_wall()
+        self.open_list.clear()
+        self.closed_list.clear()
 
         self.curDir = self.robot.bearing
 
@@ -177,14 +179,10 @@ class FastestPathAlgo():
         while len(self.open_list) > 0:
 
             best_index = self.best_first()
-            # current_node.parent = parent
 
             current_node = self.open_list.pop(best_index)
             self.closed_list.append(current_node)
             curDir = current_node.dir
-
-            # if(parent != None):
-            #     curDir = self.get_target_dir(parent, current_node)
 
             if (current_node == self.goal_node):
                 print("Fastest path found")
@@ -227,8 +225,6 @@ class FastestPathAlgo():
                         self.open_list[index].parent = current_node
                 # print("Added children: {}  {} ".format( neighbour.x, neighbour.y))
 
-            parent = current_node
-
         return False
 
 
@@ -252,9 +248,10 @@ class FastestPathAlgo():
         # self.path[0].dir = self.get_target_dir(self.path[0], self.path[1])
         self.path_counter = 0
 
-        for m in self.movements:
-            print(m)
+        # for m in self.movements:
+        #     print(m)
         print("EXECUTING FASTEST PATH")
+
         self.execute_fastest_path()
 
 
