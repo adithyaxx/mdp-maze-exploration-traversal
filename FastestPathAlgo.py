@@ -106,13 +106,10 @@ class FastestPathAlgo():
         #     print(self.map.map_virtual[i])
 
 
-    def find_fastest_path(self,  startX = 1, startY = 18, goalX = 13, goalY = 1, waypointX = 2, waypointY = 1, bearing = None):
+    def find_fastest_path(self,  goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2):
         self.create_virtual_wall()
 
-        if (bearing == None):
-            self.curDir = self.robot.bearing
-        else:
-            self.curDir = bearing
+        self.curDir = self.robot.bearing
 
         self.initial_node = Node(startX, startY, parent=None, dir=self.curDir)
         self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
@@ -125,22 +122,24 @@ class FastestPathAlgo():
 
         self.open_list.append(self.start_node)
 
-        path_found_wp = self.run()
-        if(not path_found_wp):
-            print("no path found from start to waypoint")
-
-        else:
-            self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
-            self.goal_node = self.destination_node
-            self.start_node.h = self.cost_h(self.start_node)
-            self.open_list.clear()
-            self.closed_list.clear()
-            self.open_list.append(self.start_node)
-
+        path_found_wp = False
+        if self.waypoint.x > 0 and self.waypoint.x < config.map_size['width']-1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height']-1:
             path_found_wp = self.run()
+            if(not path_found_wp):
+                print("no path found from start to waypoint")
 
-        if(not path_found_wp):
-            print("no path found from waypoint to goal")
+            else:
+                self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
+                self.goal_node = self.destination_node
+                self.start_node.h = self.cost_h(self.start_node)
+                self.open_list.clear()
+                self.closed_list.clear()
+                self.open_list.append(self.start_node)
+
+                path_found_wp = self.run()
+
+                if(not path_found_wp):
+                    print("no path found from waypoint to goal")
 
         self.temp_path = deepcopy(self.closed_list)
         self.closed_list.clear()
@@ -153,10 +152,10 @@ class FastestPathAlgo():
         self.open_list.append(self.start_node)
 
         path_found_fp = self.run()
-        if( not path_found_fp):
+        if(not path_found_fp):
             print("no path found from start to goal")
 
-        print(self.closed_list[len(self.closed_list)-1].g , self.temp_path[len(self.temp_path) - 1].g)
+        # print(self.closed_list[len(self.closed_list)-1].g , self.temp_path[len(self.temp_path) - 1].g)
 
         if path_found_wp and path_found_fp:
             if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY:

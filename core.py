@@ -69,8 +69,8 @@ class Core:
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
 
-    def findFP(self):
-        self.algo.find_fastest_path()
+    def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y):
+        self.algo.find_fastest_path(goalX=goal_x, goalY=goal_y,  waypointX=waypoint_x, waypointY=waypoint_y)
 
     def run(self):
         pass

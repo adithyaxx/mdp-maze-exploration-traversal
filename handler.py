@@ -31,6 +31,10 @@ class Handler:
         self.robot.right()
         self.simulator.update_map(radius=3)
 
+    def reset(self):
+        self.robot.reset()
+        self.map.reset()
+
     def get_location(self):
         self.robot.get_location()
 

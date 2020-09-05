@@ -81,3 +81,8 @@ class Robot:
 
     def receive(self):
         raise NotImplementedError
+
+    def reset(self):
+        self.y = config.map_size['height'] - 2
+        self.x = 1
+        self.bearing = Bearing.NORTH

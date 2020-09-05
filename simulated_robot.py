@@ -284,3 +284,5 @@ class SimulatedRobot(Robot):
 
         x, y = location
         self.set_location(x, y)
+
+

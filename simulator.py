@@ -39,7 +39,7 @@ class Simulator:
 
         t = Toplevel(self.root)
         t.title("Control Panel")
-        t.geometry('190x360+600+28')
+        t.geometry('210x550+605+28')
         t.resizable(False, False)
 
         self.map_panel = ttk.Frame(self.root, borderwidth=0, relief='solid')
@@ -58,10 +58,14 @@ class Simulator:
         self.steps_per_second = StringVar()
         self.coverage_figure = StringVar()
         self.time_limit = StringVar()
+        self.waypoint_x = StringVar()
+        self.waypoint_y = StringVar()
+        self.goal_x = StringVar()
+        self.goal_y = StringVar()
 
         explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.explore)
         explore_button.grid(column=0, row=0, sticky=(W, E))
-        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.core.findFP)
+        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.findFP)
         fastest_path_button.grid(column=0, row=1, sticky=(W, E))
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
         move_button.grid(column=0, row=2, sticky=(W, E))
@@ -69,6 +73,8 @@ class Simulator:
         left_button.grid(column=0, row=3, sticky=(W, E))
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky=(W, E))
+        reset_button = ttk.Button(action_pane, text='Reset', command=self.reset)
+        reset_button.grid(column=0, row=5, sticky=(W, E))
 
         step_per_second_label = ttk.Label(parameter_pane, text="Steps Per Second:")
         step_per_second_label.grid(column=0, row=0, sticky=W)
@@ -85,9 +91,27 @@ class Simulator:
         time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
         time_limit_entry.grid(column=0, row=5, pady=(0, 10))
 
+        waypoint_label = ttk.Label(parameter_pane, text="Waypoint(x,y):")
+        waypoint_label.grid(column=0, row=6, sticky=W)
+        waypoint_x_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_x)
+        waypoint_y_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_y)
+        waypoint_x_entry.grid(column=0, row=7, pady=(0, 0))
+        waypoint_y_entry.grid(column=0, row=8, pady=(0, 10))
+
+        goal_label = ttk.Label(parameter_pane, text="Goal(x,y):")
+        goal_label.grid(column=0, row=9, sticky=W)
+        goal_x_entry = ttk.Entry(parameter_pane, textvariable=self.goal_x)
+        goal_y_entry = ttk.Entry(parameter_pane, textvariable=self.goal_y)
+        goal_x_entry.grid(column=0, row=10, pady=(0, 0))
+        goal_y_entry.grid(column=0, row=11, pady=(0, 10))
+
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
         self.steps_per_second.set(1)
+        self.waypoint_x.set(0)
+        self.waypoint_y.set(0)
+        self.goal_x.set(13)
+        self.goal_y.set(1)
 
         self.control_panel.columnconfigure(0, weight=1)
         self.control_panel.rowconfigure(0, weight=1)
@@ -98,6 +122,10 @@ class Simulator:
     def explore(self):
         self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
                           int(self.time_limit.get()))
+
+    def findFP(self):
+        self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()))
 
     def update_cell(self, x, y):
         # Start & End box
@@ -191,3 +219,7 @@ class Simulator:
     def right(self):
         self.handler.right()
         self.update_map()
+
+    def reset(self):
+        self.handler.reset()
+        self.update_map(full = True)
