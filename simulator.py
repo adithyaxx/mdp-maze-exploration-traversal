@@ -32,18 +32,18 @@ class Simulator:
             self.robot_s.append([])
             self.robot_w.append([])
             for j in range(3):
-                self.robot_n[i].append(PhotoImage(file=config.robot_grid['north'][i][j]))
-                self.robot_e[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
-                self.robot_s[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
-                self.robot_w[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
+                self.robot_n[i].append(config.robot_grid['north'][i][j])
+                self.robot_e[i].append(config.robot_grid['east'][i][j])
+                self.robot_s[i].append(config.robot_grid['south'][i][j])
+                self.robot_w[i].append(config.robot_grid['west'][i][j])
 
         t = Toplevel(self.root)
         t.title("Control Panel")
         t.geometry('210x550+605+28')
         t.resizable(False, False)
 
-        self.map_panel = ttk.Frame(self.root, borderwidth=0, relief='solid')
-        self.map_panel.grid(row=0, column=0, sticky="snew")
+        self.canvas = Canvas(self.root, width=40 * config.map_size['width'], height=40 * config.map_size['height'])
+        self.canvas.pack()
 
         self.control_panel = ttk.Frame(t, padding=(10, 10))
         self.control_panel.grid(row=0, column=1, sticky="snew")
@@ -131,30 +131,23 @@ class Simulator:
         # Start & End box
         if ((0 <= y < 3) and (config.map_size['width'] - 3 <= x < config.map_size['width'])) or \
                 ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
-            map_image = self.map_start_end
+            color = 'gold'
         else:
             if self.map.map_is_explored[y][x] == 0:
                 if self.map.map_sim[y][x] == 0:
-                    map_image = self.map_unexplored
+                    color = 'gray64'
                 else:
-                    map_image = self.map_obstacle_unexplored
+                    color = 'light pink'
             else:
                 if self.map.is_free(x, y, False):
-                    map_image = self.map_free
+                    color = 'dark green'
                 else:
-                    map_image = self.map_obstacle
+                    color = 'red4'
 
-        # Change map
-        # if config.map_cells[y][x]:
-        #     config.map_cells[y][x].config(image=map_image)
-        # else:
-        #     config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
-
-        if config.map_cells[y][x]:
-            config.map_cells[y][x].destroy()
-        config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
-
-        config.map_cells[y][x].grid(column=x, row=y)
+        if not config.map_cells[y][x]:
+            config.map_cells[y][x] = self.canvas.create_rectangle(x * 40, y * 40, x * 40 + 40, y * 40 + 40, fill=color)
+        else:
+            self.canvas.itemconfig(config.map_cells[y][x], fill=color)
 
     def on_click(self, x, y, event):
         if self.map.map_sim[y][x] == 0:
@@ -165,29 +158,26 @@ class Simulator:
 
     def put_robot(self, x, y, bearing):
         if bearing == Bearing.NORTH:
-            robot_label = self.robot_n
+            robot_color = self.robot_n
         elif bearing == Bearing.EAST:
-            robot_label = self.robot_e
+            robot_color = self.robot_e
         elif bearing == Bearing.SOUTH:
-            robot_label = self.robot_s
+            robot_color = self.robot_s
         else:
-            robot_label = self.robot_w
+            robot_color = self.robot_w
 
         for i in range(3):
             for j in range(3):
-                cell = Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
-                try:
-                    self.map_panel[x - 1 + j][y - 1 + i].destroy()
-                except Exception:
-                    pass
-                cell.grid(column=x - 1 + j, row=y - 1 + i)
+                if config.map_cells[y - 1 + i][x - 1 + j]:
+                    config.map_cells[y - 1 + i][x - 1 + j] = self.canvas.create_rectangle((x - 1 + j) * 40,
+                                                                                          (y - 1 + i) * 40,
+                                                                                          ((x - 1 + j) * 40) + 40,
+                                                                                          ((y - 1 + i) * 40) + 40,
+                                                                                          fill=robot_color[i][j])
+                else:
+                    self.canvas.itemconfig(config.map_cells[y - 1 + i][x - 1 + j], fill=robot_color[i][j])
 
     def update_map(self, radius=2, full=False):
-        # for y in range(config.map_size['height']):
-        #     for x in range(config.map_size['width']):
-        #         if (self.robot.y - radius <= y <= self.robot.y + radius and
-        #             self.robot.x - radius <= x <= self.robot.x + radius) or full:
-        #             self.update_cell(x, y)
         if full:
             y_range = range(config.map_size['height'])
             x_range = range(config.map_size['width'])
@@ -222,4 +212,4 @@ class Simulator:
 
     def reset(self):
         self.handler.reset()
-        self.update_map(full = True)
+        self.update_map(full=True)
