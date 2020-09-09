@@ -131,7 +131,7 @@ class FastestPathAlgo():
                 print("no path found from start to waypoint")
 
             else:
-                self.start_node =  self.closed_list.pop(len(self.closed_list) - 1)
+                self.start_node = self.closed_list.pop(len(self.closed_list) - 1)
                 self.goal_node = self.destination_node
                 self.start_node.h = self.cost_h(self.start_node)
                 self.open_list.clear()
@@ -142,6 +142,8 @@ class FastestPathAlgo():
 
                 if(not path_found_wp):
                     print("no path found from waypoint to goal")
+        else:
+            print("Waypoints out of bound")
 
         self.temp_path = deepcopy(self.closed_list)
         self.closed_list.clear()
@@ -176,6 +178,8 @@ class FastestPathAlgo():
 
         print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
                                                                           self.goal_node.x, self.goal_node.y))
+        start = time.time()
+
         while len(self.open_list) > 0:
 
             best_index = self.best_first()
@@ -185,7 +189,8 @@ class FastestPathAlgo():
             curDir = current_node.dir
 
             if (current_node == self.goal_node):
-                print("Fastest path found")
+                end = time.time()
+                print("Fastest path found in {:0.5f} second".format(end - start))
                 return True
 
             # print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g,
@@ -224,6 +229,9 @@ class FastestPathAlgo():
                         self.open_list[index].h = h_cost
                         self.open_list[index].parent = current_node
                 # print("Added children: {}  {} ".format( neighbour.x, neighbour.y))
+
+        end = time.time()
+        print("No path found in {:0.2f}".format(end - start))
 
         return False
 
@@ -268,7 +276,7 @@ class FastestPathAlgo():
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):
-            self.handler.simulator.root.after(400, self.execute_fastest_path)
+            self.handler.simulator.root.after(100, self.execute_fastest_path)
 
 
     def get_target_movement(self, from_dir, to_dir):
