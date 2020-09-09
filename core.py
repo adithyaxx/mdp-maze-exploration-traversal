@@ -64,7 +64,7 @@ class Core:
                 if steps > 0:
                     self.handler.move(steps=1)
 
-        self.handler.simulator.root.after(100, self.periodic_check)
+        self.handler.simulator.root.after(10, self.periodic_check)
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
