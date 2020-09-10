@@ -27,12 +27,16 @@ class Core:
         elapsed = current - self.start
 
         if elapsed >= self.time_limit or self.map.get_coverage() >= self.coverage:
-            self.map.get_map_descriptor()
+            explored_hex, obstacles_hex = self.map.get_map_descriptor()
+            self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
+            self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
             return
 
         if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
             self.handler.right()
-            self.map.get_map_descriptor()
+            explored_hex, obstacles_hex = self.map.get_map_descriptor()
+            self.handler.simulator.text_area.insert('end', explored_hex + '\n\n')
+            self.handler.simulator.text_area.insert('end', obstacles_hex + '\n\n')
             return
 
         self.sense()
@@ -70,7 +74,7 @@ class Core:
         self.handler.robot.sense(backtrack)
 
     def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y):
-        self.algo.find_fastest_path(goalX=goal_x, goalY=goal_y,  waypointX=waypoint_x, waypointY=waypoint_y)
+        self.algo.find_fastest_path(goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y)
 
     def run(self):
         pass

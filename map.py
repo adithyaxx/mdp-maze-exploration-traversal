@@ -59,24 +59,24 @@ class Map:
         #   1 - obstacle
         # ----------------------------------------------------------------------
         self.map_sim = \
-            [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+             [1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-             [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
@@ -205,18 +205,26 @@ class Map:
         explored_str = "".join(explored_str)
 
         obstacles_str = []
+        reversed_list = list(reversed(self.map_virtual))
 
         for y, row in enumerate(reversed(self.map_is_explored)):
             for x, val in enumerate(row):
                 if val:
-                    obstacles_str.append(str(list(reversed(self.map_virtual))[y][x]))
+                    obstacles_str.append(str(reversed_list[y][x]))
 
-        padding_len = len(obstacles_str) % 8
+        padding_len = 8 - (len(obstacles_str) % 8)
         obstacles_str.extend(['0' for _ in range(padding_len)])
-        obstacles_str = "".join(obstacles_str)
 
-        explored_hex = hex(int(explored_str, 2))
-        obstacles_hex = hex(int(obstacles_str, 2))
+        explored_hex = hex(int(explored_str, 2))[2:]
+
+        i = 0
+        obstacles_hex = []
+
+        while i < len(obstacles_str) - 4:
+            obstacles_hex.append(hex(int("".join(obstacles_str[i:i + 4]), 2))[2:])
+            i += 4
+
+        obstacles_hex = ("".join(obstacles_hex))
 
         print(explored_hex)
         print(obstacles_hex)
@@ -227,11 +235,8 @@ class Map:
         self.map_virtual = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
         self.map_is_explored = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
 
-        #assuming robot always start at the start position
+        # assuming robot always start at the start position
         for i in range(3):
             for j in range(3):
                 self.map_is_explored[config.map_size['height'] - 1 - i][j] = 1
-                self.map_is_explored[i][config.map_size['width'] - 1 - j] =1
-
-
-
+                self.map_is_explored[i][config.map_size['width'] - 1 - j] = 1
