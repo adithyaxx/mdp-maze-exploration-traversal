@@ -38,6 +38,27 @@ class Robot:
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
 
+    def left_diag(self):
+        self.bearing = Bearing.prev_bearing_diag(self.bearing)
+
+    def right_diag(self):
+        self.bearing = Bearing.next_bearing_diag(self.bearing)
+
+    def move_diag(self, steps = 1):
+        if self.bearing == Bearing.NORTH_EAST:
+            self.x += steps
+            self.y -= steps
+        elif self.bearing == Bearing.SOUTH_EAST:
+            self.x += steps
+            self.y += steps
+        elif self.bearing == Bearing.SOUTH_WEST:
+            self.x -= steps
+            self.y += steps
+        else:
+            self.x -= steps
+            self.y -= steps
+
+
     # check obstacles
     def north_is_free(self):
         for i in range(3):

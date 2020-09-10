@@ -31,6 +31,18 @@ class Handler:
         self.robot.right()
         self.simulator.update_map(radius=3)
 
+    def left_diag(self):
+        self.robot.left_diag()
+        self.simulator.update_map(radius=3)
+
+    def right_diag(self):
+        self.robot.right_diag()
+        self.simulator.update_map(radius=3)
+
+    def move_diag(self, steps = 1):
+        self.robot.move_diag(steps=steps)
+        self.simulator.update_map(radius=3)
+
     def reset(self):
         self.robot.reset()
         self.map.reset()

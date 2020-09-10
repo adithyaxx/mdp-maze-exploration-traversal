@@ -6,7 +6,9 @@ from constants import Bearing, MOVEMENT
 
 INFINITE_COST = 9999
 MOVE_COST = 10
+MOVE_COST_DIAG = 15
 TURN_COST = 20
+TURN_COST_DIAG = 10
 WAYPONT_PENALTY = 1000
 
 class Node():
@@ -36,11 +38,11 @@ class FastestPathAlgo():
         self.start_node = None
         self.destination_node = None
         self.goal_node = None
+        self.diag = False
 
 
     def check_valid_open(self, node):
         return self.map.valid_range(node.y, node.x) and self.map.is_valid_open(node.x, node.y) and not self.map.is_virtual_wall(node.x, node.y)
-        # return self.map.valid_range(node.y, node.x) and self.map.is_explored(node.x, node.y) and self.map.is_free(node.x, node.y, False) and not self.map.is_virtual_wall(node.x, node.y)
 
 
     def best_first(self):
@@ -48,13 +50,12 @@ class FastestPathAlgo():
         best_node_index = -1
 
         for i in range(len(self.open_list)):
-            # print("({} , {}): {} , {} ".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h))
             f = self.open_list[i].g + self.open_list[i].h
-            # print("({} , {}): g = {} h = {} f = {} dir = {}".format(self.open_list[i].x, self.open_list[i].y, self.open_list[i].g, self.open_list[i].h, f, self.open_list[i].dir))
             if(f < min_cost):
                 min_cost = f
                 best_node_index = i
         return best_node_index
+
 
     def cost_h(self, node):
         turn_cost = 0
@@ -68,15 +69,36 @@ class FastestPathAlgo():
 
         return move_cost * MOVE_COST + turn_cost
 
+
     def get_turn_cost(self, from_dir, to_dir):
         if(from_dir == to_dir):
             return  0
-        if(Bearing.prev_bearing(from_dir) == to_dir or Bearing.next_bearing(from_dir) == to_dir):
-            return TURN_COST
-        return  2 * TURN_COST
+
+        prev_bearing = Bearing.prev_bearing_diag(from_dir)
+        next_bearing = Bearing.next_bearing_diag(from_dir)
+
+        turn_costs = [TURN_COST_DIAG, TURN_COST, 3 * TURN_COST_DIAG, 2 * TURN_COST]
+
+        for i in range(4):
+
+            if prev_bearing == to_dir or next_bearing == to_dir:
+                return turn_costs[i]
+
+            prev_bearing = Bearing.prev_bearing_diag(prev_bearing)
+            next_bearing = Bearing.next_bearing_diag(next_bearing)
 
 
     def get_target_dir(self, from_node, to_node):
+        if self.diag:
+            if to_node.x - from_node.x > 0 and to_node.y - from_node.y < 0:
+                return Bearing.NORTH_EAST
+            elif to_node.x - from_node.x > 0 and to_node.y - from_node.y > 0:
+                return Bearing.SOUTH_EAST
+            elif to_node.x - from_node.x < 0 and to_node.y - from_node.y > 0:
+                return Bearing.SOUTH_WEST
+            elif to_node.x - from_node.x < 0 and to_node.y - from_node.y < 0:
+                return Bearing.NORTH_WEST
+
         if (to_node.x - from_node.x > 0):
             return Bearing.EAST
         elif (to_node.x - from_node.x < 0):
@@ -88,30 +110,28 @@ class FastestPathAlgo():
 
     def cost_g(self, current_dir , next_dir):
         turn_cost = self.get_turn_cost(current_dir, next_dir )
-        # print("turn cost: {}".format(turn_cost))
+        if Bearing.is_diag_bearing(next_dir):
+            return MOVE_COST_DIAG + turn_cost
         return MOVE_COST + turn_cost
+
 
     def create_virtual_wall(self):
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
-                # if self.map.map_virtual[i][j] == 1:
-                #     print("---- ",i , j)
 
                 if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
                     self.map.set_virtual_wall_around(j, i)
 
         self.map.set_virtual_wall_border()
 
-        # for i in range(config.map_size['height']):
-        #     print(self.map.map_virtual[i])
 
-
-    def find_fastest_path(self,  goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2):
+    def find_fastest_path(self,  goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2, diag = False):
         self.create_virtual_wall()
         self.open_list.clear()
         self.closed_list.clear()
 
         self.curDir = self.robot.bearing
+        self.diag = diag
 
         self.initial_node = Node(startX, startY, parent=None, dir=self.curDir)
         self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
@@ -159,8 +179,6 @@ class FastestPathAlgo():
         if(not path_found_fp):
             print("no path found from start to goal")
 
-        # print(self.closed_list[len(self.closed_list)-1].g , self.temp_path[len(self.temp_path) - 1].g)
-
         if path_found_wp and path_found_fp:
             if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY:
                 self.fastest_path_goal_node = self.closed_list[len(self.closed_list)-1]
@@ -198,7 +216,11 @@ class FastestPathAlgo():
             #                                                              current_node.g + current_node.h,
             #                                                              current_node.dir))
 
-            for neighbour_position in [(0, -1), (1, 0), (0, 1), (-1, 0)]:
+            if self.diag:
+                neighbour_positions = [(0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1)]
+            else:
+                neighbour_positions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+            for neighbour_position in neighbour_positions:
 
                 neighbour = Node(current_node.x + neighbour_position[0], current_node.y + neighbour_position[1],
                                  current_node)
@@ -228,7 +250,6 @@ class FastestPathAlgo():
                         self.open_list[index].g = g_cost
                         self.open_list[index].h = h_cost
                         self.open_list[index].parent = current_node
-                # print("Added children: {}  {} ".format( neighbour.x, neighbour.y))
 
         end = time.time()
         print("No path found in {:0.2f}".format(end - start))
@@ -243,7 +264,6 @@ class FastestPathAlgo():
         while node != None:
             self.map.map_virtual[node.y][node.x] = 3
             self.path.insert(0, node)
-            # print(path[0].x, path[0].y, path[0].dir)
             node = node.parent
             if(node != None):
                 self.get_target_movement(node.dir, self.path[0].dir)
@@ -253,7 +273,6 @@ class FastestPathAlgo():
 
         print("Total cost: {}".format(goal_node.g))
 
-        # self.path[0].dir = self.get_target_dir(self.path[0], self.path[1])
         self.path_counter = 0
 
         # for m in self.movements:
@@ -271,65 +290,207 @@ class FastestPathAlgo():
             self.handler.left()
         elif(self.movements[self.path_counter] == MOVEMENT.RIGHT):
             self.handler.right()
+        elif (self.movements[self.path_counter] == MOVEMENT.LEFT_DIAG):
+            self.handler.left_diag()
+        elif (self.movements[self.path_counter] == MOVEMENT.RIGHT_DIAG):
+            self.handler.right_diag()
+        elif (self.movements[self.path_counter] == MOVEMENT.FORWARD_DIAG):
+            self.handler.move_diag()
         else:
             self.handler.move(1)
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):
-            self.handler.simulator.root.after(100, self.execute_fastest_path)
+            # self.handler.simulator.root.after(500, self.execute_fastest_path)
+            if self.handler.core.steps_per_second == -1:
+                delay = 10
+            else:
+                delay = 1000 // self.handler.core.steps_per_second
+
+            self.handler.simulator.job = self.handler.simulator.root.after(delay, self.execute_fastest_path)
 
 
     def get_target_movement(self, from_dir, to_dir):
-        self.movements.insert(0, MOVEMENT.FORWARD)
-        if(from_dir == Bearing.NORTH):
-            self.get_target_movement_north(to_dir)
-        elif (from_dir == Bearing.EAST):
-            self.get_target_movement_east(to_dir)
-        elif (from_dir == Bearing.SOUTH):
-            self.get_target_movement_south(to_dir)
+        if Bearing.is_diag_bearing(to_dir):
+            self.movements.insert(0, MOVEMENT.FORWARD_DIAG)
         else:
+            self.movements.insert(0, MOVEMENT.FORWARD)
+
+        if from_dir == to_dir:
+            return
+
+        if from_dir == Bearing.NORTH:
+            self.get_target_movement_north(to_dir)
+        elif from_dir == Bearing.NORTH_EAST:
+            self.get_target_movement_northeast(to_dir)
+        elif from_dir == Bearing.EAST:
+            self.get_target_movement_east(to_dir)
+        elif from_dir == Bearing.SOUTH_EAST:
+            self.get_target_movement_southeast(to_dir)
+        elif from_dir == Bearing.SOUTH:
+            self.get_target_movement_south(to_dir)
+        elif from_dir == Bearing.SOUTH_WEST:
+            self.get_target_movement_southwest(to_dir)
+        elif from_dir == Bearing.WEST:
             self.get_target_movement_west(to_dir)
+        else:
+            self.get_target_movement_northwest(to_dir)
 
 
     def get_target_movement_north(self, to_dir):
-        if(to_dir == Bearing.EAST):
+        if to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.EAST:
             self.movements.insert(0, MOVEMENT.RIGHT)
-        elif(to_dir == Bearing.WEST):
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.WEST:
             self.movements.insert(0, MOVEMENT.LEFT)
-        elif(to_dir == Bearing.SOUTH):
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
 
 
     def get_target_movement_east(self, to_dir):
-        if (to_dir == Bearing.NORTH):
+        if to_dir == Bearing.NORTH:
             self.movements.insert(0, MOVEMENT.LEFT)
-        elif (to_dir == Bearing.SOUTH):
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
-        elif(to_dir == Bearing.WEST):
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.WEST:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
 
 
     def get_target_movement_south(self, to_dir):
-        if (to_dir == Bearing.EAST):
+        if to_dir == Bearing.EAST:
             self.movements.insert(0, MOVEMENT.LEFT)
-        elif (to_dir == Bearing.WEST):
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.WEST:
             self.movements.insert(0, MOVEMENT.RIGHT)
-        elif (to_dir == Bearing.NORTH):
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.NORTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.NORTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
 
 
     def get_target_movement_west(self, to_dir):
-        if (to_dir == Bearing.NORTH):
+        if to_dir == Bearing.NORTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
-        elif (to_dir == Bearing.SOUTH):
+        elif to_dir == Bearing.NORTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH:
             self.movements.insert(0, MOVEMENT.LEFT)
-        elif (to_dir == Bearing.EAST):
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.EAST:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
 
+    def get_target_movement_northeast(self, to_dir):
+        if to_dir == Bearing.NORTH:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.NORTH_WEST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+        elif to_dir == Bearing.EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+        elif to_dir == Bearing.SOUTH:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.WEST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT)
+
+    def get_target_movement_southeast(self, to_dir):
+       if to_dir == Bearing.EAST:
+           self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+       elif to_dir == Bearing.SOUTH:
+           self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+       elif to_dir == Bearing.NORTH_EAST:
+           self.movements.insert(0, MOVEMENT.LEFT)
+       elif to_dir == Bearing.SOUTH_WEST:
+           self.movements.insert(0, MOVEMENT.RIGHT)
+       elif to_dir == Bearing.NORTH:
+           self.movements.insert(0, MOVEMENT.LEFT)
+           self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+       elif to_dir == Bearing.WEST:
+           self.movements.insert(0, MOVEMENT.RIGHT)
+           self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+       elif to_dir == Bearing.NORTH_WEST:
+           self.movements.insert(0, MOVEMENT.RIGHT)
+           self.movements.insert(0, MOVEMENT.RIGHT)
+
+    def get_target_movement_southwest(self, to_dir):
+        if to_dir == Bearing.SOUTH:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+        elif to_dir == Bearing.NORTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+        elif to_dir == Bearing.EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.NORTH:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT)
+
+    def get_target_movement_northwest(self, to_dir):
+        if to_dir == Bearing.NORTH:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.WEST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+        elif to_dir == Bearing.EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.SOUTH:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH_EAST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT)
 
 
 

@@ -28,7 +28,24 @@ class Bearing(IntEnum):
     def prev_bearing_diag(current_bearing):
         return Bearing((current_bearing.value + 7) % 8)
 
+    @staticmethod
+    def next_bearing_diag(current_bearing):
+        return Bearing((current_bearing.value + 1) % 8)
+
+    @staticmethod
+    def prev_bearing_diag(current_bearing):
+        return Bearing((current_bearing.value + 7) % 8)
+
+    @staticmethod
+    def is_diag_bearing(current_bearing):
+        return current_bearing.value % 2 == 1
+
 class MOVEMENT(IntEnum):
     FORWARD = 0
     LEFT = 1
     RIGHT = 2
+
+    FORWARD_DIAG = 3
+    LEFT_DIAG = 4
+    RIGHT_DIAG = 5
+
