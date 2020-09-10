@@ -1,5 +1,6 @@
 from tkinter import *
 import tkinter.ttk as ttk
+from tkinter import scrolledtext
 
 import config
 from constants import *
@@ -39,7 +40,7 @@ class Simulator:
 
         t = Toplevel(self.root)
         t.title("Control Panel")
-        t.geometry('210x550+605+28')
+        t.geometry('+610+0')
         t.resizable(False, False)
 
         self.canvas = Canvas(self.root, width=40 * config.map_size['width'], height=40 * config.map_size['height'])
@@ -50,10 +51,12 @@ class Simulator:
 
         control_pane_window = ttk.Panedwindow(self.control_panel, orient=VERTICAL)
         control_pane_window.grid(column=0, row=0, sticky=(N, S, E, W))
-        parameter_pane = ttk.Labelframe(control_pane_window, text='Parameters')
-        action_pane = ttk.Labelframe(control_pane_window, text='Action')
-        control_pane_window.add(parameter_pane, weight=4)
-        control_pane_window.add(action_pane, weight=1)
+        parameter_pane = ttk.Frame(control_pane_window)
+        action_pane = ttk.Frame(control_pane_window)
+        # control_pane_window.add(parameter_pane, weight=4)
+        # control_pane_window.add(action_pane, weight=1)
+        parameter_pane.grid(column=0, row=0, sticky=(N, S, E, W))
+        action_pane.grid(column=0, row=1, pady=(20, 0), sticky=(N, S, E, W))
 
         self.steps_per_second = StringVar()
         self.coverage_figure = StringVar()
@@ -63,47 +66,50 @@ class Simulator:
         self.goal_x = StringVar()
         self.goal_y = StringVar()
 
-        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.explore)
-        explore_button.grid(column=0, row=0, sticky=(W, E))
+        explore_button = ttk.Button(action_pane, text='Explore', command=self.explore, width=30)
+        explore_button.grid(column=0, row=0, sticky="ew")
         fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.findFP)
-        fastest_path_button.grid(column=0, row=1, sticky=(W, E))
+        fastest_path_button.grid(column=0, row=1, sticky="ew")
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
-        move_button.grid(column=0, row=2, sticky=(W, E))
+        move_button.grid(column=0, row=2, sticky="ew")
         left_button = ttk.Button(action_pane, text='Left', command=self.left)
-        left_button.grid(column=0, row=3, sticky=(W, E))
+        left_button.grid(column=0, row=3, sticky="ew")
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
-        right_button.grid(column=0, row=4, sticky=(W, E))
+        right_button.grid(column=0, row=4, sticky="ew")
         reset_button = ttk.Button(action_pane, text='Reset', command=self.reset)
-        reset_button.grid(column=0, row=5, sticky=(W, E))
+        reset_button.grid(column=0, row=5, sticky="ew")
+
+        self.text_area = scrolledtext.ScrolledText(control_pane_window, wrap=WORD, width=35, height=10)
+        self.text_area.grid(row=2, column=0, pady=(20, 10))
 
         step_per_second_label = ttk.Label(parameter_pane, text="Steps Per Second:")
-        step_per_second_label.grid(column=0, row=0, sticky=W)
-        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second)
-        step_per_second_entry.grid(column=0, row=1, pady=(0, 10))
+        step_per_second_label.grid(column=0, row=0, sticky="ew")
+        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second, width=33)
+        step_per_second_entry.grid(column=0, row=1, pady=(0, 10), sticky="ew")
 
         coverage_figure_label = ttk.Label(parameter_pane, text="Coverage Figure(%):")
-        coverage_figure_label.grid(column=0, row=2, sticky=W)
+        coverage_figure_label.grid(column=0, row=2, sticky="ew")
         coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=self.coverage_figure)
-        coverage_figure_entry.grid(column=0, row=3, pady=(0, 10))
+        coverage_figure_entry.grid(column=0, row=3, pady=(0, 10), sticky="ew")
 
         time_limit_label = ttk.Label(parameter_pane, text="Time Limit(s):")
-        time_limit_label.grid(column=0, row=4, sticky=W)
+        time_limit_label.grid(column=0, row=4, sticky="ew")
         time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
-        time_limit_entry.grid(column=0, row=5, pady=(0, 10))
+        time_limit_entry.grid(column=0, row=5, pady=(0, 10), sticky="ew")
 
         waypoint_label = ttk.Label(parameter_pane, text="Waypoint(x,y):")
-        waypoint_label.grid(column=0, row=6, sticky=W)
+        waypoint_label.grid(column=0, row=6, sticky="ew")
         waypoint_x_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_x)
         waypoint_y_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_y)
-        waypoint_x_entry.grid(column=0, row=7, pady=(0, 0))
-        waypoint_y_entry.grid(column=0, row=8, pady=(0, 10))
+        waypoint_x_entry.grid(column=0, row=7, pady=(0, 0), sticky="ew")
+        waypoint_y_entry.grid(column=0, row=8, pady=(0, 10), sticky="ew")
 
         goal_label = ttk.Label(parameter_pane, text="Goal(x,y):")
-        goal_label.grid(column=0, row=9, sticky=W)
+        goal_label.grid(column=0, row=9, sticky=EW)
         goal_x_entry = ttk.Entry(parameter_pane, textvariable=self.goal_x)
         goal_y_entry = ttk.Entry(parameter_pane, textvariable=self.goal_y)
-        goal_x_entry.grid(column=0, row=10, pady=(0, 0))
-        goal_y_entry.grid(column=0, row=11, pady=(0, 10))
+        goal_x_entry.grid(column=0, row=10, pady=(0, 0), sticky=EW)
+        goal_y_entry.grid(column=0, row=11, pady=(0, 0), sticky=EW)
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
@@ -140,16 +146,20 @@ class Simulator:
                     color = 'light pink'
             else:
                 if self.map.is_free(x, y, False):
-                    color = 'dark green'
+                    color = 'medium sea green'
                 else:
                     color = 'red4'
 
         if not config.map_cells[y][x]:
             config.map_cells[y][x] = self.canvas.create_rectangle(x * 40, y * 40, x * 40 + 40, y * 40 + 40, fill=color)
+            self.canvas.bind('<ButtonPress-1>', self.on_click)
         else:
             self.canvas.itemconfig(config.map_cells[y][x], fill=color)
 
-    def on_click(self, x, y, event):
+    def on_click(self, event):
+        x = event.x // 40
+        y = event.y // 40
+
         if self.map.map_sim[y][x] == 0:
             self.map.map_sim[y][x] = 1
         else:
@@ -168,7 +178,7 @@ class Simulator:
 
         for i in range(3):
             for j in range(3):
-                if config.map_cells[y - 1 + i][x - 1 + j]:
+                if not config.map_cells[y - 1 + i][x - 1 + j]:
                     config.map_cells[y - 1 + i][x - 1 + j] = self.canvas.create_rectangle((x - 1 + j) * 40,
                                                                                           (y - 1 + i) * 40,
                                                                                           ((x - 1 + j) * 40) + 40,
