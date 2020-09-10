@@ -168,24 +168,43 @@ class Simulator:
 
     def put_robot(self, x, y, bearing):
         if bearing == Bearing.NORTH:
-            robot_color = self.robot_n
+            front_coor = (x * 40 + 15 , y * 40 - 10 , x * 40 + 25, y * 40 )
         elif bearing == Bearing.EAST:
-            robot_color = self.robot_e
+            front_coor = (x * 40 + 40 , y * 40 + 10 , x * 40 + 50, y * 40 + 20  )
         elif bearing == Bearing.SOUTH:
-            robot_color = self.robot_s
+            front_coor = (x * 40 + 15 , y * 40 + 40 , x * 40 + 25, y * 40 + 50)
         else:
-            robot_color = self.robot_w
+            front_coor = (x * 40 - 10 , y * 40 + 10 , x * 40 , y * 40 + 20 )
 
-        for i in range(3):
-            for j in range(3):
-                if not config.map_cells[y - 1 + i][x - 1 + j]:
-                    config.map_cells[y - 1 + i][x - 1 + j] = self.canvas.create_rectangle((x - 1 + j) * 40,
-                                                                                          (y - 1 + i) * 40,
-                                                                                          ((x - 1 + j) * 40) + 40,
-                                                                                          ((y - 1 + i) * 40) + 40,
-                                                                                          fill=robot_color[i][j])
-                else:
-                    self.canvas.itemconfig(config.map_cells[y - 1 + i][x - 1 + j], fill=robot_color[i][j])
+        try:
+            self.canvas.delete(self.robot_body)
+            self.canvas.delete(self.robot_header)
+        except:
+            pass
+
+        self.robot_body = self.canvas.create_oval(x * 40 - 20, y * 40 - 20, x * 40 + 60, y * 40 + 60, fill="dodger blue", outline = "")
+        self.robot_header = self.canvas.create_oval(front_coor[0], front_coor[1], front_coor[2], front_coor[3], fill="white", outline = "")
+
+    # def put_robot(self, x, y, bearing):
+    #     if bearing == Bearing.NORTH:
+    #         robot_color = self.robot_n
+    #     elif bearing == Bearing.EAST:
+    #         robot_color = self.robot_e
+    #     elif bearing == Bearing.SOUTH:
+    #         robot_color = self.robot_s
+    #     else:
+    #         robot_color = self.robot_w
+    #
+    #     for i in range(3):
+    #         for j in range(3):
+    #             if not config.map_cells[y - 1 + i][x - 1 + j]:
+    #                 config.map_cells[y - 1 + i][x - 1 + j] = self.canvas.create_rectangle((x - 1 + j) * 40,
+    #                                                                                       (y - 1 + i) * 40,
+    #                                                                                       ((x - 1 + j) * 40) + 40,
+    #                                                                                       ((y - 1 + i) * 40) + 40,
+    #                                                                                       fill=robot_color[i][j])
+    #             else:
+    #                 self.canvas.itemconfig(config.map_cells[y - 1 + i][x - 1 + j], fill=robot_color[i][j])
 
     def update_map(self, radius=2, full=False):
         if full:
