@@ -67,7 +67,13 @@ class Core:
                 steps = self.check_front()
                 if steps > 0:
                     self.handler.move(steps=1)
-        self.handler.simulator.root.after(100, self.periodic_check)
+
+        if self.steps_per_second == -1:
+            delay = 10
+        else:
+            delay = 1000 // self.steps_per_second
+
+        self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
@@ -95,9 +101,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[int(bearing/2)]
+        offset = offsets[bearing]
 
-        if is_wall[int(bearing/2)]:
+        if is_wall[bearing]:
             return False
 
         if self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False) and \
@@ -170,9 +176,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[int(bearing/2)]
+        offset = offsets[bearing]
 
-        if is_wall[int(bearing/2)]:
+        if is_wall[bearing]:
             return False
 
         if self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
