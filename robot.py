@@ -71,13 +71,13 @@ class Robot:
         self.y = y
 
     def get_right_bearing(self):
-        return Bearing[(Bearing.index(self.bearing) + 1) % 4]
+        return Bearing.next_bearing(self.bearing)
 
     def get_left_bearing(self):
-        return Bearing((self.bearing + 3) % 4)
+        return Bearing.prev_bearing(self.bearing)
 
     def get_back_bearing(self):
-        return Bearing[(Bearing.index(self.bearing) + 2) % 4]
+        return Bearing.next_bearing(Bearing.next_bearing(self.bearing))
 
     def receive(self):
         raise NotImplementedError

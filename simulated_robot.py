@@ -216,7 +216,7 @@ class SimulatedRobot(Robot):
             [[1, 0, -1], [1, 1, 1]],
             [[-1, -1, -1], [1, 0, -1]]
         ]
-        offset = sensor_offsets[bearing]
+        offset = sensor_offsets[int(bearing/2)]
 
         self.handler.update_map(location[0] + offset[0][0], location[1] + offset[1][0], sensor_data[0],
                                 bearing, config.sensor_range['front_left'])
@@ -234,7 +234,7 @@ class SimulatedRobot(Robot):
             [1, 1],
             [-1, 1]
         ]
-        offset = sensor_offsets[bearing]
+        offset = sensor_offsets[int(bearing/2)]
         self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
                                 Bearing.prev_bearing(bearing), config.sensor_range['left'])
 
@@ -247,7 +247,7 @@ class SimulatedRobot(Robot):
             [-1, 0],
             [0, -1]
         ]
-        offset = sensor_offsets[bearing]
+        offset = sensor_offsets[int(bearing/2)]
 
         self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
                                 Bearing.next_bearing(bearing), config.sensor_range['right'])
