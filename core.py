@@ -68,7 +68,12 @@ class Core:
                 if steps > 0:
                     self.handler.move(steps=1)
 
-        self.handler.simulator.root.after(10, self.periodic_check)
+        if self.steps_per_second == -1:
+            delay = 10
+        else:
+            delay = 1000 // self.steps_per_second
+
+        self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)

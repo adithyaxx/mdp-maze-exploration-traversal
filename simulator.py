@@ -12,6 +12,7 @@ class Simulator:
         self.root = Tk()
         self.root.title("MDP Simulation")
         self.root.resizable(False, False)
+        self.job = None
 
         self.map_start_end = PhotoImage(file=config.image_paths['red'])
         self.map_unexplored = PhotoImage(file=config.image_paths['gray'])
@@ -113,7 +114,7 @@ class Simulator:
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
-        self.steps_per_second.set(1)
+        self.steps_per_second.set(-1)
         self.waypoint_x.set(0)
         self.waypoint_y.set(0)
         self.goal_x.set(13)
@@ -221,5 +222,7 @@ class Simulator:
         self.update_map()
 
     def reset(self):
+        if self.job:
+            self.root.after_cancel(self.job)
         self.handler.reset()
         self.update_map(full=True)
