@@ -79,7 +79,7 @@ class Core:
         self.handler.robot.sense(backtrack)
 
     def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y):
-        self.algo.find_fastest_path(goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y)
+        self.algo.find_fastest_path(goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y, diag= True)
 
     def run(self):
         pass
@@ -101,9 +101,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[bearing]
+        offset = offsets[int(bearing/2)]
 
-        if is_wall[bearing]:
+        if is_wall[int(bearing/2)]:
             return False
 
         if self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False) and \
@@ -176,9 +176,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[bearing]
+        offset = offsets[int(bearing/2)]
 
-        if is_wall[bearing]:
+        if is_wall[int(bearing/2)]:
             return False
 
         if self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
