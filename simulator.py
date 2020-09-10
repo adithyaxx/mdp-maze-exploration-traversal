@@ -110,7 +110,12 @@ class Simulator:
         goal_x_entry = ttk.Entry(parameter_pane, textvariable=self.goal_x)
         goal_y_entry = ttk.Entry(parameter_pane, textvariable=self.goal_y)
         goal_x_entry.grid(column=0, row=10, pady=(0, 0), sticky=EW)
-        goal_y_entry.grid(column=0, row=11, pady=(0, 0), sticky=EW)
+        goal_y_entry.grid(column=0, row=11, pady=(0, 10), sticky=EW)
+
+        self.diagonal = BooleanVar()
+        diagonal_checkbox = Checkbutton(parameter_pane, text="Diagonal", variable=self.diagonal, \
+                         onvalue=True, offvalue=False)
+        diagonal_checkbox.grid(column=0, row=12)
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
@@ -132,7 +137,7 @@ class Simulator:
 
     def findFP(self):
         self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
-                         int(self.waypoint_x.get()), int(self.waypoint_y.get()))
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.diagonal.get())
 
     def update_cell(self, x, y):
         # Start & End box

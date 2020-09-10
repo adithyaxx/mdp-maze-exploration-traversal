@@ -39,6 +39,7 @@ class FastestPathAlgo():
         self.destination_node = None
         self.goal_node = None
         self.diag = False
+        self.delay = 10
 
 
     def check_valid_open(self, node):
@@ -125,13 +126,14 @@ class FastestPathAlgo():
         self.map.set_virtual_wall_border()
 
 
-    def find_fastest_path(self,  goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2, diag = False):
+    def find_fastest_path(self, diag , delay, goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2):
         self.create_virtual_wall()
         self.open_list.clear()
         self.closed_list.clear()
 
         self.curDir = self.robot.bearing
         self.diag = diag
+        self.delay = delay
 
         self.initial_node = Node(startX, startY, parent=None, dir=self.curDir)
         self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
@@ -268,8 +270,8 @@ class FastestPathAlgo():
             if(node != None):
                 self.get_target_movement(node.dir, self.path[0].dir)
 
-        for y in range(config.map_size['height']):
-            print((self.map.map_virtual)[y])
+        # for y in range(config.map_size['height']):
+        #     print((self.map.map_virtual)[y])
 
         print("Total cost: {}".format(goal_node.g))
 
@@ -284,7 +286,7 @@ class FastestPathAlgo():
 
     def execute_fastest_path(self):
 
-        print(self.movements[self.path_counter])
+        # print(self.movements[self.path_counter])
 
         if(self.movements[self.path_counter] == MOVEMENT.LEFT):
             self.handler.left()
@@ -301,13 +303,7 @@ class FastestPathAlgo():
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):
-            # self.handler.simulator.root.after(500, self.execute_fastest_path)
-            if self.handler.core.steps_per_second == -1:
-                delay = 10
-            else:
-                delay = 1000 // self.handler.core.steps_per_second
-
-            self.handler.simulator.job = self.handler.simulator.root.after(delay, self.execute_fastest_path)
+            self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.execute_fastest_path)
 
 
     def get_target_movement(self, from_dir, to_dir):
