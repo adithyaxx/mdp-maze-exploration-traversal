@@ -79,6 +79,8 @@ class Core:
         self.handler.robot.sense(backtrack)
 
     def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y, diagonal):
+        diagonal = "Diagonal" in diagonal
+
         if self.steps_per_second == -1:
             delay = 10
         else:
