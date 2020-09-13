@@ -8,7 +8,8 @@ from  a_star import  A_Star
 
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
-    SPELUNKING = "Spelunking",
+    SPELUNKING1 = "Spelunking 1",
+    SPELUNKING2 = "Spelunking 2",
     RETURN_HOME = "Return Home"
 
 
@@ -24,6 +25,7 @@ class Core:
         self.start = 0
         self.movements = []
         self.status = STATUS.LEFT_WALL_HUGGING
+
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
@@ -41,18 +43,22 @@ class Core:
         current = time.time()
         elapsed = current - self.start
 
+        print(self.status)
+
         if elapsed >= self.time_limit or ( self.map.get_coverage() >= self.coverage and not self.return_home ) or \
                 (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
-                (not self.return_home and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST):
+                self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18):
+                # (not self.return_home and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST):
             explored_hex, obstacles_hex = self.map.get_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
             return
 
-        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
+        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and self.status == STATUS.LEFT_WALL_HUGGING:
             self.spelunkprep()
+            self.status = STATUS.SPELUNKING1
 
-        if self.status == STATUS.SPELUNKING  and self.handler.robot.get_location() != (1, 18) and self.map.get_coverage() >= self.coverage:
+        if self.status != STATUS.RETURN_HOME and self.handler.robot.get_location() != (1, 18) and self.map.get_coverage() >= self.coverage:
             self.go_home()
 
         if self.status == STATUS.LEFT_WALL_HUGGING:
@@ -64,7 +70,7 @@ class Core:
                     self.go_home()
 
             self.execute_algo_move()
-            if self.status == STATUS.SPELUNKING:
+            if self.status == STATUS.SPELUNKING1 or self.status == STATUS.SPELUNKING2:
                 self.sense()
 
 
@@ -236,21 +242,18 @@ class Core:
 
 
     def spelunkprep(self):
-
-        result = None
-        unexplored_grids = self.map.get_unexplored_grids()
-
-        while(result == None and len(unexplored_grids) > 0):
-            unknown_grid = unexplored_grids.pop(0)
-            print(unknown_grid[0], unknown_grid[1])
-
-            result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
-
+        result, dir = self.get_spelunk_target()
 
         if result is None:
-            print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
-            self.status = STATUS.RETURN_HOME
-            return
+            if self.status == STATUS.SPELUNKING1:
+                print("Attempt 2: Spelunkprep")
+                self.status = STATUS.SPELUNKING2
+                result, dir = self.get_spelunk_target()
+
+            if result is None:
+                print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
+                # self.status = STATUS.RETURN_HOME
+                return
 
         print("target: ", result)
 
@@ -258,8 +261,29 @@ class Core:
         print("goal :", goal)
         self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = goal[0], goalY = goal[1], waypointX = 0, waypointY = 0, \
                                     startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        if dir != None:
+            self.add_bearing(dir)
         print(self.movements)
-        self.status = STATUS.SPELUNKING
+
+
+
+    def get_spelunk_target(self):
+        unexplored_grids = self.map.get_unexplored_grids()
+        result = None
+        dir = None
+        while (result == None and len(unexplored_grids) > 0):
+            unknown_grid = unexplored_grids.pop(0)
+            print(unknown_grid[0], unknown_grid[1])
+            if self.status == STATUS.SPELUNKING1 or self.status == STATUS.LEFT_WALL_HUGGING:
+                result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
+            else:
+                try:
+                    result, dir = self.map.find_adjacent_free_space_front(unknown_grid[0], unknown_grid[1])
+                    self.add_bearing(dir)
+                except:
+                    pass
+        return result, dir
+
 
     def execute_algo_move(self):
 
@@ -278,6 +302,61 @@ class Core:
             self.handler.move(1)
 
     def go_home(self):
+        self.movements.clear()
         self.movements = self.algo.find_fastest_path(diag = True , delay = 0, goalX = 1, goalY = 18, waypointX = 0, waypointY = 0, \
                                     startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        print(self.movements)
         self.status = STATUS.RETURN_HOME
+
+
+    def add_bearing(self, dir):
+        cur_dir = self.handler.robot.bearing
+        for m in self.movements:
+            if(m == MOVEMENT.LEFT):
+                cur_dir = Bearing.prev_bearing(cur_dir)
+            elif(m == MOVEMENT.RIGHT):
+                cur_dir = Bearing.next_bearing(cur_dir)
+
+        if cur_dir == dir:
+            return
+
+        if dir == Bearing.NORTH:
+            if cur_dir == Bearing.WEST:
+                self.movements.append(MOVEMENT.LEFT)
+            elif cur_dir == Bearing.EAST:
+                self.movements.append(MOVEMENT.RIGHT)
+            else:
+                self.movements.append(MOVEMENT.RIGHT)
+                self.movements.append(MOVEMENT.RIGHT)
+
+        elif dir == Bearing.SOUTH:
+            if cur_dir == Bearing.WEST:
+                self.movements.append(MOVEMENT.RIGHT)
+            elif cur_dir == Bearing.EAST:
+                self.movements.append(MOVEMENT.LEFT)
+            else:
+                self.movements.append(MOVEMENT.RIGHT)
+                self.movements.append(MOVEMENT.RIGHT)
+
+        elif dir == Bearing.EAST:
+            if cur_dir == Bearing.NORTH:
+                self.movements.append(MOVEMENT.LEFT)
+            elif cur_dir == Bearing.SOUTH:
+                self.movements.append(MOVEMENT.RIGHT)
+            else:
+                self.movements.append(MOVEMENT.RIGHT)
+                self.movements.append(MOVEMENT.RIGHT)
+
+        elif dir == Bearing.WEST:
+            if cur_dir == Bearing.SOUTH:
+                self.movements.append(MOVEMENT.LEFT)
+            elif cur_dir == Bearing.NORTH:
+                self.movements.append(MOVEMENT.RIGHT)
+            else:
+                self.movements.append(MOVEMENT.RIGHT)
+                self.movements.append(MOVEMENT.RIGHT)
+
+        else:
+            print(cur_dir, dir)
+            print("Warning invalid direction")
+        print(self.movements)

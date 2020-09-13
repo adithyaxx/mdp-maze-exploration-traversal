@@ -1,4 +1,5 @@
 import config
+from constants import Bearing
 
 
 class Map:
@@ -67,9 +68,9 @@ class Map:
              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
@@ -266,23 +267,19 @@ class Map:
         }
 
         # check right
-        print(center[0])
         if self.is_free_space(center[0][0], center[0][1]):
             print(center[0])
             return center[0]
 
         # check left
-        print(center[1])
         if self.is_free_space(center[1][0], center[1][1]):
             return center[1]
 
         # check bottom
-        print(center[2])
         if self.is_free_space(center[2][0], center[2][1]):
             return center[2]
 
         # check top
-        print(center[3])
         if self.is_free_space(center[3][0], center[3][1]):
             return center[3]
 
@@ -296,3 +293,19 @@ class Map:
                 if (self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
                     unexplored_grids.append((j, config.map_size['height'] - i - 1))
         return unexplored_grids
+
+
+    def find_adjacent_free_space_front(self, x, y):
+        center = {
+            Bearing.EAST: [[x - 2, y - 1], [x - 2, y + 1]],
+            Bearing.SOUTH: [[x - 1, y - 2], [x + 1, y - 2]],
+            Bearing.NORTH: [[x - 1, y + 2], [x + 1, y + 2]],
+            Bearing.WEST: [[x + 2, y - 1], [x + 2, y + 1]]
+        }
+
+        for k, v in center.items():
+            for e in v:
+                print("coordinates: ", e, k)
+                if self.is_free_space(e[0], e[1]):
+                    print(e, k)
+                    return e , k

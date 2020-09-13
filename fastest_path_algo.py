@@ -290,19 +290,19 @@ class FastestPathAlgo():
         self.path = []
         self.movements = []
         while node != None:
-            # self.map.map_virtual[node.y][node.x] = 3
+            self.map.map_virtual[node.y][node.x] = 3
             self.path.insert(0, node)
             node = node.parent
             if(node != None):
                 self.get_target_movement(node.dir, self.path[0].dir)
 
-        # for y in range(config.map_size['height']):
-        #     print((self.map.map_virtual)[y])
+        for y in range(config.map_size['height']):
+            print((self.map.map_virtual)[y])
 
         print("Total cost: {}".format(goal_node.g))
 
-        # for m in self.movements:
-        #     print(m)
+        for m in self.movements:
+            print(m)
 
 
     def execute_fastest_path(self):
@@ -328,6 +328,7 @@ class FastestPathAlgo():
 
 
     def get_target_movement(self, from_dir, to_dir):
+        print(self.movements)
         if Bearing.is_diag_bearing(to_dir):
             self.movements.insert(0, MOVEMENT.FORWARD_DIAG)
         else:
@@ -364,7 +365,7 @@ class FastestPathAlgo():
             self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
         elif to_dir == Bearing.WEST:
             self.movements.insert(0, MOVEMENT.LEFT)
-        elif to_dir == Bearing.NORTH_EAST:
+        elif to_dir == Bearing.NORTH_WEST:
             self.movements.insert(0, MOVEMENT.LEFT_DIAG)
         elif to_dir == Bearing.SOUTH_WEST:
             self.movements.insert(0, MOVEMENT.LEFT)
@@ -508,3 +509,4 @@ class FastestPathAlgo():
         elif to_dir == Bearing.SOUTH_EAST:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
+
