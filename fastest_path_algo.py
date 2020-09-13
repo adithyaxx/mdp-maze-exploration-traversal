@@ -11,6 +11,7 @@ TURN_COST = 20
 TURN_COST_DIAG = 10
 WAYPONT_PENALTY = 1000
 
+
 class Node():
     def __init__(self, x, y, parent=None, dir=None, g=INFINITE_COST, h=INFINITE_COST):
         self.parent = parent
@@ -43,6 +44,8 @@ class FastestPathAlgo():
 
 
     def check_valid_open(self, node):
+        # print("Node ({}, {}) : {} {} {} {}".format(node.x, node.y, self.map.valid_range(node.y, node.x) , \
+        #                     self.map.map_virtual[node.y][node.x] , self.map.map_is_explored[node.y][node.x] == 1, self.map.is_virtual_wall(node.x, node.y)))
         return self.map.valid_range(node.y, node.x) and self.map.is_valid_open(node.x, node.y) and not self.map.is_virtual_wall(node.x, node.y)
 
 
@@ -123,10 +126,20 @@ class FastestPathAlgo():
                 if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
                     self.map.set_virtual_wall_around(j, i)
 
+                if( self.map.map_virtual[i][j] == 3 ):
+                    self.map.map_virtual[i][j] = 0
+
         self.map.set_virtual_wall_border()
 
 
-    def find_fastest_path(self, diag , delay, goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2):
+    def restore_map(self):
+        for i in range(config.map_size['height']):
+            for j in range(config.map_size['width']):
+                if (self.map.map_virtual[i][j] == 3 or self.map.map_virtual[i][j] == 2):
+                    self.map.map_virtual[i][j] = 0
+
+
+    def find_fastest_path(self, diag , delay, goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2, sim = True):
         self.create_virtual_wall()
         self.open_list.clear()
         self.closed_list.clear()
@@ -135,7 +148,7 @@ class FastestPathAlgo():
         self.diag = diag
         self.delay = delay
 
-        self.initial_node = Node(startX, startY, parent=None, dir=self.curDir)
+        self.initial_node = Node(self.robot.x, self.robot.y, parent=None, dir=self.curDir)
         self.waypoint = Node(waypointX, waypointY, None, dir=self.curDir)
         self.destination_node = Node(goalX, goalY, None)
         self.start_node = self.initial_node
@@ -145,6 +158,7 @@ class FastestPathAlgo():
         self.start_node.h = self.cost_h(self.start_node)
 
         self.open_list.append(self.start_node)
+
 
         path_found_wp = False
         if self.waypoint.x > 0 and self.waypoint.x < config.map_size['width']-1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height']-1:
@@ -180,6 +194,7 @@ class FastestPathAlgo():
         path_found_fp = self.run()
         if(not path_found_fp):
             print("no path found from start to goal")
+            return
 
         if path_found_wp and path_found_fp:
             if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY:
@@ -191,15 +206,26 @@ class FastestPathAlgo():
         else:
             self.fastest_path_goal_node = self.temp_path[len(self.temp_path) - 1]
 
-        self.print_path(self.fastest_path_goal_node)
+        self.restore_map()
+
+        if sim:
+            self.path_counter = 0
+            self.get_fastest_path_movements(self.fastest_path_goal_node)
+            print("EXECUTING FASTEST PATH")
+            self.execute_fastest_path()
+        else:
+            self.get_fastest_path_movements(self.fastest_path_goal_node)
+            return self.movements
 
 
     def run(self):
 
         print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
                                                                           self.goal_node.x, self.goal_node.y))
+
         start = time.time()
 
+        # print("open list: ", self.open_list)
         while len(self.open_list) > 0:
 
             best_index = self.best_first()
@@ -259,12 +285,12 @@ class FastestPathAlgo():
         return False
 
 
-    def print_path(self, goal_node):
+    def get_fastest_path_movements(self, goal_node):
         node = goal_node
         self.path = []
         self.movements = []
         while node != None:
-            self.map.map_virtual[node.y][node.x] = 3
+            # self.map.map_virtual[node.y][node.x] = 3
             self.path.insert(0, node)
             node = node.parent
             if(node != None):
@@ -275,13 +301,8 @@ class FastestPathAlgo():
 
         print("Total cost: {}".format(goal_node.g))
 
-        self.path_counter = 0
-
         # for m in self.movements:
         #     print(m)
-        print("EXECUTING FASTEST PATH")
-
-        self.execute_fastest_path()
 
 
     def execute_fastest_path(self):
@@ -487,6 +508,3 @@ class FastestPathAlgo():
         elif to_dir == Bearing.SOUTH_EAST:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
-
-
-

@@ -59,26 +59,26 @@ class Map:
         #   1 - obstacle
         # ----------------------------------------------------------------------
         self.map_sim = \
-            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-             [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-             [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 
         # ----------------------------------------------------------------------
         #   Map Legend:
@@ -186,7 +186,7 @@ class Map:
         return self.map_virtual[y][x] == 2
 
     def is_valid_open(self, x, y):
-        return self.map_virtual[y][x] == 0
+        return self.map_virtual[y][x] == 0 and self.map_is_explored[y][x] == 1
 
     def is_physical_wall(self, x, y):
         return self.map_virtual[y][x] == 1
@@ -194,7 +194,7 @@ class Map:
     def get_coverage(self):
         flattened = [i for sub in self.map_is_explored for i in sub]
 
-        return (sum(flattened) / (config.map_size['height'] * config.map_size['height'])) * 100
+        return (sum(flattened) / (config.map_size['height'] * config.map_size['width'])) * 100
 
     def get_map_descriptor(self):
         explored_str = [str(i) for sub in reversed(self.map_is_explored) for i in sub]
@@ -240,3 +240,59 @@ class Map:
             for j in range(3):
                 self.map_is_explored[config.map_size['height'] - 1 - i][j] = 1
                 self.map_is_explored[i][config.map_size['width'] - 1 - j] = 1
+
+    def get_unexplored_grid(self):
+        for i in range(config.map_size['height']):
+            for j in range(config.map_size['width']):
+                if(self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
+                    return j, config.map_size['height'] - i - 1
+
+    def is_free_space(self, x, y):
+
+        for i in range(-1, 2):
+            for j in range(-1, 2):
+                print(self.map_virtual[y + j][x + i])
+                if not self.is_explored(x + i, y + j ) or self.map_virtual[y + j][x + i] != 0:
+                    return False
+        return True
+
+
+    def find_adjacent_free_space(self, x, y):
+        center = {
+            0: [x + 2, y],
+            1: [x - 2, y],
+            2: [x, y + 2],
+            3: [x, y - 2],
+        }
+
+        # check right
+        print(center[0])
+        if self.is_free_space(center[0][0], center[0][1]):
+            print(center[0])
+            return center[0]
+
+        # check left
+        print(center[1])
+        if self.is_free_space(center[1][0], center[1][1]):
+            return center[1]
+
+        # check bottom
+        print(center[2])
+        if self.is_free_space(center[2][0], center[2][1]):
+            return center[2]
+
+        # check top
+        print(center[3])
+        if self.is_free_space(center[3][0], center[3][1]):
+            return center[3]
+
+        # if cant find, will return None
+
+
+    def get_unexplored_grids(self):
+        unexplored_grids = []
+        for i in range(config.map_size['height']):
+            for j in range(config.map_size['width']):
+                if (self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
+                    unexplored_grids.append((j, config.map_size['height'] - i - 1))
+        return unexplored_grids

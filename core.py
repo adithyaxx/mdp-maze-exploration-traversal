@@ -1,44 +1,83 @@
 import time
 
 import config
-from FastestPathAlgo import FastestPathAlgo
-from constants import Bearing
+from fastest_path_algo import FastestPathAlgo
+from visibility_graph import VisibilityGraph
+from constants import Bearing, MOVEMENT
+from  a_star import  A_Star
+
+class STATUS:
+    LEFT_WALL_HUGGING = "Left Wall Hugging",
+    SPELUNKING = "Spelunking",
+    RETURN_HOME = "Return Home"
 
 
 class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
+        # self.algo = VisibilityGraph(self.map, self.handler.robot, self.handler)
         self.algo = FastestPathAlgo(self.map, self.handler.robot, self.handler)
         self.steps_per_second = -1
         self.coverage = 100
         self.time_limit = 3600
         self.start = 0
+        self.movements = []
+        self.status = STATUS.LEFT_WALL_HUGGING
 
-    def explore(self, steps_per_second, coverage, time_limit):
+    def reset(self):
+        self.status = STATUS.LEFT_WALL_HUGGING
+
+    def explore(self, steps_per_second, coverage, time_limit, return_home):
         self.steps_per_second = steps_per_second
         self.coverage = coverage
         self.time_limit = time_limit
         self.start = time.time()
+        self.return_home = return_home
         self.periodic_check()
+
 
     def periodic_check(self):
         current = time.time()
         elapsed = current - self.start
 
-        if elapsed >= self.time_limit or self.map.get_coverage() >= self.coverage:
+        if elapsed >= self.time_limit or ( self.map.get_coverage() >= self.coverage and not self.return_home ) or \
+                (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
+                (not self.return_home and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST):
             explored_hex, obstacles_hex = self.map.get_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
             return
 
         if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
-            self.handler.right()
-            explored_hex, obstacles_hex = self.map.get_map_descriptor()
-            self.handler.simulator.text_area.insert('end', explored_hex + '\n\n')
-            self.handler.simulator.text_area.insert('end', obstacles_hex + '\n\n')
-            return
+            self.spelunkprep()
 
+        if self.status == STATUS.SPELUNKING  and self.handler.robot.get_location() != (1, 18) and self.map.get_coverage() >= self.coverage:
+            self.go_home()
+
+        if self.status == STATUS.LEFT_WALL_HUGGING:
+            self.left_wall_hugging()
+        else:
+            if len(self.movements) <= 0:
+                self.spelunkprep()
+                if len(self.movements) <= 0:
+                    self.go_home()
+
+            self.execute_algo_move()
+            if self.status == STATUS.SPELUNKING:
+                self.sense()
+
+
+        if self.steps_per_second == -1:
+            delay = 10
+        else:
+            delay = 1000 // self.steps_per_second
+
+        self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
+        # print(self.status)
+
+
+    def left_wall_hugging(self):
         self.sense()
         # Turn left and move forward if left is free
         if self.check_left():
@@ -68,21 +107,18 @@ class Core:
                 if steps > 0:
                     self.handler.move(steps=1)
 
-        if self.steps_per_second == -1:
-            delay = 10
-        else:
-            delay = 1000 // self.steps_per_second
 
-        self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
 
-    def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y, diagonal):
+    def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y, diagonal, steps_per_second):
+        self.steps_per_second = steps_per_second
         if self.steps_per_second == -1:
             delay = 10
         else:
             delay = 1000 // self.steps_per_second
+        # self.algo.find_fastest_path()
         self.algo.find_fastest_path(diag= diagonal, delay = delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y)
 
     def run(self):
@@ -197,3 +233,51 @@ class Core:
             return 0
 
         return min(sensor_data[:3])
+
+
+    def spelunkprep(self):
+
+        result = None
+        unexplored_grids = self.map.get_unexplored_grids()
+
+        while(result == None and len(unexplored_grids) > 0):
+            unknown_grid = unexplored_grids.pop(0)
+            print(unknown_grid[0], unknown_grid[1])
+
+            result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
+
+
+        if result is None:
+            print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
+            self.status = STATUS.RETURN_HOME
+            return
+
+        print("target: ", result)
+
+        goal = result
+        print("goal :", goal)
+        self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = goal[0], goalY = goal[1], waypointX = 0, waypointY = 0, \
+                                    startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        print(self.movements)
+        self.status = STATUS.SPELUNKING
+
+    def execute_algo_move(self):
+
+        next_move = self.movements.pop(0)
+        if (next_move == MOVEMENT.LEFT):
+            self.handler.left()
+        elif (next_move == MOVEMENT.RIGHT):
+            self.handler.right()
+        elif (next_move == MOVEMENT.LEFT_DIAG):
+            self.handler.left_diag()
+        elif (next_move == MOVEMENT.RIGHT_DIAG):
+            self.handler.right_diag()
+        elif (next_move == MOVEMENT.FORWARD_DIAG):
+            self.handler.move_diag()
+        else:
+            self.handler.move(1)
+
+    def go_home(self):
+        self.movements = self.algo.find_fastest_path(diag = True , delay = 0, goalX = 1, goalY = 18, waypointX = 0, waypointY = 0, \
+                                    startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        self.status = STATUS.RETURN_HOME

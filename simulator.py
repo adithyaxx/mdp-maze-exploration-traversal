@@ -93,33 +93,40 @@ class Simulator:
         coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=self.coverage_figure)
         coverage_figure_entry.grid(column=0, row=3, pady=(0, 10), sticky="ew")
 
+        self.return_home = BooleanVar()
+        return_home_checkbox = Checkbutton(parameter_pane, text="Return Home", variable=self.return_home, \
+                                           onvalue=True, offvalue=False)
+        return_home_checkbox.grid(column=0, row=4)
+
         time_limit_label = ttk.Label(parameter_pane, text="Time Limit(s):")
-        time_limit_label.grid(column=0, row=4, sticky="ew")
+        time_limit_label.grid(column=0, row=5, sticky="ew")
         time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
-        time_limit_entry.grid(column=0, row=5, pady=(0, 10), sticky="ew")
+        time_limit_entry.grid(column=0, row=6, pady=(0, 10), sticky="ew")
 
         waypoint_label = ttk.Label(parameter_pane, text="Waypoint(x,y):")
-        waypoint_label.grid(column=0, row=6, sticky="ew")
+        waypoint_label.grid(column=0, row=7, sticky="ew")
         waypoint_x_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_x)
         waypoint_y_entry = ttk.Entry(parameter_pane, textvariable=self.waypoint_y)
-        waypoint_x_entry.grid(column=0, row=7, pady=(0, 0), sticky="ew")
-        waypoint_y_entry.grid(column=0, row=8, pady=(0, 10), sticky="ew")
+        waypoint_x_entry.grid(column=0, row=8, pady=(0, 0), sticky="ew")
+        waypoint_y_entry.grid(column=0, row=9, pady=(0, 10), sticky="ew")
 
         goal_label = ttk.Label(parameter_pane, text="Goal(x,y):")
-        goal_label.grid(column=0, row=9, sticky=EW)
+        goal_label.grid(column=0, row=10, sticky=EW)
         goal_x_entry = ttk.Entry(parameter_pane, textvariable=self.goal_x)
         goal_y_entry = ttk.Entry(parameter_pane, textvariable=self.goal_y)
-        goal_x_entry.grid(column=0, row=10, pady=(0, 0), sticky=EW)
-        goal_y_entry.grid(column=0, row=11, pady=(0, 10), sticky=EW)
+        goal_x_entry.grid(column=0, row=11, pady=(0, 0), sticky=EW)
+        goal_y_entry.grid(column=0, row=12, pady=(0, 10), sticky=EW)
 
         self.diagonal = BooleanVar()
         diagonal_checkbox = Checkbutton(parameter_pane, text="Diagonal", variable=self.diagonal, \
                          onvalue=True, offvalue=False)
-        diagonal_checkbox.grid(column=0, row=12)
+        diagonal_checkbox.grid(column=0, row=13)
+
+
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
-        self.steps_per_second.set(-1)
+        self.steps_per_second.set(10)
         self.waypoint_x.set(0)
         self.waypoint_y.set(0)
         self.goal_x.set(13)
@@ -133,11 +140,11 @@ class Simulator:
 
     def explore(self):
         self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
-                          int(self.time_limit.get()))
+                          int(self.time_limit.get()), self.return_home.get())
 
     def findFP(self):
         self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
-                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.diagonal.get())
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.diagonal.get(), int(self.steps_per_second.get()))
 
     def update_cell(self, x, y):
         # Start & End box
@@ -238,3 +245,4 @@ class Simulator:
             self.root.after_cancel(self.job)
         self.handler.reset()
         self.update_map(full=True)
+

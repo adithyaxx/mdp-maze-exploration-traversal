@@ -49,3 +49,13 @@ class MOVEMENT(IntEnum):
     LEFT_DIAG = 4
     RIGHT_DIAG = 5
 
+
+class COST(IntEnum):
+    INFINITE_COST = 9999
+    MOVE_COST = 10
+    MOVE_COST_DIAG = 15
+    TURN_COST = 20
+    TURN_COST_DIAG = 10
+    WAYPONT_PENALTY = 1000
+
+

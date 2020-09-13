@@ -46,6 +46,7 @@ class Handler:
     def reset(self):
         self.robot.reset()
         self.map.reset()
+        self.core.reset()
 
     def get_location(self):
         self.robot.get_location()
