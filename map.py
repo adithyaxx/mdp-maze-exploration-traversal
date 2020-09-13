@@ -252,7 +252,7 @@ class Map:
 
         for i in range(-1, 2):
             for j in range(-1, 2):
-                print(self.map_virtual[y + j][x + i])
+                # print(self.map_virtual[y + j][x + i])
                 if not self.is_explored(x + i, y + j ) or self.map_virtual[y + j][x + i] != 0:
                     return False
         return True
@@ -268,7 +268,6 @@ class Map:
 
         # check right
         if self.is_free_space(center[0][0], center[0][1]):
-            print(center[0])
             return center[0]
 
         # check left
@@ -288,8 +287,8 @@ class Map:
 
     def get_unexplored_grids(self):
         unexplored_grids = []
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
+        for j in range(config.map_size['width']):
+            for i in range(config.map_size['height']):
                 if (self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
                     unexplored_grids.append((j, config.map_size['height'] - i - 1))
         return unexplored_grids
@@ -305,7 +304,6 @@ class Map:
 
         for k, v in center.items():
             for e in v:
-                print("coordinates: ", e, k)
+                # print("coordinates: ", e, k)
                 if self.is_free_space(e[0], e[1]):
-                    print(e, k)
                     return e , k

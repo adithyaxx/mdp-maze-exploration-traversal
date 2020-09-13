@@ -43,7 +43,7 @@ class Core:
         current = time.time()
         elapsed = current - self.start
 
-        print(self.status)
+        # print(self.status)
 
         if elapsed >= self.time_limit or ( self.map.get_coverage() >= self.coverage and not self.return_home ) or \
                 (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
@@ -255,15 +255,11 @@ class Core:
                 # self.status = STATUS.RETURN_HOME
                 return
 
-        print("target: ", result)
 
-        goal = result
-        print("goal :", goal)
-        self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = goal[0], goalY = goal[1], waypointX = 0, waypointY = 0, \
+        self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = result[0], goalY = result[1], waypointX = 0, waypointY = 0, \
                                     startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
         if dir != None:
             self.add_bearing(dir)
-        print(self.movements)
 
 
 
@@ -273,7 +269,7 @@ class Core:
         dir = None
         while (result == None and len(unexplored_grids) > 0):
             unknown_grid = unexplored_grids.pop(0)
-            print(unknown_grid[0], unknown_grid[1])
+            # print("[CORE] Unknown grid: ", unknown_grid[0], unknown_grid[1])
             if self.status == STATUS.SPELUNKING1 or self.status == STATUS.LEFT_WALL_HUGGING:
                 result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
             else:
@@ -305,7 +301,7 @@ class Core:
         self.movements.clear()
         self.movements = self.algo.find_fastest_path(diag = True , delay = 0, goalX = 1, goalY = 18, waypointX = 0, waypointY = 0, \
                                     startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
-        print(self.movements)
+        # print(self.movements)
         self.status = STATUS.RETURN_HOME
 
 
@@ -357,6 +353,6 @@ class Core:
                 self.movements.append(MOVEMENT.RIGHT)
 
         else:
-            print(cur_dir, dir)
+            # print(cur_dir, dir)
             print("Warning invalid direction")
-        print(self.movements)
+        # print(self.movements)

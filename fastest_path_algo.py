@@ -164,7 +164,7 @@ class FastestPathAlgo():
         if self.waypoint.x > 0 and self.waypoint.x < config.map_size['width']-1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height']-1:
             path_found_wp = self.run()
             if(not path_found_wp):
-                print("no path found from start to waypoint")
+                print("[FASTEST PATH] No path found from start to waypoint")
 
             else:
                 self.start_node = self.closed_list.pop(len(self.closed_list) - 1)
@@ -177,9 +177,9 @@ class FastestPathAlgo():
                 path_found_wp = self.run()
 
                 if(not path_found_wp):
-                    print("no path found from waypoint to goal")
+                    print("[FASTEST PATH] No path found from waypoint to goal")
         else:
-            print("Waypoints out of bound")
+            print("[FASTEST PATH] Waypoints out of bound")
 
         self.temp_path = deepcopy(self.closed_list)
         self.closed_list.clear()
@@ -193,7 +193,7 @@ class FastestPathAlgo():
 
         path_found_fp = self.run()
         if(not path_found_fp):
-            print("no path found from start to goal")
+            print("[FASTEST PATH] No path found from start to goal")
             return
 
         if path_found_wp and path_found_fp:
@@ -211,7 +211,7 @@ class FastestPathAlgo():
         if sim:
             self.path_counter = 0
             self.get_fastest_path_movements(self.fastest_path_goal_node)
-            print("EXECUTING FASTEST PATH")
+            # print("[FASTEST PATH] EXECUTING FASTEST PATH")
             self.execute_fastest_path()
         else:
             self.get_fastest_path_movements(self.fastest_path_goal_node)
@@ -220,8 +220,8 @@ class FastestPathAlgo():
 
     def run(self):
 
-        print("Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
-                                                                          self.goal_node.x, self.goal_node.y))
+        # print("[FASTEST PATH] Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
+        #                                                                   self.goal_node.x, self.goal_node.y))
 
         start = time.time()
 
@@ -236,7 +236,7 @@ class FastestPathAlgo():
 
             if (current_node == self.goal_node):
                 end = time.time()
-                print("Fastest path found in {:0.5f} second".format(end - start))
+                print("[FASTEST PATH] Fastest path found in {:0.5f} second".format(end - start))
                 return True
 
             # print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g,
@@ -280,7 +280,7 @@ class FastestPathAlgo():
                         self.open_list[index].parent = current_node
 
         end = time.time()
-        print("No path found in {:0.2f}".format(end - start))
+        print("[FASTEST PATH] No path found in {:0.2f}".format(end - start))
 
         return False
 
@@ -290,19 +290,19 @@ class FastestPathAlgo():
         self.path = []
         self.movements = []
         while node != None:
-            self.map.map_virtual[node.y][node.x] = 3
+            # self.map.map_virtual[node.y][node.x] = 3
             self.path.insert(0, node)
             node = node.parent
             if(node != None):
                 self.get_target_movement(node.dir, self.path[0].dir)
 
-        for y in range(config.map_size['height']):
-            print((self.map.map_virtual)[y])
+        # for y in range(config.map_size['height']):
+        #     print((self.map.map_virtual)[y])
 
-        print("Total cost: {}".format(goal_node.g))
-
-        for m in self.movements:
-            print(m)
+        print("[FASTEST PATH] Total cost: {}".format(goal_node.g))
+        #
+        # for m in self.movements:
+        #     print(m)
 
 
     def execute_fastest_path(self):
@@ -328,7 +328,6 @@ class FastestPathAlgo():
 
 
     def get_target_movement(self, from_dir, to_dir):
-        print(self.movements)
         if Bearing.is_diag_bearing(to_dir):
             self.movements.insert(0, MOVEMENT.FORWARD_DIAG)
         else:
