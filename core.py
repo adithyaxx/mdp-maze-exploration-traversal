@@ -46,7 +46,7 @@ class Core:
                 (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
                 self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18):
                 # (not self.return_home and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST):
-            explored_hex, obstacles_hex = self.map.get_map_descriptor()
+            explored_hex, obstacles_hex = self.map.create_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
             return

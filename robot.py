@@ -44,7 +44,7 @@ class Robot:
     def right_diag(self):
         self.bearing = Bearing.next_bearing_diag(self.bearing)
 
-    def move_diag(self, steps = 1):
+    def move_diag(self, steps=1):
         if self.bearing == Bearing.NORTH_EAST:
             self.x += steps
             self.y -= steps
@@ -57,7 +57,6 @@ class Robot:
         else:
             self.x -= steps
             self.y -= steps
-
 
     # check obstacles
     def north_is_free(self):
@@ -102,6 +101,84 @@ class Robot:
 
     def receive(self):
         raise NotImplementedError
+
+    def sense_front(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [[-1, 0, 1], [-1, -1, -1]],
+            [[1, 1, 1], [-1, 0, 1]],
+            [[1, 0, -1], [1, 1, 1]],
+            [[-1, -1, -1], [1, 0, -1]]
+        ]
+        offset = sensor_offsets[int(bearing / 2)]
+
+        self.handler.update_map(location[0] + offset[0][0], location[1] + offset[1][0], sensor_data[0],
+                                bearing, config.sensor_range['front_left'])
+        self.handler.update_map(location[0] + offset[0][1], location[1] + offset[1][1], sensor_data[1],
+                                bearing, config.sensor_range['front_middle'])
+        self.handler.update_map(location[0] + offset[0][2], location[1] + offset[1][2], sensor_data[2],
+                                bearing, config.sensor_range['front_right'])
+
+    # call update map for left sensor
+    def sense_left(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [-1, -1],
+            [1, -1],
+            [1, 1],
+            [-1, 1]
+        ]
+        offset = sensor_offsets[int(bearing / 2)]
+        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
+                                Bearing.prev_bearing(bearing), config.sensor_range['left'])
+
+    # call update map for right sensor
+    def sense_right(self, location, bearing, sensor_data):
+
+        sensor_offsets = [
+            [1, 0],
+            [0, 1],
+            [-1, 0],
+            [0, -1]
+        ]
+        offset = sensor_offsets[int(bearing / 2)]
+
+        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
+                                Bearing.next_bearing(bearing), config.sensor_range['right'])
+
+    # sense simulated sensor
+    def sense(self, backtrack=0):
+        sensor_data = self.receive()
+        print(sensor_data)
+        location = self.get_location()
+        bearing = self.bearing
+
+        self.sense_front(location, bearing, sensor_data[:3])
+        self.sense_left(location, bearing, sensor_data[3])
+        self.sense_right(location, bearing, sensor_data[4])
+
+        for i in range(1, backtrack + 1):
+            if bearing == Bearing.NORTH:
+                x, y = location
+                y += i
+            elif bearing == Bearing.SOUTH:
+                x, y = location
+                y -= i
+            elif bearing == Bearing.EAST:
+                x, y = location
+                x -= i
+            else:
+                x, y = location
+                x += i
+
+            self.set_location(x, y)
+            sensor_data = self.receive()
+            self.sense_front((x, y), bearing, sensor_data[:3])
+            self.sense_left((x, y), bearing, sensor_data[3])
+            self.sense_right((x, y), bearing, sensor_data[4])
+
+        x, y = location
+        self.set_location(x, y)
 
     def reset(self):
         self.y = config.map_size['height'] - 2

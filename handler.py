@@ -10,7 +10,7 @@ class Handler:
     def __init__(self, simulator):
         self.map = Map()
         self.simulator = simulator
-        if config.robot_simulation:
+        if self.simulator.robot_simulation:
             self.robot = simulated_robot.SimulatedRobot(self)
         else:
             self.robot = real_robot.RealRobot(self)
@@ -82,3 +82,10 @@ class Handler:
     def update_and_render(self, x, y, is_explore, is_obstacle):
         self.map.mark_explored(x, y, is_explore, is_obstacle)
         self.simulator.update_cell(x, y)
+
+    def connect(self, ip_addr):
+        self.robot = real_robot.RealRobot(self)
+        return self.robot.connect(ip_addr)
+
+    def disconnect(self):
+        self.robot = simulated_robot.SimulatedRobot(self)

@@ -1,6 +1,7 @@
 from tkinter import *
 import tkinter.ttk as ttk
 from tkinter import scrolledtext
+from tkinter.filedialog import askopenfilename
 
 import config
 from constants import *
@@ -9,6 +10,8 @@ from handler import Handler
 
 class Simulator:
     def __init__(self):
+        self.robot_simulation = True
+
         self.root = Tk()
         self.root.title("MDP Simulation")
         self.root.resizable(False, False)
@@ -66,6 +69,7 @@ class Simulator:
         self.waypoint_y = StringVar()
         self.goal_x = StringVar()
         self.goal_y = StringVar()
+        self.ip_addr = StringVar()
 
         explore_button = ttk.Button(action_pane, text='Explore', command=self.explore, width=30)
         explore_button.grid(column=0, row=0, sticky="ew")
@@ -77,8 +81,10 @@ class Simulator:
         left_button.grid(column=0, row=3, sticky="ew")
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
         right_button.grid(column=0, row=4, sticky="ew")
+        load_button = ttk.Button(action_pane, text='Load Map', command=self.load)
+        load_button.grid(column=0, row=5, sticky="ew")
         reset_button = ttk.Button(action_pane, text='Reset', command=self.reset)
-        reset_button.grid(column=0, row=5, sticky="ew")
+        reset_button.grid(column=0, row=6, sticky="ew")
 
         self.text_area = scrolledtext.ScrolledText(control_pane_window, wrap=WORD, width=35, height=10)
         self.text_area.grid(row=2, column=0, pady=(20, 10))
@@ -123,12 +129,21 @@ class Simulator:
         ]
         fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
         fp_algo_label.grid(column=0, row=12, sticky=EW)
-        self.fp_dropdown_var = StringVar()
-        self.fp_dropdown_var.set(fp_algo_options[0])
-        fp_dropdown = OptionMenu(parameter_pane, self.fp_dropdown_var, *fp_algo_options)
-        print(fp_dropdown.keys())
-        fp_dropdown.config(font=('helvetica', 10), bg='gray91', width=12)
-        fp_dropdown.grid(column=0, row=13, sticky=EW)
+        # self.fp_dropdown_var = StringVar()
+        # self.fp_dropdown_var.set(fp_algo_options[0])
+        self.fp_dropdown = ttk.Combobox(parameter_pane, state="readonly",
+                                        values=["A* Search", "A* Search (With Diagonals)"])
+        self.fp_dropdown.current(0)
+        # fp_dropdown.config(font=('helvetica', 10), bg='gray91', width=12)
+        self.fp_dropdown.grid(column=0, row=13, pady=(0, 10), sticky=EW)
+
+        ip_addr_label = ttk.Label(parameter_pane, text="IP Address:")
+        ip_addr_label.grid(column=0, row=14, sticky=EW)
+        ip_addr_entry = ttk.Entry(parameter_pane, textvariable=self.ip_addr)
+        ip_addr_entry.grid(column=0, row=15, pady=(0, 0), sticky=EW)
+
+        self.connect_button = ttk.Button(parameter_pane, text='Connect', command=self.connect)
+        self.connect_button.grid(column=0, row=16, pady=(0, 10), sticky=EW)
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
@@ -150,7 +165,7 @@ class Simulator:
 
     def findFP(self):
         self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
-                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown_var.get())
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown.get())
 
     def update_cell(self, x, y):
         # Start & End box
@@ -251,4 +266,30 @@ class Simulator:
         if self.job:
             self.root.after_cancel(self.job)
         self.handler.reset()
+        self.update_map(full=True)
+
+    def connect(self):
+        if self.connect_button.cget('text') == 'Disconnect':
+            self.robot_simulation = True
+            # self.handler.disconnect()
+            self.connect_button.config(text='Connect')
+            self.handler = Handler(self)
+            self.map = self.handler.map
+            self.core = self.handler.core
+            self.robot = self.handler.get_robot()
+        else:
+            self.robot_simulation = False
+            if self.handler.connect(self.ip_addr.get()):
+                self.connect_button.config(text='Disconnect')
+
+        self.reset()
+        self.robot = self.handler.get_robot()
+
+    def load(self):
+        Tk().withdraw()
+        filename = askopenfilename()
+
+        f = open(filename, "r")
+
+        self.map.decode_map_descriptor(f.readline())
         self.update_map(full=True)

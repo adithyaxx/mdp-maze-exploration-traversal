@@ -1,5 +1,3 @@
-robot_simulation = True
-
 map_size = dict(
     height=20,
     width=15

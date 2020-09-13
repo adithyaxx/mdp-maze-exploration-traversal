@@ -1,5 +1,5 @@
 import config
-from constants import Bearing
+import numpy as np
 
 
 class Map:
@@ -197,7 +197,7 @@ class Map:
 
         return (sum(flattened) / (config.map_size['height'] * config.map_size['width'])) * 100
 
-    def get_map_descriptor(self):
+    def create_map_descriptor(self):
         explored_str = [str(i) for sub in reversed(self.map_is_explored) for i in sub]
         explored_str.insert(0, '1')
         explored_str.insert(0, '1')
@@ -231,6 +231,24 @@ class Map:
         print(obstacles_hex)
 
         return explored_hex, obstacles_hex
+
+    def decode_map_descriptor(self, obstacles_hex):
+        map_bin = []
+        size = config.map_size['height'] * config.map_size['width']
+
+        for hex in obstacles_hex:
+            map_bin.extend(bin(int(hex, 16))[2:].zfill(4))
+
+        map_bin = [int(x) for x in map_bin]
+
+        map_bin = np.array(list(reversed(map_bin)))[:size].reshape(
+            (config.map_size['height'], config.map_size['width'])
+        )
+
+        self.map_sim = map_bin
+        self.map_virtual = map_bin
+
+        print(self.map_sim)
 
     def reset(self):
         self.map_virtual = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
