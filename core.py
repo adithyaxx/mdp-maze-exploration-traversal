@@ -2,9 +2,7 @@ import time
 
 import config
 from fastest_path_algo import FastestPathAlgo
-from visibility_graph import VisibilityGraph
 from constants import Bearing, MOVEMENT
-from  a_star import  A_Star
 
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
@@ -17,7 +15,6 @@ class Core:
     def __init__(self, handler):
         self.handler = handler
         self.map = self.handler.map
-        # self.algo = VisibilityGraph(self.map, self.handler.robot, self.handler)
         self.algo = FastestPathAlgo(self.map, self.handler.robot, self.handler)
         self.steps_per_second = -1
         self.coverage = 100
@@ -114,17 +111,16 @@ class Core:
                     self.handler.move(steps=1)
 
 
-
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
 
-    def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y, diagonal, steps_per_second):
-        self.steps_per_second = steps_per_second
+    def findFP(self, goal_x, goal_y, waypoint_x, waypoint_y, diagonal):
+        diagonal = "Diagonal" in diagonal
+
         if self.steps_per_second == -1:
             delay = 10
         else:
             delay = 1000 // self.steps_per_second
-        # self.algo.find_fastest_path()
         self.algo.find_fastest_path(diag= diagonal, delay = delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y)
 
     def run(self):

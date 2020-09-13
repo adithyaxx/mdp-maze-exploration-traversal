@@ -117,16 +117,22 @@ class Simulator:
         goal_x_entry.grid(column=0, row=11, pady=(0, 0), sticky=EW)
         goal_y_entry.grid(column=0, row=12, pady=(0, 10), sticky=EW)
 
-        self.diagonal = BooleanVar()
-        diagonal_checkbox = Checkbutton(parameter_pane, text="Diagonal", variable=self.diagonal, \
-                         onvalue=True, offvalue=False)
-        diagonal_checkbox.grid(column=0, row=13)
-
-
+        fp_algo_options = [
+            "A* Search",
+            "A* Search (With Diagonals)"
+        ]
+        fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
+        fp_algo_label.grid(column=0, row=12, sticky=EW)
+        self.fp_dropdown_var = StringVar()
+        self.fp_dropdown_var.set(fp_algo_options[0])
+        fp_dropdown = OptionMenu(parameter_pane, self.fp_dropdown_var, *fp_algo_options)
+        print(fp_dropdown.keys())
+        fp_dropdown.config(font=('helvetica', 10), bg='gray91', width=12)
+        fp_dropdown.grid(column=0, row=13, sticky=EW)
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
-        self.steps_per_second.set(10)
+        self.steps_per_second.set(-1)
         self.waypoint_x.set(0)
         self.waypoint_y.set(0)
         self.goal_x.set(13)
@@ -144,7 +150,7 @@ class Simulator:
 
     def findFP(self):
         self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
-                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.diagonal.get(), int(self.steps_per_second.get()))
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown_var.get())
 
     def update_cell(self, x, y):
         # Start & End box
@@ -181,19 +187,19 @@ class Simulator:
 
     def put_robot(self, x, y, bearing):
         if bearing == Bearing.NORTH:
-            front_coor = (x * 40 + 15 , y * 40 - 10 , x * 40 + 25, y * 40 )
+            front_coor = (x * 40 + 15, y * 40 - 10, x * 40 + 25, y * 40)
         elif bearing == Bearing.NORTH_EAST:
             front_coor = (x * 40 + 35, y * 40 - 5, x * 40 + 45, y * 40 + 5)
         elif bearing == Bearing.EAST:
-            front_coor = (x * 40 + 40 , y * 40 + 10 , x * 40 + 50, y * 40 + 20)
+            front_coor = (x * 40 + 40, y * 40 + 10, x * 40 + 50, y * 40 + 20)
         elif bearing == Bearing.SOUTH_EAST:
             front_coor = (x * 40 + 35, y * 40 + 35, x * 40 + 45, y * 40 + 45)
         elif bearing == Bearing.SOUTH:
-            front_coor = (x * 40 + 15 , y * 40 + 40, x * 40 + 25, y * 40 + 50)
+            front_coor = (x * 40 + 15, y * 40 + 40, x * 40 + 25, y * 40 + 50)
         elif bearing == Bearing.SOUTH_WEST:
-            front_coor = (x * 40 - 5, y * 40 + 35, x * 40 + 5 , y * 40 + 45 )
+            front_coor = (x * 40 - 5, y * 40 + 35, x * 40 + 5, y * 40 + 45)
         elif bearing == Bearing.WEST:
-            front_coor = (x * 40 - 10 , y * 40 + 10 , x * 40 , y * 40 + 20 )
+            front_coor = (x * 40 - 10, y * 40 + 10, x * 40, y * 40 + 20)
         else:
             front_coor = (x * 40 - 5, y * 40 - 5, x * 40 + 5, y * 40 + 5)
 
@@ -203,9 +209,10 @@ class Simulator:
         except:
             pass
 
-        self.robot_body = self.canvas.create_oval(x * 40 - 20, y * 40 - 20, x * 40 + 60, y * 40 + 60, fill="dodger blue", outline = "")
-        self.robot_header = self.canvas.create_oval(front_coor[0], front_coor[1], front_coor[2], front_coor[3], fill="white", outline = "")
-
+        self.robot_body = self.canvas.create_oval(x * 40 - 20, y * 40 - 20, x * 40 + 60, y * 40 + 60,
+                                                  fill="dodger blue", outline="")
+        self.robot_header = self.canvas.create_oval(front_coor[0], front_coor[1], front_coor[2], front_coor[3],
+                                                    fill="white", outline="")
 
     def update_map(self, radius=2, full=False):
         if full:
@@ -245,4 +252,3 @@ class Simulator:
             self.root.after_cancel(self.job)
         self.handler.reset()
         self.update_map(full=True)
-
