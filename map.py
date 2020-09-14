@@ -1,5 +1,6 @@
 import config
 import numpy as np
+from constants import Bearing
 
 
 class Map:
@@ -270,7 +271,7 @@ class Map:
 
         for i in range(-1, 2):
             for j in range(-1, 2):
-                # print(self.map_virtual[y + j][x + i])
+                print(self.map_virtual[y + j][x + i])
                 if not self.is_explored(x + i, y + j ) or self.map_virtual[y + j][x + i] != 0:
                     return False
         return True
