@@ -128,7 +128,7 @@ class Simulator:
             "A* Search (With Diagonals)"
         ]
         fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
-        fp_algo_label.grid(column=0, row=12, sticky=EW)
+        fp_algo_label.grid(column=0, row=13, sticky=EW)
         # self.fp_dropdown_var = StringVar()
         # self.fp_dropdown_var.set(fp_algo_options[0])
         self.fp_dropdown = ttk.Combobox(parameter_pane, state="readonly",
