@@ -6,10 +6,35 @@ from constants import Bearing, MOVEMENT
 
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
-    SPELUNKING1 = "Spelunking 1",
-    SPELUNKING2 = "Spelunking 2",
+    SPELUNKING1 = "Spelunking 1",       # use center sensors, minimize turn
+    SPELUNKING2 = "Spelunking 2",       # use front sensors
     RETURN_HOME = "Return Home"
 
+"""
+
+x: unexplored gird
+o: robot target
+SPELUNKING 1
+ _ _ _ _ _ _ _ _ _ _
+|_|_|_|_|_|_|_|_|_|_|
+|_|_|_|_|_|o|_|_|_|_|
+|_|_|_|_|_|_|_|_|_|_|
+|_|_|_|o|_|x|_|o|_|_|
+|_|_|_|_|_|_|_|_|_|_|
+|_|_|_|_|_|o|_|_|_|_|
+|_|_|_|_|_|_|_|_|_|_|
+
+SPELUNKING 2
+ _ _ _ _ _ _ _ _ _ _
+|_|_|_|_|_|_|_|_|_|_|
+|_|_|_|_|o|_|o|_|_|_|
+|_|_|_|o|_|_|_|o|_|_|
+|_|_|_|_|_|x|_|_|_|_|
+|_|_|_|o|_|_|_|o|_|_|
+|_|_|_|_|o|_|o|_|_|_|
+|_|_|_|_|_|_|_|_|_|_|
+
+"""
 
 class Core:
     def __init__(self, handler):
@@ -23,7 +48,6 @@ class Core:
         self.movements = []
         self.status = STATUS.LEFT_WALL_HUGGING
 
-
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
 
@@ -35,27 +59,28 @@ class Core:
         self.return_home = return_home
         self.periodic_check()
 
-
     def periodic_check(self):
         current = time.time()
         elapsed = current - self.start
 
         # print(self.status)
-
         if elapsed >= self.time_limit or ( self.map.get_coverage() >= self.coverage and not self.return_home ) or \
                 (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
                 self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18):
-                # (not self.return_home and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST):
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
             return
 
-        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and self.status == STATUS.LEFT_WALL_HUGGING:
-            self.spelunkprep()
+        #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlinking 1
+        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and\
+                self.status == STATUS.LEFT_WALL_HUGGING:
             self.status = STATUS.SPELUNKING1
+            self.spelunkprep()
 
-        if self.status != STATUS.RETURN_HOME and self.handler.robot.get_location() != (1, 18) and self.map.get_coverage() >= self.coverage:
+        #  send robot back to the start when exploration coverage reached
+        if self.return_home and self.status != STATUS.RETURN_HOME and self.handler.robot.get_location() != (1, 18) and \
+                self.map.get_coverage() >= self.coverage:
             self.go_home()
 
         if self.status == STATUS.LEFT_WALL_HUGGING:
@@ -64,12 +89,12 @@ class Core:
             if len(self.movements) <= 0:
                 self.spelunkprep()
                 if len(self.movements) <= 0:
-                    self.go_home()
+                    if self.return_home:
+                        self.go_home()
 
             self.execute_algo_move()
             if self.status == STATUS.SPELUNKING1 or self.status == STATUS.SPELUNKING2:
                 self.sense()
-
 
         if self.steps_per_second == -1:
             delay = 10
@@ -77,8 +102,6 @@ class Core:
             delay = 1000 // self.steps_per_second
 
         self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
-        # print(self.status)
-
 
     def left_wall_hugging(self):
         self.sense()
@@ -109,7 +132,6 @@ class Core:
                 steps = self.check_front()
                 if steps > 0:
                     self.handler.move(steps=1)
-
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
@@ -236,7 +258,6 @@ class Core:
 
         return min(sensor_data[:3])
 
-
     def spelunkprep(self):
         result, dir = self.get_spelunk_target()
 
@@ -250,7 +271,6 @@ class Core:
                 print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
                 # self.status = STATUS.RETURN_HOME
                 return
-
 
         self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = result[0], goalY = result[1], waypointX = 0, waypointY = 0, \
                                     startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
@@ -266,7 +286,7 @@ class Core:
         while (result == None and len(unexplored_grids) > 0):
             unknown_grid = unexplored_grids.pop(0)
             # print("[CORE] Unknown grid: ", unknown_grid[0], unknown_grid[1])
-            if self.status == STATUS.SPELUNKING1 or self.status == STATUS.LEFT_WALL_HUGGING:
+            if self.status == STATUS.SPELUNKING1:
                 result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
             else:
                 try:
