@@ -4,11 +4,13 @@ import config
 from fastest_path_algo import FastestPathAlgo
 from constants import Bearing, MOVEMENT
 
+
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
-    SPELUNKING1 = "Spelunking 1",       # use center sensors, minimize turn
-    SPELUNKING2 = "Spelunking 2",       # use front sensors
+    SPELUNKING1 = "Spelunking 1",  # use center sensors, minimize turn
+    SPELUNKING2 = "Spelunking 2",  # use front sensors
     RETURN_HOME = "Return Home"
+
 
 """
 
@@ -36,6 +38,7 @@ SPELUNKING 2
 
 """
 
+
 class Core:
     def __init__(self, handler):
         self.handler = handler
@@ -56,7 +59,7 @@ class Core:
         self.coverage = coverage
         self.time_limit = time_limit
         self.start = time.time()
-        self.return_home = return_home
+        self.return_home = 'Return Home' in return_home
         self.periodic_check()
 
     def periodic_check(self):
@@ -64,8 +67,10 @@ class Core:
         elapsed = current - self.start
 
         # print(self.status)
-        if elapsed >= self.time_limit or ( self.map.get_coverage() >= self.coverage and not self.return_home ) or \
-                (self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (1, 18)) or \
+        if elapsed >= self.time_limit or (self.map.get_coverage() >= self.coverage and not self.return_home) or \
+                (
+                        self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (
+                1, 18)) or \
                 self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18):
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
@@ -73,7 +78,7 @@ class Core:
             return
 
         #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlinking 1
-        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and\
+        if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and \
                 self.status == STATUS.LEFT_WALL_HUGGING:
             self.status = STATUS.SPELUNKING1
             self.spelunkprep()
@@ -143,7 +148,8 @@ class Core:
             delay = 10
         else:
             delay = 1000 // self.steps_per_second
-        self.algo.find_fastest_path(diag= diagonal, delay = delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x, waypointY=waypoint_y)
+        self.algo.find_fastest_path(diag=diagonal, delay=delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x,
+                                    waypointY=waypoint_y)
 
     def run(self):
         pass
@@ -165,9 +171,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[int(bearing/2)]
+        offset = offsets[int(bearing / 2)]
 
-        if is_wall[int(bearing/2)]:
+        if is_wall[int(bearing / 2)]:
             return False
 
         if self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False) and \
@@ -240,9 +246,9 @@ class Core:
         ]
 
         bearing = self.handler.robot.get_left_bearing()
-        offset = offsets[int(bearing/2)]
+        offset = offsets[int(bearing / 2)]
 
-        if is_wall[int(bearing/2)]:
+        if is_wall[int(bearing / 2)]:
             return False
 
         if self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
@@ -272,12 +278,12 @@ class Core:
                 # self.status = STATUS.RETURN_HOME
                 return
 
-        self.movements = self.algo.find_fastest_path(diag = False , delay = 0, goalX = result[0], goalY = result[1], waypointX = 0, waypointY = 0, \
-                                    startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        self.movements = self.algo.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1], waypointX=0,
+                                                     waypointY=0, \
+                                                     startX=self.handler.robot.get_location()[0],
+                                                     startY=self.handler.robot.get_location()[1], sim=False)
         if dir != None:
             self.add_bearing(dir)
-
-
 
     def get_spelunk_target(self):
         unexplored_grids = self.map.get_unexplored_grids()
@@ -295,7 +301,6 @@ class Core:
                 except:
                     pass
         return result, dir
-
 
     def execute_algo_move(self):
 
@@ -315,18 +320,18 @@ class Core:
 
     def go_home(self):
         self.movements.clear()
-        self.movements = self.algo.find_fastest_path(diag = True , delay = 0, goalX = 1, goalY = 18, waypointX = 0, waypointY = 0, \
-                                    startX = self.handler.robot.get_location()[0], startY = self.handler.robot.get_location()[1], sim = False)
+        self.movements = self.algo.find_fastest_path(diag=True, delay=0, goalX=1, goalY=18, waypointX=0, waypointY=0, \
+                                                     startX=self.handler.robot.get_location()[0],
+                                                     startY=self.handler.robot.get_location()[1], sim=False)
         # print(self.movements)
         self.status = STATUS.RETURN_HOME
-
 
     def add_bearing(self, dir):
         cur_dir = self.handler.robot.bearing
         for m in self.movements:
-            if(m == MOVEMENT.LEFT):
+            if (m == MOVEMENT.LEFT):
                 cur_dir = Bearing.prev_bearing(cur_dir)
-            elif(m == MOVEMENT.RIGHT):
+            elif (m == MOVEMENT.RIGHT):
                 cur_dir = Bearing.next_bearing(cur_dir)
 
         if cur_dir == dir:

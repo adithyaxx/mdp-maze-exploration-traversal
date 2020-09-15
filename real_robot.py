@@ -71,6 +71,7 @@ class RealRobot(Robot):
             self.socket.connect((host, port))
         except Exception:
             print("[Error] Unable to establish connection.")
+            return False
         else:
             self.connected = True
             print("[Info] Connection established.")
