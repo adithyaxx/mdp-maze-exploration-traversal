@@ -285,8 +285,19 @@ class Core:
         if dir != None:
             self.add_bearing(dir)
 
+    def get_unexplored_grids(self):
+        robot_x, robot_y = self.handler.robot.get_location()
+        unexplored_grids = []
+        for i in range(config.map_size['height']):
+            # top right to bottom left
+            for k in range(robot_x - i, robot_x + i, 1):
+                 for j in range(robot_y - i, robot_y + i):
+                    if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
+                        unexplored_grids.append((k, j))
+        return unexplored_grids
+
     def get_spelunk_target(self):
-        unexplored_grids = self.map.get_unexplored_grids()
+        unexplored_grids = self.get_unexplored_grids()
         result = None
         dir = None
         while (result == None and len(unexplored_grids) > 0):
