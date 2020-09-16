@@ -123,8 +123,10 @@ class Core:
                 for _ in range(steps-1):
                     self.movements.append(MOVEMENT.FORWARD)
                 self.handler.move(steps=1)
+                # print("forward")
             else:
                 self.handler.right()
+                # print("right")
         else:
             if left_middle and left_back:
                 self.handler.left()
@@ -133,9 +135,13 @@ class Core:
                     for _ in range(steps):
                         self.movements.append(MOVEMENT.FORWARD)
             else:
-                if not left_middle:
-                    self.movements.append(MOVEMENT.FORWARD)
-                self.handler.move(steps=1)
+                steps = self.check_front()
+                if steps > 0:
+                    if not left_middle:
+                        self.movements.append(MOVEMENT.FORWARD)
+                    self.handler.move(steps=1)
+                else:
+                    self.handler.right()
 
 
     def sense(self, backtrack=0):
@@ -348,37 +354,37 @@ class Core:
         if cur_dir == dir:
             return
 
-        if dir == Bearing.NORTH:
-            if cur_dir == Bearing.WEST:
+        if cur_dir == Bearing.NORTH:
+            if dir == Bearing.WEST:
                 self.movements.append(MOVEMENT.LEFT)
-            elif cur_dir == Bearing.EAST:
+            elif dir == Bearing.EAST:
                 self.movements.append(MOVEMENT.RIGHT)
             else:
                 self.movements.append(MOVEMENT.RIGHT)
                 self.movements.append(MOVEMENT.RIGHT)
 
-        elif dir == Bearing.SOUTH:
-            if cur_dir == Bearing.WEST:
+        elif cur_dir == Bearing.SOUTH:
+            if dir == Bearing.WEST:
                 self.movements.append(MOVEMENT.RIGHT)
-            elif cur_dir == Bearing.EAST:
+            elif dir == Bearing.EAST:
                 self.movements.append(MOVEMENT.LEFT)
             else:
                 self.movements.append(MOVEMENT.RIGHT)
                 self.movements.append(MOVEMENT.RIGHT)
 
-        elif dir == Bearing.EAST:
-            if cur_dir == Bearing.NORTH:
+        elif cur_dir == Bearing.EAST:
+            if dir == Bearing.NORTH:
                 self.movements.append(MOVEMENT.LEFT)
-            elif cur_dir == Bearing.SOUTH:
+            elif dir == Bearing.SOUTH:
                 self.movements.append(MOVEMENT.RIGHT)
             else:
                 self.movements.append(MOVEMENT.RIGHT)
                 self.movements.append(MOVEMENT.RIGHT)
 
-        elif dir == Bearing.WEST:
-            if cur_dir == Bearing.SOUTH:
+        elif cur_dir == Bearing.WEST:
+            if dir == Bearing.SOUTH:
                 self.movements.append(MOVEMENT.LEFT)
-            elif cur_dir == Bearing.NORTH:
+            elif dir == Bearing.NORTH:
                 self.movements.append(MOVEMENT.RIGHT)
             else:
                 self.movements.append(MOVEMENT.RIGHT)
