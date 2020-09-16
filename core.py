@@ -14,7 +14,7 @@ class STATUS:
 
 """
 
-x: unexplored gird
+x: unexplored grid
 o: robot target
 SPELUNKING 1
  _ _ _ _ _ _ _ _ _ _
@@ -81,6 +81,7 @@ class Core:
         if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and \
                 self.status == STATUS.LEFT_WALL_HUGGING:
             self.status = STATUS.SPELUNKING1
+            self.movements.clear()
             self.spelunkprep()
 
         #  send robot back to the start when exploration coverage reached
@@ -102,41 +103,40 @@ class Core:
                 self.sense()
 
         if self.steps_per_second == -1:
-            delay = 10
+            self.delay = 10
         else:
-            delay = 1000 // self.steps_per_second
+            self.delay = 1000 // self.steps_per_second
 
-        self.handler.simulator.job = self.handler.simulator.root.after(delay, self.periodic_check)
+        self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
     def left_wall_hugging(self):
         self.sense()
-        # Turn left and move forward if left is free
-        if self.check_left():
-            self.handler.left()
-            self.sense()
+        if len(self.movements) > 0:
+            self.execute_algo_move()
+            print(self.movements)
+            return
+
+        left_front, left_middle, left_back =  self.check_left()
+        if not left_front:
             steps = self.check_front()
             if steps > 0:
-                self.handler.move(steps=1)
-        else:
-            steps = self.check_front()
-
-            # Move forward if front is free
-            if steps > 0:
-                # Move forward by 1 step only if front left is free
-                # if self.check_top_left():
-                #     self.handler.move(steps=1)
-                # else:
-                #     self.handler.move(steps=steps)
-                #     self.sense(steps - 1)
-                #     self.handler.simulator.update_map(radius=5)
-
+                for _ in range(steps-1):
+                    self.movements.append(MOVEMENT.FORWARD)
                 self.handler.move(steps=1)
             else:
                 self.handler.right()
-                self.sense()
+        else:
+            if left_middle and left_back:
+                self.handler.left()
                 steps = self.check_front()
                 if steps > 0:
-                    self.handler.move(steps=1)
+                    for _ in range(steps):
+                        self.movements.append(MOVEMENT.FORWARD)
+            else:
+                if not left_middle:
+                    self.movements.append(MOVEMENT.FORWARD)
+                self.handler.move(steps=1)
+
 
     def sense(self, backtrack=0):
         self.handler.robot.sense(backtrack)
@@ -145,10 +145,10 @@ class Core:
         diagonal = "Diagonal" in diagonal
 
         if self.steps_per_second == -1:
-            delay = 10
+            self.delay = 10
         else:
-            delay = 1000 // self.steps_per_second
-        self.algo.find_fastest_path(diag=diagonal, delay=delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x,
+            self.delay = 1000 // self.steps_per_second
+        self.algo.find_fastest_path(diag=diagonal, delay=self.delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x,
                                     waypointY=waypoint_y)
 
     def run(self):
@@ -158,8 +158,8 @@ class Core:
         robot_x, robot_y = self.handler.robot.get_location()
 
         offsets = [
-            [[-1, 0, 1], [-2, -2, -2]],
-            [[2, 2, 2], [-1, 0, 1]],
+            [[1, 0, -1], [-2, -2, -2]],
+            [[2, 2, 2], [1, 0, -1]],
             [[-1, 0, 1], [2, 2, 2]],
             [[-2, -2, -2], [-1, 0, 1]]
         ]
@@ -174,12 +174,12 @@ class Core:
         offset = offsets[int(bearing / 2)]
 
         if is_wall[int(bearing / 2)]:
-            return False
+            return 0, 0, 0
 
-        if self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False) and \
-                self.map.is_free(robot_x + offset[0][1], robot_y + offset[1][1], sim=False) and \
-                self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False):
-            return True
+        return self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False), \
+                self.map.is_free(robot_x + offset[0][1], robot_y + offset[1][1], sim=False), \
+                self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False)
+            # return True
 
         # if left_bearing == Bearing.NORTH:
         #     if robot_y < 2:
@@ -227,7 +227,7 @@ class Core:
         #
         # else:
         #     print("[Error] Invalid direction.")
-        return False
+        # return False
 
     def check_top_left(self):
         robot_x, robot_y = self.handler.robot.get_location()
