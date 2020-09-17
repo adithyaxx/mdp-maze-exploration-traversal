@@ -12,10 +12,8 @@ class STATUS:
 
 
 """
-
 x: unexplored grid
 o: robot target
-
 SPELUNKING 
  _ _ _ _ _ _ _ _ _ _
 |_|_|_|_|_|_|_|_|_|_|
@@ -25,7 +23,6 @@ SPELUNKING
 |_|_|_|o|_|_|_|o|_|_|
 |_|_|_|_|o|o|o|_|_|_|
 |_|_|_|_|_|_|_|_|_|_|
-
 """
 
 
@@ -57,7 +54,6 @@ class Core:
         current = time.time()
         elapsed = current - self.start
 
-        # print(self.status)
         if elapsed >= self.time_limit or (self.map.get_coverage() >= self.coverage and not self.return_home) or \
                 (
                         self.return_home and self.map.get_coverage() >= self.coverage and self.handler.robot.get_location() == (
@@ -147,9 +143,6 @@ class Core:
         self.algo.find_fastest_path(diag=diagonal, delay=self.delay, goalX=goal_x, goalY=goal_y, waypointX=waypoint_x,
                                     waypointY=waypoint_y)
 
-    def run(self):
-        pass
-
     def check_left(self):
         robot_x, robot_y = self.handler.robot.get_location()
 
@@ -175,55 +168,7 @@ class Core:
         return self.map.is_free(robot_x + offset[0][0], robot_y + offset[1][0], sim=False), \
                 self.map.is_free(robot_x + offset[0][1], robot_y + offset[1][1], sim=False), \
                 self.map.is_free(robot_x + offset[0][2], robot_y + offset[1][2], sim=False)
-            # return True
 
-        # if left_bearing == Bearing.NORTH:
-        #     if robot_y < 2:
-        #         return False
-        #
-        #     if self.map.is_free(robot_y - 2, robot_x - 1) and \
-        #             self.map.is_free(robot_y - 2, robot_x + 0) and \
-        #             self.map.is_free(robot_y - 2, robot_x + 1):
-        #         return True
-        #
-        #     return False
-        #
-        # elif left_bearing == Bearing.EAST:
-        #     if robot_x > (config.map_size['width'] - 2):
-        #         return False
-        #
-        #     if self.map.is_free(robot_y - 1, robot_x + 2) and \
-        #             self.map.is_free(robot_y + 0, robot_x + 2) and \
-        #             self.map.is_free(robot_y + 1, robot_x + 2):
-        #         return True
-        #
-        #     return False
-        #
-        # elif left_bearing == Bearing.SOUTH:
-        #     if robot_y > (config.map_size['height'] - 2):
-        #         return False
-        #
-        #     if self.map.is_free(robot_y + 2, robot_x - 1) and \
-        #             self.map.is_free(robot_y + 2, robot_x + 0) and \
-        #             self.map.is_free(robot_y + 2, robot_x + 1):
-        #         return True
-        #
-        #     return False
-        #
-        # elif left_bearing == Bearing.WEST:
-        #     if robot_x < 2:
-        #         return False
-        #
-        #     if self.map.is_free(robot_y - 1, robot_x - 2) and \
-        #             self.map.is_free(robot_y + 0, robot_x - 2) and \
-        #             self.map.is_free(robot_y + 1, robot_x - 2):
-        #         return True
-        #
-        #     return False
-        #
-        # else:
-        #     print("[Error] Invalid direction.")
-        # return False
 
     def check_top_left(self):
         robot_x, robot_y = self.handler.robot.get_location()
@@ -266,7 +211,6 @@ class Core:
 
         if result is None:
             print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
-            # self.status = STATUS.RETURN_HOME
             return
 
         self.movements = self.algo.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1], waypointX=0,
@@ -276,15 +220,6 @@ class Core:
         if dir != None:
             self.add_bearing(dir)
 
-    # def get_unexplored_grids(self):
-    #     robot_x, robot_y = self.handler.robot.get_location()
-    #     unexplored_grids = []
-    #     for i in range(config.map_size['height']):
-    #         for k in range(robot_x - i, robot_x + i, 1):
-    #              for j in range(robot_y - i, robot_y + i):
-    #                 if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
-    #                     unexplored_grids.append((k, j))
-    #     return unexplored_grids
 
     def get_spelunk_target(self):
         unexplored_grids = self.map.get_unexplored_grids()
@@ -298,7 +233,6 @@ class Core:
                 self.add_bearing(dir)
             except:
                 pass
-        print(result)
         return result, dir
 
     def execute_algo_move(self):
@@ -372,8 +306,4 @@ class Core:
                 self.movements.append(MOVEMENT.RIGHT)
 
         else:
-            # print(cur_dir, dir)
             print("Warning invalid direction")
-        # print(self.movements)
-
-
