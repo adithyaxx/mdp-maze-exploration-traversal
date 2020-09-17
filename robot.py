@@ -9,6 +9,7 @@ class Robot:
         self.x = 1
         self.bearing = Bearing.NORTH
         self.map = handler.map
+        self.handler = handler
 
     # check that center of robot is not at the border and lies within the map
     def validate(self, x, y):
@@ -17,6 +18,7 @@ class Robot:
 
     # recalculate center of robot
     def move(self, steps=1):
+        print('FORWARD')
         if self.bearing == Bearing.NORTH:
             if self.validate(0, -steps) and self.north_is_free():
                 self.y -= steps
@@ -33,16 +35,20 @@ class Robot:
     def left(self):
         # rotate anticlockwise by 90 deg
         self.bearing = Bearing.prev_bearing(self.bearing)
+        print('L90')
 
     def right(self):
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
+        print('R90')
 
     def left_diag(self):
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
+        print('L45')
 
     def right_diag(self):
         self.bearing = Bearing.next_bearing_diag(self.bearing)
+        print('R45')
 
     def move_diag(self, steps=1):
         if self.bearing == Bearing.NORTH_EAST:
@@ -149,7 +155,7 @@ class Robot:
     # sense simulated sensor
     def sense(self, backtrack=0):
         sensor_data = self.receive()
-        print(sensor_data)
+
         location = self.get_location()
         bearing = self.bearing
 
@@ -171,14 +177,15 @@ class Robot:
                 x, y = location
                 x += i
 
-            self.set_location(x, y)
-            sensor_data = self.receive()
-            self.sense_front((x, y), bearing, sensor_data[:3])
-            self.sense_left((x, y), bearing, sensor_data[3])
-            self.sense_right((x, y), bearing, sensor_data[4])
+            # self.set_location(x, y)
+            # sensor_data = self.receive()
+            # self.sense_front((x, y), bearing, sensor_data[:3])
+            # self.sense_left((x, y), bearing, sensor_data[3])
+            # self.sense_right((x, y), bearing, sensor_data[4])
 
         x, y = location
         self.set_location(x, y)
+        print(x, y)
 
     def reset(self):
         self.y = config.map_size['height'] - 2
