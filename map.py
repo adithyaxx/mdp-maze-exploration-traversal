@@ -308,8 +308,8 @@ class Map:
         unexplored_grids = []
         for j in range(config.map_size['width']):
             for i in range(config.map_size['height']):
-                if (self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
-                    unexplored_grids.append((j, config.map_size['height'] - i - 1))
+                if (self.map_is_explored[i][config.map_size['width'] - j - 1] == 0):
+                    unexplored_grids.append((config.map_size['width'] - j - 1, i))
         return unexplored_grids
 
 

@@ -7,8 +7,7 @@ from constants import Bearing, MOVEMENT
 
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
-    SPELUNKING1 = "Spelunking 1",  # use center sensors, minimize turn
-    SPELUNKING2 = "Spelunking 2",  # use front sensors
+    SPELUNKING = "Spelunking",    # use front sensors
     RETURN_HOME = "Return Home"
 
 
@@ -16,24 +15,15 @@ class STATUS:
 
 x: unexplored grid
 o: robot target
-SPELUNKING 1
- _ _ _ _ _ _ _ _ _ _
-|_|_|_|_|_|_|_|_|_|_|
-|_|_|_|_|_|o|_|_|_|_|
-|_|_|_|_|_|_|_|_|_|_|
-|_|_|_|o|_|x|_|o|_|_|
-|_|_|_|_|_|_|_|_|_|_|
-|_|_|_|_|_|o|_|_|_|_|
-|_|_|_|_|_|_|_|_|_|_|
 
-SPELUNKING 2
+SPELUNKING 
  _ _ _ _ _ _ _ _ _ _
 |_|_|_|_|_|_|_|_|_|_|
-|_|_|_|_|o|_|o|_|_|_|
+|_|_|_|_|o|o|o|_|_|_|
 |_|_|_|o|_|_|_|o|_|_|
-|_|_|_|_|_|x|_|_|_|_|
+|_|_|_|o|_|x|_|o|_|_|
 |_|_|_|o|_|_|_|o|_|_|
-|_|_|_|_|o|_|o|_|_|_|
+|_|_|_|_|o|o|o|_|_|_|
 |_|_|_|_|_|_|_|_|_|_|
 
 """
@@ -53,6 +43,7 @@ class Core:
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
+        self.movements.clear()
 
     def explore(self, steps_per_second, coverage, time_limit, return_home):
         self.steps_per_second = steps_per_second
@@ -80,7 +71,7 @@ class Core:
         #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlinking 1
         if self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST and \
                 self.status == STATUS.LEFT_WALL_HUGGING:
-            self.status = STATUS.SPELUNKING1
+            self.status = STATUS.SPELUNKING
             self.movements.clear()
             self.spelunkprep()
 
@@ -99,7 +90,7 @@ class Core:
                         self.go_home()
 
             self.execute_algo_move()
-            if self.status == STATUS.SPELUNKING1 or self.status == STATUS.SPELUNKING2:
+            if self.status == STATUS.SPELUNKING:
                 self.sense()
 
         if self.steps_per_second == -1:
@@ -113,7 +104,7 @@ class Core:
         self.sense()
         if len(self.movements) > 0:
             self.execute_algo_move()
-            print(self.movements)
+            self.sense()
             return
 
         left_front, left_middle, left_back =  self.check_left()
@@ -123,10 +114,8 @@ class Core:
                 for _ in range(steps-1):
                     self.movements.append(MOVEMENT.FORWARD)
                 self.handler.move(steps=1)
-                # print("forward")
             else:
                 self.handler.right()
-                # print("right")
         else:
             if left_middle and left_back:
                 self.handler.left()
@@ -142,6 +131,7 @@ class Core:
                     self.handler.move(steps=1)
                 else:
                     self.handler.right()
+        self.sense()
 
 
     def sense(self, backtrack=0):
@@ -273,16 +263,11 @@ class Core:
     def spelunkprep(self):
         result, dir = self.get_spelunk_target()
 
-        if result is None:
-            if self.status == STATUS.SPELUNKING1:
-                print("Attempt 2: Spelunkprep")
-                self.status = STATUS.SPELUNKING2
-                result, dir = self.get_spelunk_target()
 
-            if result is None:
-                print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
-                # self.status = STATUS.RETURN_HOME
-                return
+        if result is None:
+            print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
+            # self.status = STATUS.RETURN_HOME
+            return
 
         self.movements = self.algo.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1], waypointX=0,
                                                      waypointY=0, \
@@ -291,32 +276,29 @@ class Core:
         if dir != None:
             self.add_bearing(dir)
 
-    def get_unexplored_grids(self):
-        robot_x, robot_y = self.handler.robot.get_location()
-        unexplored_grids = []
-        for i in range(config.map_size['height']):
-            # top right to bottom left
-            for k in range(robot_x - i, robot_x + i, 1):
-                 for j in range(robot_y - i, robot_y + i):
-                    if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
-                        unexplored_grids.append((k, j))
-        return unexplored_grids
+    # def get_unexplored_grids(self):
+    #     robot_x, robot_y = self.handler.robot.get_location()
+    #     unexplored_grids = []
+    #     for i in range(config.map_size['height']):
+    #         for k in range(robot_x - i, robot_x + i, 1):
+    #              for j in range(robot_y - i, robot_y + i):
+    #                 if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
+    #                     unexplored_grids.append((k, j))
+    #     return unexplored_grids
 
     def get_spelunk_target(self):
-        unexplored_grids = self.get_unexplored_grids()
+        unexplored_grids = self.map.get_unexplored_grids()
         result = None
         dir = None
         while (result == None and len(unexplored_grids) > 0):
             unknown_grid = unexplored_grids.pop(0)
             # print("[CORE] Unknown grid: ", unknown_grid[0], unknown_grid[1])
-            if self.status == STATUS.SPELUNKING1:
-                result = self.map.find_adjacent_free_space(unknown_grid[0], unknown_grid[1])
-            else:
-                try:
-                    result, dir = self.map.find_adjacent_free_space_front(unknown_grid[0], unknown_grid[1])
-                    self.add_bearing(dir)
-                except:
-                    pass
+            try:
+                result, dir = self.map.find_adjacent_free_space_front(unknown_grid[0], unknown_grid[1])
+                self.add_bearing(dir)
+            except:
+                pass
+        print(result)
         return result, dir
 
     def execute_algo_move(self):
@@ -340,7 +322,6 @@ class Core:
         self.movements = self.algo.find_fastest_path(diag=True, delay=0, goalX=1, goalY=18, waypointX=0, waypointY=0, \
                                                      startX=self.handler.robot.get_location()[0],
                                                      startY=self.handler.robot.get_location()[1], sim=False)
-        # print(self.movements)
         self.status = STATUS.RETURN_HOME
 
     def add_bearing(self, dir):
@@ -394,3 +375,5 @@ class Core:
             # print(cur_dir, dir)
             print("Warning invalid direction")
         # print(self.movements)
+
+
