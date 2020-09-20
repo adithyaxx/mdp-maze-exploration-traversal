@@ -125,7 +125,7 @@ class Simulator:
         exploration_label = ttk.Label(parameter_pane, text="Exploration Algo:")
         exploration_label.grid(column=0, row=10, sticky=EW)
         self.exploration_dropdown = ttk.Combobox(parameter_pane, state="readonly",
-                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)"])
+                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
         self.exploration_dropdown.current(1)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
 
@@ -168,7 +168,7 @@ class Simulator:
                           int(self.time_limit.get()), self.exploration_dropdown.get())
 
     def findFP(self):
-        self.core.findFP(int(self.goal_x.get()), int(self.goal_y.get()),
+        self.core.findFP(int(self.steps_per_second.get()), int(self.goal_x.get()), int(self.goal_y.get()),
                          int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown.get())
 
     def update_cell(self, x, y):

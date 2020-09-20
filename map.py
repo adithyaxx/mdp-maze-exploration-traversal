@@ -76,8 +76,8 @@ class Map:
              [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
              [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0],
+             [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+             [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
              [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
@@ -315,14 +315,14 @@ class Map:
 
     def find_adjacent_free_space_front(self, x, y):
         center = {
-            Bearing.EAST: [[x - 2, y - 1], [x - 2, y + 1]],
-            Bearing.SOUTH: [[x - 1, y - 2], [x + 1, y - 2]],
-            Bearing.NORTH: [[x - 1, y + 2], [x + 1, y + 2]],
-            Bearing.WEST: [[x + 2, y - 1], [x + 2, y + 1]]
+            Bearing.EAST: [[x - 2, y - 1], [x - 2, y], [x - 2, y + 1]],
+            Bearing.SOUTH: [[x - 1, y - 2], [x, y - 2], [x + 1, y - 2]],
+            Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
+            Bearing.WEST: [[x + 2, y - 1], [x + 2, y], [x + 2, y + 1]]
         }
 
         for k, v in center.items():
             for e in v:
                 # print("coordinates: ", e, k)
-                if self.is_free_space(e[0], e[1]):
+                if e[0] > 0 and e[0] < config.map_size['width'] -1 and e[1] > 0 and e[1] < config.map_size['height'] -1 and self.is_free_space(e[0], e[1]):
                     return e , k
