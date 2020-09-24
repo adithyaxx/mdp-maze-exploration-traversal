@@ -134,42 +134,38 @@ class ExplorationAlgo:
             if steps > 0:
                 for _ in range(min(steps , self.max_move )):
                     self.movements.append(MOVEMENT.FORWARD)
-                # for _ in range(min(steps - 1, self.max_move - 1)):
-                #     self.movements.append(MOVEMENT.FORWARD)
-                # self.handler.move(steps=1)
             else:
                 self.movements.append(MOVEMENT.RIGHT)
-                # self.handler.right()
         else:
             if left_middle and left_back:
                 self.movements.append(MOVEMENT.LEFT)
                 self.movements.append(MOVEMENT.FORWARD)
-                # self.handler.left()
-                # self.handler.move(steps=1)
-                # steps = self.check_front()
-                # if steps > 0:
-                #     for _ in range(min(steps, self.max_move)):
-                #         self.movements.append(MOVEMENT.FORWARD)
             else:
                 steps = self.check_front()
                 if steps > 0:
                     if not left_middle:
                         self.movements.append(MOVEMENT.FORWARD)
-                    # self.handler.move(steps=1)
                     self.movements.append(MOVEMENT.FORWARD)
                 else:
                     self.movements.append(MOVEMENT.RIGHT)
-                    # self.handler.right()
         self.move_and_sense()
 
 
     def move_and_sense(self, sense = True):
         if self.optimized:
             num_move = 1
+
+            robot_x, robot_y = self.handler.robot.get_location()
+            robot_bearing = self.handler.robot.bearing
+
             if self.movements[0] == MOVEMENT.FORWARD:
-                if len(self.movements)>1 and self.movements[1] == MOVEMENT.FORWARD:
+                if self.status == STATUS.IMAGE_REC:
+                    robot_x, robot_y = self.simulate_move(robot_x, robot_y, robot_bearing)
+                if [robot_x,robot_y] != list(self.start_pos) and len(self.movements)>1 and self.movements[1] == MOVEMENT.FORWARD:
                     num_move += 1
-                    if len(self.movements)>2 and self.movements[2] == MOVEMENT.FORWARD:
+                    if self.status == STATUS.IMAGE_REC:
+                        robot_x, robot_y = self.simulate_move(robot_x, robot_y, robot_bearing)
+                    if [robot_x,robot_y] != list(self.start_pos) and len(self.movements)>2 and self.movements[2] == MOVEMENT.FORWARD:
                         num_move += 1
 
             for _ in range(num_move):
@@ -180,6 +176,8 @@ class ExplorationAlgo:
             self.execute_algo_move()
             if sense:
                 self.sense()
+        if self.status == STATUS.IMAGE_REC:
+            self.take_image()
 
 
     def take_image(self):
@@ -447,6 +445,25 @@ class ExplorationAlgo:
 
     def set_optimized(self, opt):
         self.optimized = opt
+
+
+    def simulate_move(self, robot_x, robot_y, robot_bearing):
+        if robot_bearing == Bearing.NORTH:
+            robot_y -= 1
+        elif robot_bearing == Bearing.EAST:
+            robot_x += 1
+        elif robot_bearing == Bearing.SOUTH:
+            robot_y += 1
+        else:
+            robot_x -= 1
+        return robot_x, robot_y
+
+    # def simulate_left(self, bearing):
+    #     return Bearing.prev_bearing(bearing)
+    #
+    # def simulate_right(self, bearing):
+    #     return Bearing.next_bearing(bearing)
+    #
 
     # def get_unexplored_grids(self):
     #     robot_x, robot_y = self.handler.robot.get_location()
