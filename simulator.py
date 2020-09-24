@@ -141,6 +141,7 @@ class Simulator:
         self.fp_dropdown.current(0)
         self.fp_dropdown.grid(column=0, row=13, pady=(0, 10), sticky=EW)
 
+        self.ip_addr.set('192.168.20.1')
         ip_addr_label = ttk.Label(parameter_pane, text="IP Address:")
         ip_addr_label.grid(column=0, row=14, sticky=EW)
         ip_addr_entry = ttk.Entry(parameter_pane, textvariable=self.ip_addr)
@@ -275,6 +276,8 @@ class Simulator:
     def connect(self):
         if self.connect_button.cget('text') == 'Connect':
             self.robot_simulation = False
+            self.map.clear_map_for_real_exploration()
+            self.update_map(full=True)
             if self.handler.connect(self.ip_addr.get()):
                 self.connect_button.config(text='Disconnect')
                 return

@@ -161,6 +161,7 @@ class Map:
         #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
 
     def mark_explored(self, x, y, is_explored, is_obstacle):
+        print('mark', x, y)
         self.map_is_explored[y][x] = is_explored
         self.map_virtual[y][x] = is_obstacle
 
@@ -250,6 +251,9 @@ class Map:
         self.map_virtual = map_bin
 
         print(self.map_sim)
+
+    def clear_map_for_real_exploration(self):
+        self.map_sim = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
 
     def reset(self):
         self.map_virtual = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
