@@ -42,7 +42,7 @@ class ExplorationAlgo:
         self.max_move = 999
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
         self.start_pos = (0,0)
-
+        self.optimized = True
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
@@ -114,9 +114,10 @@ class ExplorationAlgo:
                     if self.return_home:
                         self.go_home()
 
-            self.execute_algo_move()
             if self.status == STATUS.SPELUNKING:
-                self.sense()
+                self.move_and_sense()
+            else:
+                self.move_and_sense(sense=False)
 
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
@@ -124,35 +125,61 @@ class ExplorationAlgo:
     def left_wall_hugging(self):
         self.sense()
         if len(self.movements) > 0:
-            self.execute_algo_move()
-            self.sense()
+            self.move_and_sense()
             return
 
         left_front, left_middle, left_back = self.check_left()
         if not left_front:
             steps = self.check_front()
             if steps > 0:
-                for _ in range(min(steps - 1, self.max_move- 1)):
+                for _ in range(min(steps , self.max_move )):
                     self.movements.append(MOVEMENT.FORWARD)
-                self.handler.move(steps=1)
+                # for _ in range(min(steps - 1, self.max_move - 1)):
+                #     self.movements.append(MOVEMENT.FORWARD)
+                # self.handler.move(steps=1)
             else:
-                self.handler.right()
+                self.movements.append(MOVEMENT.RIGHT)
+                # self.handler.right()
         else:
             if left_middle and left_back:
-                self.handler.left()
-                steps = self.check_front()
-                if steps > 0:
-                    for _ in range(min(steps, self.max_move)):
-                        self.movements.append(MOVEMENT.FORWARD)
+                self.movements.append(MOVEMENT.LEFT)
+                self.movements.append(MOVEMENT.FORWARD)
+                # self.handler.left()
+                # self.handler.move(steps=1)
+                # steps = self.check_front()
+                # if steps > 0:
+                #     for _ in range(min(steps, self.max_move)):
+                #         self.movements.append(MOVEMENT.FORWARD)
             else:
                 steps = self.check_front()
                 if steps > 0:
                     if not left_middle:
                         self.movements.append(MOVEMENT.FORWARD)
-                    self.handler.move(steps=1)
+                    # self.handler.move(steps=1)
+                    self.movements.append(MOVEMENT.FORWARD)
                 else:
-                    self.handler.right()
-        self.sense()
+                    self.movements.append(MOVEMENT.RIGHT)
+                    # self.handler.right()
+        self.move_and_sense()
+
+
+    def move_and_sense(self, sense = True):
+        if self.optimized:
+            num_move = 1
+            if self.movements[0] == MOVEMENT.FORWARD:
+                if len(self.movements)>1 and self.movements[1] == MOVEMENT.FORWARD:
+                    num_move += 1
+                    if len(self.movements)>2 and self.movements[2] == MOVEMENT.FORWARD:
+                        num_move += 1
+
+            for _ in range(num_move):
+                self.execute_algo_move()
+                if sense:
+                    self.sense()
+        else:
+            self.execute_algo_move()
+            if sense:
+                self.sense()
 
 
     def take_image(self):
@@ -265,7 +292,7 @@ class ExplorationAlgo:
             result, dir = self.get_image_rec_target()
             self.start_pos = (-1,-1)
             self.temp_pos = result
-            print("new start pos" ,self.temp_pos)
+            # print("new start pos" ,self.temp_pos)
         else:
             result, dir = self.get_spelunk_target()
 
@@ -410,9 +437,23 @@ class ExplorationAlgo:
         if do_img_rec:
             self.status = STATUS.IMAGE_REC
             self.max_move = 3
+            self.set_optimized(True)
         else:
             self.status = STATUS.LEFT_WALL_HUGGING
             self.max_move = 999
 
     def update_start_pos(self):
         self.start_pos = self.temp_pos
+
+    def set_optimized(self, opt):
+        self.optimized = opt
+
+    # def get_unexplored_grids(self):
+    #     robot_x, robot_y = self.handler.robot.get_location()
+    #     unexplored_grids = []
+    #     for i in range(config.map_size['height']):
+    #         for k in range(robot_x - i, robot_x + i, 1):
+    #              for j in range(robot_y - i, robot_y + i):
+    #                 if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
+    #                     unexplored_grids.append((k, j))
+    #     return unexplored_grids

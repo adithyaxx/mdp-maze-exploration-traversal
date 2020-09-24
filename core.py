@@ -25,6 +25,10 @@ class Core:
         if 'Image Recognition' in exploration_algo:
             self.explorer.set_status(do_img_rec=True)
         else:
+            if 'Optimized' in exploration_algo:
+                self.explorer.set_optimized(True)
+            else:
+                self.explorer.set_optimized(False)
             self.explorer.set_status(do_img_rec=False)
         self.explorer.explore(delay, steps_per_second, coverage, time_limit, is_return_home)
 

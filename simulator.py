@@ -125,8 +125,8 @@ class Simulator:
         exploration_label = ttk.Label(parameter_pane, text="Exploration Algo:")
         exploration_label.grid(column=0, row=10, sticky=EW)
         self.exploration_dropdown = ttk.Combobox(parameter_pane, state="readonly",
-                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
-        self.exploration_dropdown.current(1)
+                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Left Wall Hugging (Optimized, Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
+        self.exploration_dropdown.current(2)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
 
         # self.return_home = BooleanVar()
