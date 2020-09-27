@@ -249,6 +249,9 @@ class Map:
             (config.map_size['height'], config.map_size['width'])
         )
 
+        for i in range(len(map_bin)):
+            map_bin[i] = list(reversed(map_bin[i]))
+
         self.map_sim = map_bin
         self.map_virtual = map_bin
 
