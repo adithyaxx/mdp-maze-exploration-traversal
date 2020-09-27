@@ -123,7 +123,7 @@ class ExplorationAlgo:
 
 
     def left_wall_hugging(self):
-        self.sense()
+        # self.sense()
         if len(self.movements) > 0:
             self.move_and_sense()
             return
