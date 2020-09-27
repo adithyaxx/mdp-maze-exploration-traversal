@@ -185,7 +185,6 @@ class Robot:
 
         x, y = location
         self.set_location(x, y)
-        print(x, y)
 
     def reset(self):
         self.y = config.map_size['height'] - 2

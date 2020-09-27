@@ -88,4 +88,4 @@ class Handler:
         return self.robot.connect(ip_addr)
 
     def disconnect(self):
-        self.robot = simulated_robot.SimulatedRobot(self)
+        return self.robot.disconnect()

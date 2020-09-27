@@ -252,6 +252,7 @@ class Simulator:
             for x in x_range:
                 self.update_cell(x, y)
 
+        print(self.robot.x, self.robot.y)
         self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
     # Robot's movement manual control
@@ -279,12 +280,13 @@ class Simulator:
             self.map.clear_map_for_real_exploration()
             self.update_map(full=True)
             if self.handler.connect(self.ip_addr.get()):
+                self.robot = self.handler.get_robot()
                 self.connect_button.config(text='Disconnect')
                 return
 
         self.robot_simulation = True
-        # self.handler.disconnect()
         self.connect_button.config(text='Connect')
+        self.handler.disconnect()
         self.handler = Handler(self)
         self.map = self.handler.map
         self.core = self.handler.core

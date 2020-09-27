@@ -1,4 +1,8 @@
 from enum import IntEnum
+from queue import Queue
+
+arduino_queue = Queue(10)
+general_queue = Queue(10)
 
 
 class Bearing(IntEnum):
@@ -40,6 +44,7 @@ class Bearing(IntEnum):
     def is_diag_bearing(current_bearing):
         return current_bearing.value % 2 == 1
 
+
 class MOVEMENT(IntEnum):
     FORWARD = 0
     LEFT = 1
@@ -57,5 +62,3 @@ class COST(IntEnum):
     TURN_COST = 20
     TURN_COST_DIAG = 10
     WAYPONT_PENALTY = 1000
-
-

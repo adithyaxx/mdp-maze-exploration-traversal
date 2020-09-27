@@ -161,7 +161,6 @@ class Map:
         #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
 
     def mark_explored(self, x, y, is_explored, is_obstacle):
-        print('mark', x, y)
         self.map_is_explored[y][x] = is_explored
         self.map_virtual[y][x] = is_obstacle
 
@@ -268,7 +267,7 @@ class Map:
     def get_unexplored_grid(self):
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
-                if(self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
+                if (self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
                     return j, config.map_size['height'] - i - 1
 
     def is_free_space(self, x, y):
@@ -276,10 +275,9 @@ class Map:
         for i in range(-1, 2):
             for j in range(-1, 2):
                 # print(self.map_virtual[y + j][x + i])
-                if not self.is_explored(x + i, y + j ) or self.map_virtual[y + j][x + i] != 0:
+                if not self.is_explored(x + i, y + j) or self.map_virtual[y + j][x + i] != 0:
                     return False
         return True
-
 
     def find_adjacent_free_space(self, x, y):
         center = {
@@ -307,7 +305,6 @@ class Map:
 
         # if cant find, will return None
 
-
     def get_unexplored_grids(self):
         unexplored_grids = []
         for j in range(config.map_size['width']):
@@ -315,7 +312,6 @@ class Map:
                 if (self.map_is_explored[i][config.map_size['width'] - j - 1] == 0):
                     unexplored_grids.append((config.map_size['width'] - j - 1, i))
         return unexplored_grids
-
 
     def find_adjacent_free_space_front(self, x, y):
         center = {
@@ -328,5 +324,53 @@ class Map:
         for k, v in center.items():
             for e in v:
                 # print("coordinates: ", e, k)
-                if e[0] > 0 and e[0] < config.map_size['width'] -1 and e[1] > 0 and e[1] < config.map_size['height'] -1 and self.is_free_space(e[0], e[1]):
-                    return e , k
+                if e[0] > 0 and e[0] < config.map_size['width'] - 1 and e[1] > 0 and e[1] < config.map_size[
+                    'height'] - 1 and self.is_free_space(e[0], e[1]):
+                    return e, k
+
+    def find_left_wall_or_obstacle(self, x, y, bearing):
+        left_wall = False
+
+        if bearing == Bearing.NORTH:
+            if x == 1:
+                left_wall = True
+        elif bearing == Bearing.EAST:
+            if y == 1:
+                left_wall = True
+        elif bearing == Bearing.SOUTH:
+            if x == 13:
+                left_wall = True
+        else:
+            if y == 18:
+                left_wall = True
+
+        if left_wall:
+            return True
+
+        left_obstacle = False
+
+        if bearing == Bearing.NORTH:
+            if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1) and \
+                    self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y) and \
+                    self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
+                left_obstacle = True
+
+        elif bearing == Bearing.EAST:
+            if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
+                    self.is_explored(x, y - 2) and self.is_obstacle(x - 2, y - 2) and \
+                    self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2):
+                left_obstacle = True
+
+        elif bearing == Bearing.SOUTH:
+            if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
+                    self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
+                    self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1):
+                left_obstacle = True
+
+        else:
+            if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2) and \
+                    self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2) and \
+                    self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
+                left_obstacle = True
+
+        return left_obstacle

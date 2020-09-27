@@ -1,6 +1,10 @@
 import socket
+from time import sleep
+
+from comms import ListenerThread
 from robot import *
 from utils import *
+from constants import arduino_queue
 
 
 class RealRobot(Robot):
@@ -14,6 +18,7 @@ class RealRobot(Robot):
         self.connected = False
         self.port = 1273
         self.host = ""
+        self.listener = None
 
     def connect(self, host):
         self.host = host
@@ -22,7 +27,9 @@ class RealRobot(Robot):
             self.socket.connect((self.host, self.port))
             self.connected = True
             print("Connection established.")
-            self.send('c')
+            self.listener = ListenerThread(name='producer', socket=self.socket, handler=self.handler)
+            self.listener.start()
+            # self.send('c')
             self.send('s')
         except socket.error as error:
             self.connected = False
@@ -32,6 +39,7 @@ class RealRobot(Robot):
 
     def disconnect(self):
         try:
+            self.socket.shutdown(1)
             self.socket.close()
             self.connected = False
             print("Socket closed.")
@@ -53,51 +61,57 @@ class RealRobot(Robot):
                 print("Unable to send message. ", error)
 
     def receive(self):
-        try:
-            msg = self.socket.recv(1024)
-            if msg:
-                print("Received values: ", msg.decode('cp1252'))
-                msg = msg.split()
+        print('sense')
+        return [1, 1, 1, 1, 1]
 
-                out = [convert_short(msg[2]),
-                       convert_short(msg[3]),
-                       convert_short(msg[4]),
-                       convert_short(msg[1]),
-                       convert_long(msg[5])]
+        while True:
+            if not arduino_queue.empty():
+                break
 
-                print(out)
+        msg = arduino_queue.get()
+        msg = msg.split()
 
-                return out
-        except socket.timeout:
-            print("No message is received.")
-            self.send('s')
-            return self.receive()
+        # Calibration
+        # if abs(float(msg[0]) - float(msg[1])) > 2.0:
+        #     x, y = self.handler.get_location()
+        #     bearing = self.handler.robot.bearing
+        #     can_calibrate = self.handler.map.find_left_wall_or_obstacle(x, y, bearing)
+        #
+        #     if can_calibrate:
+        #         self.send('c')
+        #         self.send('s')
+        #         return self.receive()
 
-        return []
+        out = [convert_short(msg[2]),
+               convert_short(msg[3]),
+               convert_short(msg[4]),
+               convert_short(msg[1]),
+               convert_long(msg[5])]
+
+        return out
 
     def move(self, steps=1):
-        print('f' + str(steps))
-        self.send('f' + str(steps))
+        self.send('f' + str(steps) + '\n')
+        super().move(steps=steps)
 
     def left(self):
         # rotate anticlockwise by 90 deg
         self.bearing = Bearing.prev_bearing(self.bearing)
-        print('L90')
-        self.send('l90')
+        self.send('l90\n')
+        super().left()
 
     def right(self):
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
-        print('R90')
-        self.send('r90')
-        # self.send('c')
+        self.send('r90\n')
+        super().right()
 
     def left_diag(self):
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
-        print('L45')
-        self.send('l45')
+        self.send('l45\n')
+        super().left_diag()
 
     def right_diag(self):
         self.bearing = Bearing.next_bearing_diag(self.bearing)
-        print('R45')
-        self.send('r45')
+        self.send('r45\n')
+        super().right_diag()
