@@ -94,14 +94,14 @@ class ExplorationAlgo:
 
         #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlunking
         elif self.status == STATUS.LEFT_WALL_HUGGING and self.handler.robot.get_location() == (
-        1, 18) and self.handler.robot.bearing == Bearing.WEST:
+                1, 18) and self.handler.robot.bearing == Bearing.WEST:
             self.status = STATUS.SPELUNKING
             self.movements.clear()
             self.spelunkprep()
 
         #  send robot back to the start when exploration coverage reached
         elif self.map.get_coverage() >= self.coverage and self.return_home and self.handler.robot.get_location() != (
-        1, 18) and \
+                1, 18) and \
                 self.status != STATUS.RETURN_HOME:
             self.go_home()
 
@@ -309,37 +309,40 @@ class ExplorationAlgo:
         self.add_bearing(dir)
 
     def get_image_rec_target(self):
-        explored = []
-        unexplored = []
-        result = None
-        dir = None
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
-                if self.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
-                    if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
-                        if self.map.is_obstacle(j, config.map_size['height'] - i - 1):
-                            explored.append((j, config.map_size['height'] - i - 1))
-                    else:
-                        unexplored.append((j, config.map_size['height'] - i - 1))
+        try:
+            explored = []
+            unexplored = []
+            result = None
+            dir = None
+            for i in range(config.map_size['height']):
+                for j in range(config.map_size['width']):
+                    if self.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
+                        if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
+                            if self.map.is_obstacle(j, config.map_size['height'] - i - 1):
+                                explored.append((j, config.map_size['height'] - i - 1))
+                        else:
+                            unexplored.append((j, config.map_size['height'] - i - 1))
 
-        while result == None and len(explored) > 0:
-            obs = explored.pop(0)
-            try:
-                result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
-            except:
-                pass
+            while result == None and len(explored) > 0:
+                obs = explored.pop(0)
+                try:
+                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
+                except:
+                    pass
 
-        while result == None and len(unexplored) > 0:
-            obs = unexplored.pop(0)
-            try:
-                result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
-            except:
-                pass
+            while result == None and len(unexplored) > 0:
+                obs = unexplored.pop(0)
+                try:
+                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
+                except:
+                    pass
 
-        # for p in self.map_img_rec:
-        #     print(p)
-        # print("\n")
-        return result, dir
+            # for p in self.map_img_rec:
+            #     print(p)
+            # print("\n")
+            return result, dir
+        except IndexError:
+            pass
 
     def get_spelunk_target(self):
         unexplored_grids = self.map.get_unexplored_grids()

@@ -61,9 +61,6 @@ class RealRobot(Robot):
                 print("Unable to send message. ", error)
 
     def receive(self):
-        print('sense')
-        return [1, 1, 1, 1, 1]
-
         while True:
             if not arduino_queue.empty():
                 break
@@ -91,27 +88,23 @@ class RealRobot(Robot):
         return out
 
     def move(self, steps=1):
-        self.send('f' + str(steps) + '\n')
         super().move(steps=steps)
+        self.send('f' + str(steps) + '\n')
 
     def left(self):
         # rotate anticlockwise by 90 deg
-        self.bearing = Bearing.prev_bearing(self.bearing)
-        self.send('l90\n')
         super().left()
+        self.send('l90\n')
 
     def right(self):
         # rotate clockwise by 90 deg
-        self.bearing = Bearing.next_bearing(self.bearing)
-        self.send('r90\n')
         super().right()
+        self.send('r90\n')
 
     def left_diag(self):
-        self.bearing = Bearing.prev_bearing_diag(self.bearing)
-        self.send('l45\n')
         super().left_diag()
+        self.send('l45\n')
 
     def right_diag(self):
-        self.bearing = Bearing.next_bearing_diag(self.bearing)
-        self.send('r45\n')
         super().right_diag()
+        self.send('r45\n')

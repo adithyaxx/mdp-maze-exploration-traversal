@@ -120,16 +120,19 @@ class FastestPathAlgo():
 
 
     def create_virtual_wall(self):
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
+        try:
+            for i in range(config.map_size['height']):
+                for j in range(config.map_size['width']):
 
-                if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
-                    self.map.set_virtual_wall_around(j, i)
+                    if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
+                        self.map.set_virtual_wall_around(j, i)
 
-                if( self.map.map_virtual[i][j] == 3 ):
-                    self.map.map_virtual[i][j] = 0
+                    if( self.map.map_virtual[i][j] == 3 ):
+                        self.map.map_virtual[i][j] = 0
 
-        self.map.set_virtual_wall_border()
+            self.map.set_virtual_wall_border()
+        except IndexError:
+            pass
 
 
     def restore_map(self):

@@ -161,8 +161,11 @@ class Map:
         #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
 
     def mark_explored(self, x, y, is_explored, is_obstacle):
-        self.map_is_explored[y][x] = is_explored
-        self.map_virtual[y][x] = is_obstacle
+        try:
+            self.map_is_explored[y][x] = is_explored
+            self.map_virtual[y][x] = is_obstacle
+        except IndexError:
+            pass
 
     def set_virtual_wall_around(self, x, y):
         for i in range(3):
@@ -271,13 +274,15 @@ class Map:
                     return j, config.map_size['height'] - i - 1
 
     def is_free_space(self, x, y):
-
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                # print(self.map_virtual[y + j][x + i])
-                if not self.is_explored(x + i, y + j) or self.map_virtual[y + j][x + i] != 0:
-                    return False
-        return True
+        try:
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    # print(self.map_virtual[y + j][x + i])
+                    if not self.is_explored(x + i, y + j) or self.map_virtual[y + j][x + i] != 0:
+                        return False
+            return True
+        except IndexError:
+            pass
 
     def find_adjacent_free_space(self, x, y):
         center = {
@@ -329,48 +334,51 @@ class Map:
                     return e, k
 
     def find_left_wall_or_obstacle(self, x, y, bearing):
-        left_wall = False
+        try:
+            left_wall = False
 
-        if bearing == Bearing.NORTH:
-            if x == 1:
-                left_wall = True
-        elif bearing == Bearing.EAST:
-            if y == 1:
-                left_wall = True
-        elif bearing == Bearing.SOUTH:
-            if x == 13:
-                left_wall = True
-        else:
-            if y == 18:
-                left_wall = True
+            if bearing == Bearing.NORTH:
+                if x == 1:
+                    left_wall = True
+            elif bearing == Bearing.EAST:
+                if y == 1:
+                    left_wall = True
+            elif bearing == Bearing.SOUTH:
+                if x == 13:
+                    left_wall = True
+            else:
+                if y == 18:
+                    left_wall = True
 
-        if left_wall:
-            return True
+            if left_wall:
+                return True
 
-        left_obstacle = False
+            left_obstacle = False
 
-        if bearing == Bearing.NORTH:
-            if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1) and \
-                    self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y) and \
-                    self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
-                left_obstacle = True
+            if bearing == Bearing.NORTH:
+                if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1) and \
+                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y) and \
+                        self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
+                    left_obstacle = True
 
-        elif bearing == Bearing.EAST:
-            if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
-                    self.is_explored(x, y - 2) and self.is_obstacle(x - 2, y - 2) and \
-                    self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2):
-                left_obstacle = True
+            elif bearing == Bearing.EAST:
+                if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
+                        self.is_explored(x, y - 2) and self.is_obstacle(x - 2, y - 2) and \
+                        self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2):
+                    left_obstacle = True
 
-        elif bearing == Bearing.SOUTH:
-            if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
-                    self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
-                    self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1):
-                left_obstacle = True
+            elif bearing == Bearing.SOUTH:
+                if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
+                        self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
+                        self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1):
+                    left_obstacle = True
 
-        else:
-            if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2) and \
-                    self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2) and \
-                    self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
-                left_obstacle = True
+            else:
+                if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2) and \
+                        self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2) and \
+                        self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
+                    left_obstacle = True
 
-        return left_obstacle
+            return left_obstacle
+        except IndexError:
+            pass

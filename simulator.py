@@ -125,7 +125,9 @@ class Simulator:
         exploration_label = ttk.Label(parameter_pane, text="Exploration Algo:")
         exploration_label.grid(column=0, row=10, sticky=EW)
         self.exploration_dropdown = ttk.Combobox(parameter_pane, state="readonly",
-                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Left Wall Hugging (Optimized, Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
+                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)",
+                                                         "Left Wall Hugging (Optimized, Return Home)",
+                                                         "Image Recognition", "Image Recognition (Return Home)"])
         self.exploration_dropdown.current(2)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
 
@@ -250,9 +252,11 @@ class Simulator:
 
         for y in y_range:
             for x in x_range:
-                self.update_cell(x, y)
+                try:
+                    self.update_cell(x, y)
+                except IndexError:
+                    pass
 
-        print(self.robot.x, self.robot.y)
         self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
     # Robot's movement manual control

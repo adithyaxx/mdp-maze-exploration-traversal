@@ -192,39 +192,42 @@ class Robot:
         self.bearing = Bearing.NORTH
 
     def check_front(self):
-        robot_front = [
-            [[self.x - 1, self.y - 2], [self.x, self.y - 2], [self.x + 1, self.y - 2]],
-            [[self.x + 2, self.y - 1], [self.x + 2, self.y], [self.x + 2, self.y + 1]],
-            [[self.x + 1, self.y + 2], [self.x, self.y + 2], [self.x - 1, self.y + 2]],
-            [[self.x - 2, self.y + 1], [self.x - 2, self.y], [self.x - 2, self.y - 1]]
-        ]
-        offset = [
-            [0, -1],
-            [1, 0],
-            [0, 1],
-            [-1, 0]
-        ]
-        if self.bearing == Bearing.NORTH:
-            front = robot_front[0]
-            ofs = offset[0]
-        elif self.bearing == Bearing.EAST:
-            front = robot_front[1]
-            ofs = offset[1]
-        elif self.bearing == Bearing.SOUTH:
-            front = robot_front[2]
-            ofs = offset[2]
-        else:
-            front = robot_front[3]
-            ofs = offset[3]
-        front_free = []
-        for grid in front:
-            free = 0
-            for i in range(3):
-                if not self.map.valid_range(grid[1] + i * ofs[1], grid[0] + i * ofs[0]) or\
-                        not self.map.is_explored(grid[0] + i * ofs[0], grid[1] + i * ofs[1]) or\
-                        self.map.is_obstacle(grid[0] + i * ofs[0], grid[1] + i * ofs[1], sim = False):
-                    break
-                free += 1
-            front_free.append(free)
-        # print("[ROBOT] front_free ", front_free)
-        return front_free
+        try:
+            robot_front = [
+                [[self.x - 1, self.y - 2], [self.x, self.y - 2], [self.x + 1, self.y - 2]],
+                [[self.x + 2, self.y - 1], [self.x + 2, self.y], [self.x + 2, self.y + 1]],
+                [[self.x + 1, self.y + 2], [self.x, self.y + 2], [self.x - 1, self.y + 2]],
+                [[self.x - 2, self.y + 1], [self.x - 2, self.y], [self.x - 2, self.y - 1]]
+            ]
+            offset = [
+                [0, -1],
+                [1, 0],
+                [0, 1],
+                [-1, 0]
+            ]
+            if self.bearing == Bearing.NORTH:
+                front = robot_front[0]
+                ofs = offset[0]
+            elif self.bearing == Bearing.EAST:
+                front = robot_front[1]
+                ofs = offset[1]
+            elif self.bearing == Bearing.SOUTH:
+                front = robot_front[2]
+                ofs = offset[2]
+            else:
+                front = robot_front[3]
+                ofs = offset[3]
+            front_free = []
+            for grid in front:
+                free = 0
+                for i in range(3):
+                    if not self.map.valid_range(grid[1] + i * ofs[1], grid[0] + i * ofs[0]) or\
+                            not self.map.is_explored(grid[0] + i * ofs[0], grid[1] + i * ofs[1]) or\
+                            self.map.is_obstacle(grid[0] + i * ofs[0], grid[1] + i * ofs[1], sim = False):
+                        break
+                    free += 1
+                front_free.append(free)
+            # print("[ROBOT] front_free ", front_free)
+            return front_free
+        except IndexError:
+            pass

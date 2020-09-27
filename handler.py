@@ -39,7 +39,7 @@ class Handler:
         self.robot.right_diag()
         self.simulator.update_map(radius=3)
 
-    def move_diag(self, steps = 1):
+    def move_diag(self, steps=1):
         self.robot.move_diag(steps=steps)
         self.simulator.update_map(radius=3)
 
@@ -53,30 +53,33 @@ class Handler:
 
     # call update and rerender for every grids detected by the sensor
     def update_map(self, x, y, dis, bearing, sensor_range):
-        if bearing == Bearing.NORTH:
-            for i in range(dis):
-                self.update_and_render(x, y - i - 1, 1, 0)
-            if (dis < sensor_range and self.map.valid_range(y - dis - 1, x)):
-                self.update_and_render(x, y - dis - 1, 1, 1)
+        try:
+            if bearing == Bearing.NORTH:
+                for i in range(dis):
+                    self.update_and_render(x, y - i - 1, 1, 0)
+                if (dis < sensor_range and self.map.valid_range(y - dis - 1, x)):
+                    self.update_and_render(x, y - dis - 1, 1, 1)
 
-        elif bearing == Bearing.EAST:
-            for i in range(dis):
-                self.update_and_render(x + i + 1, y, 1, 0)
-            if (dis < sensor_range and self.map.valid_range(y, x + dis + 1)):
-                self.update_and_render(x + dis + 1, y, 1, 1)
+            elif bearing == Bearing.EAST:
+                for i in range(dis):
+                    self.update_and_render(x + i + 1, y, 1, 0)
+                if (dis < sensor_range and self.map.valid_range(y, x + dis + 1)):
+                    self.update_and_render(x + dis + 1, y, 1, 1)
 
-        elif bearing == Bearing.SOUTH:
-            for i in range(dis):
-                self.update_and_render(x, y + i + 1, 1, 0)
+            elif bearing == Bearing.SOUTH:
+                for i in range(dis):
+                    self.update_and_render(x, y + i + 1, 1, 0)
 
-            if (dis < sensor_range and self.map.valid_range(y + dis + 1, x)):
-                self.update_and_render(x, y + dis + 1, 1, 1)
+                if (dis < sensor_range and self.map.valid_range(y + dis + 1, x)):
+                    self.update_and_render(x, y + dis + 1, 1, 1)
 
-        else:
-            for i in range(dis):
-                self.update_and_render(x - i - 1, y, 1, 0)
-            if (dis < sensor_range and self.map.valid_range(y, x - dis - 1)):
-                self.update_and_render(x - dis - 1, y, 1, 1)
+            else:
+                for i in range(dis):
+                    self.update_and_render(x - i - 1, y, 1, 0)
+                if (dis < sensor_range and self.map.valid_range(y, x - dis - 1)):
+                    self.update_and_render(x - dis - 1, y, 1, 1)
+        except IndexError:
+            pass
 
     # update map_is_explored and virtual map and call the simulator to rerender the cell
     def update_and_render(self, x, y, is_explore, is_obstacle):
