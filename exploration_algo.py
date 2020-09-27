@@ -220,6 +220,7 @@ class ExplorationAlgo:
             self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
 
     def sense(self, backtrack=0):
+        # print("[EXPLORATION] sense")
         self.handler.robot.sense(backtrack)
         if self.status == STATUS.IMAGE_REC:
             self.take_image()
@@ -278,7 +279,7 @@ class ExplorationAlgo:
         return False
 
     def check_front(self):
-        sensor_data = self.handler.robot.receive()
+        sensor_data = self.handler.robot.check_front()
 
         if (sensor_data[0] == 0) and (sensor_data[1] == 0) and (sensor_data[2] == 0):
             return 0
