@@ -1,5 +1,7 @@
 from tkinter import *
 import tkinter.ttk as ttk
+from tkinter import scrolledtext
+from tkinter.filedialog import askopenfilename
 
 import config
 from constants import *
@@ -8,9 +10,12 @@ from handler import Handler
 
 class Simulator:
     def __init__(self):
+        self.robot_simulation = True
+
         self.root = Tk()
         self.root.title("MDP Simulation")
         self.root.resizable(False, False)
+        self.job = None
 
         self.map_start_end = PhotoImage(file=config.image_paths['red'])
         self.map_unexplored = PhotoImage(file=config.image_paths['gray'])
@@ -32,62 +37,126 @@ class Simulator:
             self.robot_s.append([])
             self.robot_w.append([])
             for j in range(3):
-                self.robot_n[i].append(PhotoImage(file=config.robot_grid['north'][i][j]))
-                self.robot_e[i].append(PhotoImage(file=config.robot_grid['east'][i][j]))
-                self.robot_s[i].append(PhotoImage(file=config.robot_grid['south'][i][j]))
-                self.robot_w[i].append(PhotoImage(file=config.robot_grid['west'][i][j]))
+                self.robot_n[i].append(config.robot_grid['north'][i][j])
+                self.robot_e[i].append(config.robot_grid['east'][i][j])
+                self.robot_s[i].append(config.robot_grid['south'][i][j])
+                self.robot_w[i].append(config.robot_grid['west'][i][j])
 
         t = Toplevel(self.root)
         t.title("Control Panel")
-        t.geometry('190x360+600+28')
+        t.geometry('+610+0')
         t.resizable(False, False)
 
-        self.map_panel = ttk.Frame(self.root, borderwidth=0, relief='solid')
-        self.map_panel.grid(row=0, column=0, sticky="snew")
+        self.canvas = Canvas(self.root, width=40 * config.map_size['width'], height=40 * config.map_size['height'])
+        self.canvas.pack()
 
         self.control_panel = ttk.Frame(t, padding=(10, 10))
         self.control_panel.grid(row=0, column=1, sticky="snew")
 
         control_pane_window = ttk.Panedwindow(self.control_panel, orient=VERTICAL)
         control_pane_window.grid(column=0, row=0, sticky=(N, S, E, W))
-        parameter_pane = ttk.Labelframe(control_pane_window, text='Parameters')
-        action_pane = ttk.Labelframe(control_pane_window, text='Action')
-        control_pane_window.add(parameter_pane, weight=4)
-        control_pane_window.add(action_pane, weight=1)
+        parameter_pane = ttk.Frame(control_pane_window)
+        action_pane = ttk.Frame(control_pane_window)
+        # control_pane_window.add(parameter_pane, weight=4)
+        # control_pane_window.add(action_pane, weight=1)
+        parameter_pane.grid(column=0, row=0, sticky=(N, S, E, W))
+        action_pane.grid(column=0, row=1, pady=(10, 0), sticky=(N, S, E, W))
 
         self.steps_per_second = StringVar()
         self.coverage_figure = StringVar()
         self.time_limit = StringVar()
+        self.waypoint_x = StringVar()
+        self.waypoint_y = StringVar()
+        self.goal_x = StringVar()
+        self.goal_y = StringVar()
+        self.ip_addr = StringVar()
 
-        explore_button = ttk.Button(action_pane, text='Explore', width=16, command=self.explore)
-        explore_button.grid(column=0, row=0, sticky=(W, E))
-        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.core.findFP)
-        fastest_path_button.grid(column=0, row=1, sticky=(W, E))
+        explore_button = ttk.Button(action_pane, text='Explore', command=self.explore, width=30)
+        explore_button.grid(column=0, row=0, sticky="ew")
+        fastest_path_button = ttk.Button(action_pane, text='Fastest Path', command=self.findFP)
+        fastest_path_button.grid(column=0, row=1, sticky="ew")
         move_button = ttk.Button(action_pane, text='Move', command=self.move)
-        move_button.grid(column=0, row=2, sticky=(W, E))
+        move_button.grid(column=0, row=2, sticky="ew")
         left_button = ttk.Button(action_pane, text='Left', command=self.left)
-        left_button.grid(column=0, row=3, sticky=(W, E))
+        left_button.grid(column=0, row=3, sticky="ew")
         right_button = ttk.Button(action_pane, text='Right', command=self.right)
-        right_button.grid(column=0, row=4, sticky=(W, E))
+        right_button.grid(column=0, row=4, sticky="ew")
+        load_button = ttk.Button(action_pane, text='Load Map', command=self.load)
+        load_button.grid(column=0, row=5, sticky="ew")
+        reset_button = ttk.Button(action_pane, text='Reset', command=self.reset)
+        reset_button.grid(column=0, row=6, sticky="ew")
+
+        self.text_area = scrolledtext.ScrolledText(control_pane_window, wrap=WORD, width=35, height=10)
+        self.text_area.grid(row=2, column=0, pady=(20, 10))
 
         step_per_second_label = ttk.Label(parameter_pane, text="Steps Per Second:")
-        step_per_second_label.grid(column=0, row=0, sticky=W)
-        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second)
-        step_per_second_entry.grid(column=0, row=1, pady=(0, 10))
+        step_per_second_label.grid(column=0, row=0, sticky="ew")
+        step_per_second_entry = ttk.Entry(parameter_pane, textvariable=self.steps_per_second, width=33)
+        step_per_second_entry.grid(column=0, row=1, pady=(0, 10), sticky="ew")
 
         coverage_figure_label = ttk.Label(parameter_pane, text="Coverage Figure(%):")
-        coverage_figure_label.grid(column=0, row=2, sticky=W)
+        coverage_figure_label.grid(column=0, row=2, sticky="ew")
         coverage_figure_entry = ttk.Entry(parameter_pane, textvariable=self.coverage_figure)
-        coverage_figure_entry.grid(column=0, row=3, pady=(0, 10))
+        coverage_figure_entry.grid(column=0, row=3, pady=(0, 10), sticky="ew")
 
         time_limit_label = ttk.Label(parameter_pane, text="Time Limit(s):")
-        time_limit_label.grid(column=0, row=4, sticky=W)
+        time_limit_label.grid(column=0, row=4, sticky="ew")
         time_limit_entry = ttk.Entry(parameter_pane, textvariable=self.time_limit)
-        time_limit_entry.grid(column=0, row=5, pady=(0, 10))
+        time_limit_entry.grid(column=0, row=5, pady=(0, 10), sticky="ew")
+
+        waypoint_label = ttk.Label(parameter_pane, text="Waypoint(x,y):")
+        waypoint_label.grid(column=0, row=6, sticky="ew")
+        waypoint_frame = ttk.Frame(parameter_pane)
+        waypoint_x_entry = ttk.Entry(waypoint_frame, textvariable=self.waypoint_x, width=16)
+        waypoint_y_entry = ttk.Entry(waypoint_frame, textvariable=self.waypoint_y, width=16)
+        waypoint_frame.grid(column=0, row=7)
+        waypoint_x_entry.grid(column=0, row=0, pady=(0, 10), sticky="w")
+        waypoint_y_entry.grid(column=1, row=0, pady=(0, 10))
+
+        goal_label = ttk.Label(parameter_pane, text="Goal(x,y):")
+        goal_label.grid(column=0, row=8, sticky=EW)
+        goal_frame = ttk.Frame(parameter_pane)
+        goal_x_entry = ttk.Entry(goal_frame, textvariable=self.goal_x, width=16)
+        goal_y_entry = ttk.Entry(goal_frame, textvariable=self.goal_y, width=16)
+        goal_frame.grid(column=0, row=9)
+        goal_x_entry.grid(column=0, row=0, pady=(0, 10), sticky=W)
+        goal_y_entry.grid(column=1, row=0, pady=(0, 10))
+
+        exploration_label = ttk.Label(parameter_pane, text="Exploration Algo:")
+        exploration_label.grid(column=0, row=10, sticky=EW)
+        self.exploration_dropdown = ttk.Combobox(parameter_pane, state="readonly",
+                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Left Wall Hugging (Optimized, Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
+        self.exploration_dropdown.current(2)
+        self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
+
+        # self.return_home = BooleanVar()
+        # return_home_checkbox = ttk.Checkbutton(parameter_pane, text="Return Home", variable=self.return_home, \
+        #                                        onvalue=True, offvalue=False)
+        # return_home_checkbox.grid(column=0, row=4)
+
+        fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
+        fp_algo_label.grid(column=0, row=12, sticky=EW)
+        self.fp_dropdown = ttk.Combobox(parameter_pane, state="readonly",
+                                        values=["A* Search", "A* Search (With Diagonals)"])
+        self.fp_dropdown.current(1)
+        self.fp_dropdown.grid(column=0, row=13, pady=(0, 10), sticky=EW)
+
+        self.ip_addr.set('192.168.20.1')
+        ip_addr_label = ttk.Label(parameter_pane, text="IP Address:")
+        ip_addr_label.grid(column=0, row=14, sticky=EW)
+        ip_addr_entry = ttk.Entry(parameter_pane, textvariable=self.ip_addr)
+        ip_addr_entry.grid(column=0, row=15, pady=(0, 0), sticky=EW)
+
+        self.connect_button = ttk.Button(parameter_pane, text='Connect', command=self.connect)
+        self.connect_button.grid(column=0, row=16, pady=(0, 10), sticky=EW)
 
         self.coverage_figure.set(100)
         self.time_limit.set(3600)
-        self.steps_per_second.set(1)
+        self.steps_per_second.set(-1)
+        self.waypoint_x.set(0)
+        self.waypoint_y.set(0)
+        self.goal_x.set(13)
+        self.goal_y.set(1)
 
         self.control_panel.columnconfigure(0, weight=1)
         self.control_panel.rowconfigure(0, weight=1)
@@ -97,38 +166,39 @@ class Simulator:
 
     def explore(self):
         self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
-                          int(self.time_limit.get()))
+                          int(self.time_limit.get()), self.exploration_dropdown.get())
+
+    def findFP(self):
+        self.core.findFP(int(self.steps_per_second.get()), int(self.goal_x.get()), int(self.goal_y.get()),
+                         int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown.get())
 
     def update_cell(self, x, y):
         # Start & End box
         if ((0 <= y < 3) and (config.map_size['width'] - 3 <= x < config.map_size['width'])) or \
                 ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
-            map_image = self.map_start_end
+            color = 'gold'
         else:
             if self.map.map_is_explored[y][x] == 0:
                 if self.map.map_sim[y][x] == 0:
-                    map_image = self.map_unexplored
+                    color = 'gray64'
                 else:
-                    map_image = self.map_obstacle_unexplored
+                    color = 'light pink'
             else:
                 if self.map.is_free(x, y, False):
-                    map_image = self.map_free
+                    color = 'medium sea green'
                 else:
-                    map_image = self.map_obstacle
+                    color = 'red4'
 
-        # Change map
-        # if config.map_cells[y][x]:
-        #     config.map_cells[y][x].config(image=map_image)
-        # else:
-        #     config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+        if not config.map_cells[y][x]:
+            config.map_cells[y][x] = self.canvas.create_rectangle(x * 40, y * 40, x * 40 + 40, y * 40 + 40, fill=color)
+            self.canvas.bind('<ButtonPress-1>', self.on_click)
+        else:
+            self.canvas.itemconfig(config.map_cells[y][x], fill=color)
 
-        if config.map_cells[y][x]:
-            config.map_cells[y][x].destroy()
-        config.map_cells[y][x] = Label(self.map_panel, image=map_image, borderwidth=1)
+    def on_click(self, event):
+        x = event.x // 40
+        y = event.y // 40
 
-        config.map_cells[y][x].grid(column=x, row=y)
-
-    def on_click(self, x, y, event):
         if self.map.map_sim[y][x] == 0:
             self.map.map_sim[y][x] = 1
         else:
@@ -137,29 +207,34 @@ class Simulator:
 
     def put_robot(self, x, y, bearing):
         if bearing == Bearing.NORTH:
-            robot_label = self.robot_n
+            front_coor = (x * 40 + 15, y * 40 - 10, x * 40 + 25, y * 40)
+        elif bearing == Bearing.NORTH_EAST:
+            front_coor = (x * 40 + 35, y * 40 - 5, x * 40 + 45, y * 40 + 5)
         elif bearing == Bearing.EAST:
-            robot_label = self.robot_e
+            front_coor = (x * 40 + 40, y * 40 + 10, x * 40 + 50, y * 40 + 20)
+        elif bearing == Bearing.SOUTH_EAST:
+            front_coor = (x * 40 + 35, y * 40 + 35, x * 40 + 45, y * 40 + 45)
         elif bearing == Bearing.SOUTH:
-            robot_label = self.robot_s
+            front_coor = (x * 40 + 15, y * 40 + 40, x * 40 + 25, y * 40 + 50)
+        elif bearing == Bearing.SOUTH_WEST:
+            front_coor = (x * 40 - 5, y * 40 + 35, x * 40 + 5, y * 40 + 45)
+        elif bearing == Bearing.WEST:
+            front_coor = (x * 40 - 10, y * 40 + 10, x * 40, y * 40 + 20)
         else:
-            robot_label = self.robot_w
+            front_coor = (x * 40 - 5, y * 40 - 5, x * 40 + 5, y * 40 + 5)
 
-        for i in range(3):
-            for j in range(3):
-                cell = Label(self.map_panel, image=robot_label[i][j], borderwidth=1)
-                try:
-                    self.map_panel[x - 1 + j][y - 1 + i].destroy()
-                except Exception:
-                    pass
-                cell.grid(column=x - 1 + j, row=y - 1 + i)
+        try:
+            self.canvas.delete(self.robot_body)
+            self.canvas.delete(self.robot_header)
+        except:
+            pass
+
+        self.robot_body = self.canvas.create_oval(x * 40 - 20, y * 40 - 20, x * 40 + 60, y * 40 + 60,
+                                                  fill="dodger blue", outline="")
+        self.robot_header = self.canvas.create_oval(front_coor[0], front_coor[1], front_coor[2], front_coor[3],
+                                                    fill="white", outline="")
 
     def update_map(self, radius=2, full=False):
-        # for y in range(config.map_size['height']):
-        #     for x in range(config.map_size['width']):
-        #         if (self.robot.y - radius <= y <= self.robot.y + radius and
-        #             self.robot.x - radius <= x <= self.robot.x + radius) or full:
-        #             self.update_cell(x, y)
         if full:
             y_range = range(config.map_size['height'])
             x_range = range(config.map_size['width'])
@@ -191,3 +266,38 @@ class Simulator:
     def right(self):
         self.handler.right()
         self.update_map()
+
+    def reset(self):
+        if self.job:
+            self.root.after_cancel(self.job)
+        self.handler.reset()
+        self.update_map(full=True)
+
+    def connect(self):
+        if self.connect_button.cget('text') == 'Connect':
+            self.robot_simulation = False
+            self.map.clear_map_for_real_exploration()
+            self.update_map(full=True)
+            if self.handler.connect(self.ip_addr.get()):
+                self.connect_button.config(text='Disconnect')
+                return
+
+        self.robot_simulation = True
+        # self.handler.disconnect()
+        self.connect_button.config(text='Connect')
+        self.handler = Handler(self)
+        self.map = self.handler.map
+        self.core = self.handler.core
+        self.robot = self.handler.get_robot()
+
+        self.reset()
+        self.robot = self.handler.get_robot()
+
+    def load(self):
+        Tk().withdraw()
+        filename = askopenfilename()
+
+        f = open(filename, "r")
+
+        self.map.decode_map_descriptor(f.readline())
+        self.update_map(full=True)

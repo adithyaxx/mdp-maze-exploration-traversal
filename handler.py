@@ -10,7 +10,7 @@ class Handler:
     def __init__(self, simulator):
         self.map = Map()
         self.simulator = simulator
-        if config.robot_simulation:
+        if self.simulator.robot_simulation:
             self.robot = simulated_robot.SimulatedRobot(self)
         else:
             self.robot = real_robot.RealRobot(self)
@@ -30,6 +30,23 @@ class Handler:
     def right(self):
         self.robot.right()
         self.simulator.update_map(radius=3)
+
+    def left_diag(self):
+        self.robot.left_diag()
+        self.simulator.update_map(radius=3)
+
+    def right_diag(self):
+        self.robot.right_diag()
+        self.simulator.update_map(radius=3)
+
+    def move_diag(self, steps = 1):
+        self.robot.move_diag(steps=steps)
+        self.simulator.update_map(radius=3)
+
+    def reset(self):
+        self.robot.reset()
+        self.map.reset()
+        self.core.reset()
 
     def get_location(self):
         self.robot.get_location()
@@ -65,3 +82,10 @@ class Handler:
     def update_and_render(self, x, y, is_explore, is_obstacle):
         self.map.mark_explored(x, y, is_explore, is_obstacle)
         self.simulator.update_cell(x, y)
+
+    def connect(self, ip_addr):
+        self.robot = real_robot.RealRobot(self)
+        return self.robot.connect(ip_addr)
+
+    def disconnect(self):
+        self.robot = simulated_robot.SimulatedRobot(self)
