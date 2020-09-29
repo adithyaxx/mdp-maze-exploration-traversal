@@ -128,7 +128,7 @@ class Simulator:
                                                  values=["Left Wall Hugging", "Left Wall Hugging (Return Home)",
                                                          "Left Wall Hugging (Optimized, Return Home)",
                                                          "Image Recognition", "Image Recognition (Return Home)"])
-        self.exploration_dropdown.current(2)
+        self.exploration_dropdown.current(1)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
 
         # self.return_home = BooleanVar()

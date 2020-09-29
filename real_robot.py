@@ -1,7 +1,8 @@
+import math
 import socket
 from time import sleep
 
-from comms import ListenerThread
+from comms import *
 from robot import *
 from utils import *
 from constants import arduino_queue
@@ -60,24 +61,55 @@ class RealRobot(Robot):
             except socket.error as error:
                 print("Unable to send message. ", error)
 
-    def receive(self):
-        while True:
-            if not arduino_queue.empty():
-                break
-            else:
-                sleep(0.1)
+    def get_msg(self):
+        # Handle other events
+        while not general_queue.empty():
+            msg = general_queue.get()
+
+            if msg[0] == DONE_TAKING_PICTURE:
+                # TODO
+                continue
+            elif msg[:3] == START_EXPLORATION:
+                self.handler.simulator.explore()
+                continue
+            elif msg[:3] == START_FASTEST_PATH:
+                self.handler.simulator.findFP()
+                continue
+            elif msg[:3] == GET_MAP:
+                explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
+                json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"{}\", \"obstacle\": \"{}\"}]}".format(
+                    explored_hex, obstacles_hex)
+                self.send(json_str)
+                continue
+
+        # Handle arduino events
+        while arduino_queue.empty():
+            sleep(0.1)
 
         msg = arduino_queue.get()
-        msg = msg.split()
+        return msg.split()
+
+    def receive(self):
+        msg = self.get_msg()
+
+        # Straight line correction
+        if abs(convert_short(msg[1]) - convert_short(msg[0])) > 0:
+            if abs(float(msg[1]) - float(msg[0])) < 3:
+                angle = math.atan((convert_short(msg[1]) - convert_short(msg[0])) / 9)
+
+                if angle < 0:
+                    self.send('r' + str(int(abs(angle))) + '\n')
+                else:
+                    self.send('l' + str(int(angle)) + '\n')
+
+                msg = self.get_msg()
 
         # Calibration
-        # if abs(float(msg[0]) - float(msg[1])) >= 2.0:
-        bearing = self.handler.robot.bearing
-        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, bearing)
+        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, self.handler.robot.bearing)
 
         if can_calibrate:
-            print('calibrate')
-            self.send('c\n')
+            self.send('c\ns\n')
+            msg = self.get_msg()
 
         out = [convert_short(msg[2]),
                convert_short(msg[3]),

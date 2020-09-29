@@ -360,26 +360,26 @@ class Map:
 
             if bearing == Bearing.NORTH:
                 if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1) and \
-                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y) and \
-                        self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
+                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y):
+                    # self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
                     left_obstacle = True
 
             elif bearing == Bearing.EAST:
-                if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
-                        self.is_explored(x, y - 2) and self.is_obstacle(x - 2, y - 2) and \
+                # if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
+                if self.is_explored(x, y - 2) and self.is_obstacle(x - 2, y - 2) and \
                         self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2):
                     left_obstacle = True
 
             elif bearing == Bearing.SOUTH:
-                if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
-                        self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
+                # if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
+                if self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
                         self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1):
                     left_obstacle = True
 
             else:
                 if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2) and \
-                        self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2) and \
-                        self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
+                        self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2):
+                    # self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
                     left_obstacle = True
 
             return left_obstacle
