@@ -88,23 +88,43 @@ class RealRobot(Robot):
         return out
 
     def move(self, sense, ir, steps=1):
-        super().move(sense= sense, ir = ir, steps=steps)
         self.send('f' + str(steps) + '\n')
 
-    def left(self):
-        # rotate anticlockwise by 90 deg
-        super().left()
-        self.send('l90\n')
+        while arduino_queue.qsize() != steps:
+            sleep(0.1)
 
-    def right(self):
+        super().move(sense, ir, steps)
+
+    def left(self, sense, ir):
+        # rotate anticlockwise by 90 deg
+        self.send('l89\n')
+
+        while arduino_queue.qsize() < 1:
+            sleep(0.1)
+
+        super().left(sense, ir)
+
+    def right(self, sense, ir):
         # rotate clockwise by 90 deg
-        super().right()
-        self.send('r90\n')
+        self.send('r89\n')
+
+        while arduino_queue.qsize() < 1:
+            sleep(0.1)
+
+        super().right(sense, ir)
 
     def left_diag(self):
-        super().left_diag()
         self.send('l45\n')
 
+        while arduino_queue.qsize() < 1:
+            sleep(0.1)
+
+        super().left_diag()
+
     def right_diag(self):
-        super().right_diag()
         self.send('r45\n')
+
+        while arduino_queue.qsize() < 1:
+            sleep(0.1)
+
+        super().right_diag()

@@ -68,7 +68,8 @@ class ExplorationAlgo:
                 self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
                 (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
                 (self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18)) or \
-                (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size['height'] *
+                (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size[
+                    'height'] *
                  config.map_size['width'] and \
                  list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
@@ -171,13 +172,13 @@ class ExplorationAlgo:
                         2] == MOVEMENT.FORWARD:
                         num_move += 1
 
-            self.execute_algo_move(num_move=num_move, sense = sense, ir = ir)
+            self.execute_algo_move(num_move=num_move, sense=sense, ir=ir)
             # for _ in range(num_move):
             #     self.execute_algo_move()
             #     if sense:
             #         self.sense()
         else:
-            self.execute_algo_move(num_move=1, sense = sense, ir = ir)
+            self.execute_algo_move(num_move=1, sense=sense, ir=ir)
             # if sense:
             #     self.sense()
         # if self.status == STATUS.IMAGE_REC:
@@ -301,7 +302,7 @@ class ExplorationAlgo:
             return
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1],
                                                             waypointX=0,
-                                                            waypointY=0, \
+                                                            waypointY=0,
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
         if self.status == STATUS.IMAGE_REC:
@@ -359,7 +360,7 @@ class ExplorationAlgo:
                 pass
         return result, dir
 
-    def execute_algo_move(self, sense, ir, num_move = 1):
+    def execute_algo_move(self, sense, ir, num_move=1):
         for _ in range(num_move):
             next_move = self.movements.pop(0)
 

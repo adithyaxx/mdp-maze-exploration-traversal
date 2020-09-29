@@ -261,15 +261,15 @@ class Simulator:
 
     # Robot's movement manual control
     def move(self):
-        self.handler.move()
+        self.handler.move(True, False)
         self.update_map()
 
     def left(self):
-        self.handler.left()
+        self.handler.left(True, False)
         self.update_map()
 
     def right(self):
-        self.handler.right()
+        self.handler.right(True, False)
         self.update_map()
 
     def reset(self):

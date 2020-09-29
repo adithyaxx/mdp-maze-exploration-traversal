@@ -54,7 +54,9 @@ class ListenerThread(threading.Thread):
                             self.send(json_str)
                             continue
                         elif msg[:3] == WAYPOINT:
-                            # TODO
+                            waypoints = msg[3:].split('|')
+                            self.handler.simulator.waypoint_x.set(waypoints[0])
+                            self.handler.simulator.waypoint_y.set(waypoints[1])
                             continue
                         else:
                             arduino_queue.put(msg)
