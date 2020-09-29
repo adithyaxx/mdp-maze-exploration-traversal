@@ -323,9 +323,9 @@ class Map:
 
     def find_adjacent_free_space_front(self, x, y):
         center = {
+            Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
             Bearing.EAST: [[x - 2, y - 1], [x - 2, y], [x - 2, y + 1]],
             Bearing.SOUTH: [[x - 1, y - 2], [x, y - 2], [x + 1, y - 2]],
-            Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
             Bearing.WEST: [[x + 2, y - 1], [x + 2, y], [x + 2, y + 1]]
         }
 

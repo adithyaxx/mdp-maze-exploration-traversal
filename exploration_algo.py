@@ -317,7 +317,7 @@ class ExplorationAlgo:
             dir = None
             for i in range(config.map_size['height']):
                 for j in range(config.map_size['width']):
-                    if self.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
+                    if self.handler.robot.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
                         if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
                             if self.map.is_obstacle(j, config.map_size['height'] - i - 1):
                                 explored.append((j, config.map_size['height'] - i - 1))
