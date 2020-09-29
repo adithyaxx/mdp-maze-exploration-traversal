@@ -1,3 +1,4 @@
+import sys
 import threading
 import time
 import logging
@@ -28,32 +29,38 @@ class ListenerThread(threading.Thread):
     def run(self):
         while True:
             if not arduino_queue.full():
-                msg = self.receive()
+                msges = self.receive()
 
-                if msg:
-                    if msg[0] == DONE_TAKING_PICTURE:
-                        # TODO
-                        continue
-                    elif msg[:3] == START_EXPLORATION:
-                        self.handler.simulator.explore()
-                        continue
-                    elif msg[:3] == START_FASTEST_PATH:
-                        self.handler.simulator.findFP()
-                        continue
-                    elif msg[:3] == GET_MAP:
-                        explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
-                        json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"{}\", \"obstacle\": \"{}\"}]}".format(
-                            explored_hex, obstacles_hex)
-                        self.send(json_str)
-                        continue
-                    elif msg[:3] == WAYPOINT:
-                        # TODO
-                        continue
-                    else:
-                        arduino_queue.put(msg)
-                        logging.debug(
-                            'Putting ' + msg.decode('cp1252') + '(' + str(arduino_queue.qsize()) + ' items in queue)')
-                        time.sleep(random.random())
+                try:
+                    msges = msges.decode('cp1252')
+                except (UnicodeDecodeError, AttributeError):
+                    pass
+
+                for msg in msges.split('\n'):
+                    if msg:
+                        if msg[0] == DONE_TAKING_PICTURE:
+                            # TODO
+                            continue
+                        elif msg[:3] == START_EXPLORATION:
+                            self.handler.simulator.explore()
+                            continue
+                        elif msg[:3] == START_FASTEST_PATH:
+                            self.handler.simulator.findFP()
+                            continue
+                        elif msg[:3] == GET_MAP:
+                            explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
+                            json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"{}\", \"obstacle\": \"{}\"}]}".format(
+                                explored_hex, obstacles_hex)
+                            self.send(json_str)
+                            continue
+                        elif msg[:3] == WAYPOINT:
+                            # TODO
+                            continue
+                        else:
+                            arduino_queue.put(msg)
+                            logging.debug(
+                                'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
+                            time.sleep(0.1)
 
     def receive(self):
         try:
@@ -61,6 +68,8 @@ class ListenerThread(threading.Thread):
             return msg
         except socket.timeout:
             return ""
+        except OSError:
+            sys.exit()
 
     def send(self, msg):
         print("[Info] Sending message: ", msg)
