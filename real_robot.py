@@ -29,8 +29,8 @@ class RealRobot(Robot):
             print("Connection established.")
             self.listener = ListenerThread(name='producer', socket=self.socket, handler=self.handler)
             self.listener.start()
-            # self.send('c')
-            self.send('s')
+            self.send('c\ns\n')
+            # self.send('s')
         except socket.error as error:
             self.connected = False
             print("Unable to establish connection. ", error)
@@ -64,20 +64,20 @@ class RealRobot(Robot):
         while True:
             if not arduino_queue.empty():
                 break
+            else:
+                sleep(0.1)
 
         msg = arduino_queue.get()
         msg = msg.split()
 
         # Calibration
-        # if abs(float(msg[0]) - float(msg[1])) > 2.0:
-        #     x, y = self.handler.get_location()
-        #     bearing = self.handler.robot.bearing
-        #     can_calibrate = self.handler.map.find_left_wall_or_obstacle(x, y, bearing)
-        #
-        #     if can_calibrate:
-        #         self.send('c')
-        #         self.send('s')
-        #         return self.receive()
+        # if abs(float(msg[0]) - float(msg[1])) >= 2.0:
+        bearing = self.handler.robot.bearing
+        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, bearing)
+
+        if can_calibrate:
+            print('calibrate')
+            self.send('c\n')
 
         out = [convert_short(msg[2]),
                convert_short(msg[3]),
