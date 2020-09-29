@@ -313,9 +313,9 @@ class FastestPathAlgo():
         # print(self.movements[self.path_counter])
 
         if(self.movements[self.path_counter] == MOVEMENT.LEFT):
-            self.handler.left()
+            self.handler.left(sense = False, ir = False)
         elif(self.movements[self.path_counter] == MOVEMENT.RIGHT):
-            self.handler.right()
+            self.handler.right(sense = False, ir = False)
         elif (self.movements[self.path_counter] == MOVEMENT.LEFT_DIAG):
             self.handler.left_diag()
         elif (self.movements[self.path_counter] == MOVEMENT.RIGHT_DIAG):
@@ -323,7 +323,7 @@ class FastestPathAlgo():
         elif (self.movements[self.path_counter] == MOVEMENT.FORWARD_DIAG):
             self.handler.move_diag()
         else:
-            self.handler.move(1)
+            self.handler.move(steps = 1, sense = False, ir = False)
         self.path_counter += 1
 
         if(self.path_counter < len(self.movements) ):

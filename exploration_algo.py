@@ -40,7 +40,6 @@ class ExplorationAlgo:
         self.do_img_rec = False
         self.start_pos = (0, 0)
         self.max_move = 999
-        self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
         self.start_pos = (0, 0)
         self.optimized = True
 
@@ -48,9 +47,9 @@ class ExplorationAlgo:
         self.status = STATUS.LEFT_WALL_HUGGING
         self.movements.clear()
         self.start_pos = (0, 0)
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
-                self.map_img_rec[i][j] = 0
+        # for i in range(config.map_size['height']):
+        #     for j in range(config.map_size['width']):
+        #         self.map_img_rec[i][j] = 0
 
     def explore(self, delay, steps_per_second, coverage, time_limit, return_home):
         self.delay = delay
@@ -69,7 +68,7 @@ class ExplorationAlgo:
                 self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
                 (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
                 (self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18)) or \
-                (self.status == STATUS.IMAGE_REC and sum(sum(self.map_img_rec, [])) == config.map_size['height'] *
+                (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size['height'] *
                  config.map_size['width'] and \
                  list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
@@ -153,6 +152,7 @@ class ExplorationAlgo:
         self.move_and_sense()
 
     def move_and_sense(self, sense=True):
+        ir = (self.status == STATUS.IMAGE_REC)
         if self.optimized:
             num_move = 1
 
@@ -171,59 +171,60 @@ class ExplorationAlgo:
                         2] == MOVEMENT.FORWARD:
                         num_move += 1
 
-            for _ in range(num_move):
-                self.execute_algo_move()
-                if sense:
-                    self.sense()
+            self.execute_algo_move(num_move=num_move, sense = sense, ir = ir)
+            # for _ in range(num_move):
+            #     self.execute_algo_move()
+            #     if sense:
+            #         self.sense()
         else:
-            self.execute_algo_move()
-            if sense:
-                self.sense()
-        if self.status == STATUS.IMAGE_REC:
-            self.take_image()
+            self.execute_algo_move(num_move=1, sense = sense, ir = ir)
+            # if sense:
+            #     self.sense()
+        # if self.status == STATUS.IMAGE_REC:
+        #     self.take_image()
 
-    def take_image(self):
-        robot_x, robot_y = self.handler.robot.get_location()
-        robot_bearing = self.handler.robot.bearing
-        for i in range(3):
-            for j in range(3):
-                if self.map.valid_range(robot_y + i - 1, robot_x + j - 1):
-                    self.map_img_rec[robot_y + i - 1][robot_x + j - 1] = 1
-        if robot_x < 2 and robot_bearing == Bearing.NORTH:
-            return
-        if robot_y < 2 and robot_bearing == Bearing.EAST:
-            return
-        if robot_x > config.map_size['width'] - 3 and robot_bearing == Bearing.SOUTH:
-            return
-        if robot_y > config.map_size['height'] - 3 and robot_bearing == Bearing.WEST:
-            return
-
-        img_target = [
-            [[robot_x - 2, robot_y - 1], [robot_x - 2, robot_y], [robot_x - 2, robot_y + 1]],
-            [[robot_x + 1, robot_y - 2], [robot_x, robot_y - 2], [robot_x - 1, robot_y - 2]],
-            [[robot_x + 2, robot_y + 1], [robot_x + 2, robot_y], [robot_x + 2, robot_y - 1]],
-            [[robot_x - 1, robot_y + 2], [robot_x, robot_y + 2], [robot_x + 1, robot_y + 2]]
-        ]
-        img_pos = img_target[int(robot_bearing // 2)]
-
-        if self.map.valid_range(img_pos[1][1], img_pos[1][0]) and (
-                self.map.is_obstacle(img_pos[0][0], img_pos[0][1], False) or \
-                self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or self.map.is_obstacle(img_pos[2][0],
-                                                                                                  img_pos[2][1],
-                                                                                                  False)):
-            # print(robot_bearing)
-            print("[EXPLORATION] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
-            print("[EXPLORATION] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
-            print("[EXPLORATION] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-            self.map_img_rec[img_pos[0][1]][img_pos[0][0]] = 1
-            self.map_img_rec[img_pos[1][1]][img_pos[1][0]] = 1
-            self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
+    # def take_image(self):
+    #     robot_x, robot_y = self.handler.robot.get_location()
+    #     robot_bearing = self.handler.robot.bearing
+    #     for i in range(3):
+    #         for j in range(3):
+    #             if self.map.valid_range(robot_y + i - 1, robot_x + j - 1):
+    #                 self.map_img_rec[robot_y + i - 1][robot_x + j - 1] = 1
+    #     if robot_x < 2 and robot_bearing == Bearing.NORTH:
+    #         return
+    #     if robot_y < 2 and robot_bearing == Bearing.EAST:
+    #         return
+    #     if robot_x > config.map_size['width'] - 3 and robot_bearing == Bearing.SOUTH:
+    #         return
+    #     if robot_y > config.map_size['height'] - 3 and robot_bearing == Bearing.WEST:
+    #         return
+    #
+    #     img_target = [
+    #         [[robot_x - 2, robot_y - 1], [robot_x - 2, robot_y], [robot_x - 2, robot_y + 1]],
+    #         [[robot_x + 1, robot_y - 2], [robot_x, robot_y - 2], [robot_x - 1, robot_y - 2]],
+    #         [[robot_x + 2, robot_y + 1], [robot_x + 2, robot_y], [robot_x + 2, robot_y - 1]],
+    #         [[robot_x - 1, robot_y + 2], [robot_x, robot_y + 2], [robot_x + 1, robot_y + 2]]
+    #     ]
+    #     img_pos = img_target[int(robot_bearing // 2)]
+    #
+    #     if self.map.valid_range(img_pos[1][1], img_pos[1][0]) and (
+    #             self.map.is_obstacle(img_pos[0][0], img_pos[0][1], False) or \
+    #             self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or self.map.is_obstacle(img_pos[2][0],
+    #                                                                                               img_pos[2][1],
+    #                                                                                               False)):
+    #         # print(robot_bearing)
+    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
+    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
+    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+    #         self.map_img_rec[img_pos[0][1]][img_pos[0][0]] = 1
+    #         self.map_img_rec[img_pos[1][1]][img_pos[1][0]] = 1
+    #         self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
 
     def sense(self, backtrack=0):
         # print("[EXPLORATION] sense")
         self.handler.robot.sense(backtrack)
-        if self.status == STATUS.IMAGE_REC:
-            self.take_image()
+        # if self.status == STATUS.IMAGE_REC:
+        #     self.take_image()
 
     def check_left(self):
         robot_x, robot_y = self.handler.robot.get_location()
@@ -358,13 +359,14 @@ class ExplorationAlgo:
                 pass
         return result, dir
 
-    def execute_algo_move(self):
+    def execute_algo_move(self, sense, ir, num_move = 1):
+        for _ in range(num_move):
+            next_move = self.movements.pop(0)
 
-        next_move = self.movements.pop(0)
         if (next_move == MOVEMENT.LEFT):
-            self.handler.left()
+            self.handler.left(sense, ir)
         elif (next_move == MOVEMENT.RIGHT):
-            self.handler.right()
+            self.handler.right(sense, ir)
         elif (next_move == MOVEMENT.LEFT_DIAG):
             self.handler.left_diag()
         elif (next_move == MOVEMENT.RIGHT_DIAG):
@@ -372,7 +374,7 @@ class ExplorationAlgo:
         elif (next_move == MOVEMENT.FORWARD_DIAG):
             self.handler.move_diag()
         else:
-            self.handler.move(1)
+            self.handler.move(sense, ir, steps=num_move)
 
     def go_home(self):
         self.movements.clear()

@@ -87,8 +87,8 @@ class RealRobot(Robot):
 
         return out
 
-    def move(self, steps=1):
-        super().move(steps=steps)
+    def move(self, sense, ir, steps=1):
+        super().move(sense= sense, ir = ir, steps=steps)
         self.send('f' + str(steps) + '\n')
 
     def left(self):

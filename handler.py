@@ -19,17 +19,17 @@ class Handler:
     def get_robot(self):
         return self.robot
 
-    def move(self, steps=1):
-        self.robot.move(steps=steps)
-        self.simulator.update_map(radius=3)
+    def move(self, sense, ir, steps=1):
+        self.robot.move(sense, ir, steps=steps)
+        # self.simulator.update_map(radius=3)
 
-    def left(self):
-        self.robot.left()
-        self.simulator.update_map(radius=3)
+    def left(self, sense, ir):
+        self.robot.left(sense, ir)
+        # self.simulator.update_map(radius=3)
 
-    def right(self):
-        self.robot.right()
-        self.simulator.update_map(radius=3)
+    def right(self, sense, ir):
+        self.robot.right(sense, ir)
+        # self.simulator.update_map(radius=3)
 
     def left_diag(self):
         self.robot.left_diag()
