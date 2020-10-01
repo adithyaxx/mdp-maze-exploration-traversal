@@ -6,6 +6,7 @@ from tkinter.filedialog import askopenfilename
 import config
 from constants import *
 from handler import Handler
+from map import *
 
 
 class Simulator:
@@ -180,8 +181,8 @@ class Simulator:
                 ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
             color = 'gold'
         else:
-            if self.map.map_is_explored[y][x] == 0:
-                if self.map.map_sim[y][x] == 0:
+            if map_is_explored[y][x] == 0:
+                if map_sim[y][x] == 0:
                     color = 'gray64'
                 else:
                     color = 'light pink'
@@ -201,10 +202,10 @@ class Simulator:
         x = event.x // 40
         y = event.y // 40
 
-        if self.map.map_sim[y][x] == 0:
-            self.map.map_sim[y][x] = 1
+        if map_sim[y][x] == 0:
+            map_sim[y][x] = 1
         else:
-            self.map.map_sim[y][x] = 0
+            map_sim[y][x] = 0
         self.update_cell(x, y)
 
     def put_robot(self, x, y, bearing):
