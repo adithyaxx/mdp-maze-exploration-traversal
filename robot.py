@@ -1,5 +1,6 @@
 import config
 from constants import *
+from map import *
 
 
 class Robot:
@@ -86,25 +87,25 @@ class Robot:
     # check obstacles
     def north_is_free(self):
         for i in range(3):
-            if self.map.map_virtual[self.y - 2][self.x - i + 1] == 1:
+            if map_virtual[self.y - 2][self.x - i + 1] == 1:
                 return False
         return True
 
     def south_is_free(self):
         for i in range(3):
-            if self.map.map_virtual[self.y + 2][self.x - i + 1] == 1:
+            if map_virtual[self.y + 2][self.x - i + 1] == 1:
                 return False
         return True
 
     def east_is_free(self):
         for i in range(3):
-            if self.map.map_virtual[self.y - i + 1][self.x + 2] == 1:
+            if map_virtual[self.y - i + 1][self.x + 2] == 1:
                 return False
         return True
 
     def west_is_free(self):
         for i in range(3):
-            if self.map.map_virtual[self.y - i + 1][self.x - 2] == 1:
+            if map_virtual[self.y - i + 1][self.x - 2] == 1:
                 return False
         return True
 
