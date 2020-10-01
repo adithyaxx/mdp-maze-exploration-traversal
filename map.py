@@ -168,9 +168,13 @@ class Map:
         except IndexError:
             print(y, x, sep="; ")
 
-    def is_obstacle(self, x, y, sim=True):
+    def is_obstacle(self, x, y, sim=True, use_confidence=False):
         if sim:
             return map_sim[y][x] == 1
+
+        if use_confidence:
+            return map_virtual_w[y][x] >= 1000
+
         return map_virtual[y][x] == 1
 
     def is_free(self, x, y, sim=True):
@@ -196,10 +200,10 @@ class Map:
             if is_sim:
                 map_virtual[y][x] = is_obstacle
             else:
-                # map_virtual_w[y][x] += is_obstacle
-                #
-                # map_virtual[y][x] = 1 if map_virtual_w[y][x] > 0 else 0
-                map_virtual[y][x] = is_obstacle
+                map_virtual_w[y][x] += is_obstacle
+
+                map_virtual[y][x] = 1 if map_virtual_w[y][x] > 0 else 0
+                # map_virtual[y][x] = is_obstacle
 
         except IndexError:
             pass
@@ -289,8 +293,10 @@ class Map:
         for i in range(len(map_bin)):
             map_bin[i] = list(reversed(map_bin[i]))
 
-        map_sim = map_bin
-        map_virtual = map_bin
+        for x in range(config.map_size['width']):
+            for y in range(config.map_size['height']):
+                map_sim[y][x] = map_bin[y][x]
+                map_virtual[y][x] = map_bin[y][x]
 
         print(map_sim)
 
@@ -403,29 +409,30 @@ class Map:
             left_obstacle = False
 
             if bearing == Bearing.NORTH:
-                if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1) and \
-                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y):
+                if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1, False) and \
+                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y, False):
                     # self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
                     left_obstacle = True
 
             elif bearing == Bearing.EAST:
                 # if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
-                if self.is_explored(x, y - 2) and self.is_obstacle(x, y - 2) and \
-                        self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2):
+                if self.is_explored(x, y - 2) and self.is_obstacle(x, y - 2, False) and \
+                        self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2, False):
                     left_obstacle = True
 
             elif bearing == Bearing.SOUTH:
                 # if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
-                if self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y) and \
-                        self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1):
+                if self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y, False) and \
+                        self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1, False):
                     left_obstacle = True
 
             else:
-                if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2) and \
-                        self.is_explored(x, y + 2) and self.is_obstacle(x - 2, y + 2):
+                if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2, False) and \
+                        self.is_explored(x, y + 2) and self.is_obstacle(x, y + 2, False):
                     # self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
                     left_obstacle = True
 
             return left_obstacle
         except IndexError:
+            print('Index error during calibration check')
             pass

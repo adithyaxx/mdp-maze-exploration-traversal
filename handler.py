@@ -52,20 +52,20 @@ class Handler:
         self.robot.get_location()
 
     def get_weighted_obstacle(self, dist, is_obstacle):
-        # if not self.simulator.robot_simulation:
-        #     val = 0
-        #
-        #     if dist in [0, 1]:
-        #         val = 1000
-        #     elif dist in [2, 3]:
-        #         val = 10
-        #     else:
-        #         val = 1
-        #
-        #     if not is_obstacle:
-        #         val *= -1
-        #
-        #     return val
+        if not self.simulator.robot_simulation:
+            val = 0
+
+            if dist in [0, 1]:
+                val = 1000
+            elif dist in [2, 3]:
+                val = 10
+            else:
+                val = 1
+
+            if not is_obstacle:
+                val *= -1
+
+            return val
 
         return is_obstacle
 

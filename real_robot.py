@@ -96,20 +96,16 @@ class RealRobot(Robot):
         # if abs(convert_short(msg[1]) - convert_short(msg[0])) > 0:
         #     if abs(float(msg[1]) - float(msg[0])) < 3:
         #         angle = math.atan((convert_short(msg[1]) - convert_short(msg[0])) / 9)
+        #         angle = math.degrees(angle)
         #
         #         if angle < 0:
         #             self.send('r' + str(int(abs(angle))) + '\n')
         #         else:
         #             self.send('l' + str(int(angle)) + '\n')
         #
+        #         print('Straight line correction')
+        #
         #         msg = self.get_msg()
-
-        # Calibration
-        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, self.handler.robot.bearing)
-
-        if can_calibrate:
-            self.send('c\ns\n')
-            msg = self.get_msg()
 
         out = [convert_short(msg[2]),
                convert_short(msg[3]),
@@ -123,7 +119,14 @@ class RealRobot(Robot):
         return out
 
     def move(self, sense, ir, steps=1):
-        self.send('f' + str(steps) + '\n')
+        # Calibration
+        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, self.handler.robot.bearing)
+
+        if can_calibrate:
+            self.send('c\nf' + str(steps) + '\n')
+        else:
+            self.send('f' + str(steps) + '\n')
+
         self.send_map()
 
         while arduino_queue.qsize() != steps:
@@ -152,7 +155,7 @@ class RealRobot(Robot):
         super().right(sense, ir)
 
     def left_diag(self):
-        self.send('l45\n')
+        self.send('l40\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -161,7 +164,7 @@ class RealRobot(Robot):
         super().left_diag()
 
     def right_diag(self):
-        self.send('r45\n')
+        self.send('r40\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -173,7 +176,7 @@ class RealRobot(Robot):
         explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
         json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + \
                    obstacles_hex + "\"}], \"robotPosition\":[" + str(self.x) + ", " + str(
-            self.y) + "," + self.convert_to_degrees() + "]}"
+            self.y) + "," + self.convert_to_degrees() + "]}\n"
         self.send(json_str)
 
     def convert_to_degrees(self):

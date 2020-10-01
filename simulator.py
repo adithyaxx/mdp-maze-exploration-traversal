@@ -174,6 +174,8 @@ class Simulator:
     def findFP(self):
         self.core.findFP(int(self.steps_per_second.get()), int(self.goal_x.get()), int(self.goal_y.get()),
                          int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown.get())
+        print(map_virtual)
+        print(map_sim)
 
     def update_cell(self, x, y):
         # Start & End box

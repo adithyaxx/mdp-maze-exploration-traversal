@@ -1,19 +1,17 @@
 def convert_long(distance):
     distance = float(distance)
 
-    if 0 <= distance <= 9:
+    if 0 <= distance <= 11:
         return 0
-    elif 9 < distance <= 21:
+    elif 11 < distance <= 17:
         return 1
-    elif 21 < distance <= 32:
+    elif 17 < distance <= 27:
         return 2
-    elif 32 < distance <= 44:
+    elif 27 < distance <= 37:
         return 3
-    elif 44 < distance <= 54:
+    elif 37 < distance <= 47:
         return 4
-    elif 54 < distance <= 61:
-        return 5
-    return 6
+    return 5
 
 
 def convert_short(distance):
