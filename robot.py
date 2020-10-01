@@ -148,14 +148,16 @@ class Robot:
     def sense_left(self, location, bearing, sensor_data):
 
         sensor_offsets = [
-            [-1, -1],
-            [1, -1],
-            [1, 1],
-            [-1, 1]
+            [[-1, -1], [-1, 0]],
+            [[1, -1], [0, -1]],
+            [[1, 1], [1, 0]],
+            [[-1, 1], [0, 1]]
         ]
         offset = sensor_offsets[int(bearing / 2)]
-        self.handler.update_map(location[0] + offset[0], location[1] + offset[1], sensor_data,
-                                Bearing.prev_bearing(bearing), config.sensor_range['left'])
+        self.handler.update_map(location[0] + offset[0][0], location[1] + offset[0][1], sensor_data[0],
+                                Bearing.prev_bearing(bearing), config.sensor_range['left_front'])
+        self.handler.update_map(location[0] + offset[1][0], location[1] + offset[1][1], sensor_data[1],
+                                Bearing.prev_bearing(bearing), config.sensor_range['left_middle'])
 
     # call update map for right sensor
     def sense_right(self, location, bearing, sensor_data):
@@ -179,8 +181,8 @@ class Robot:
         bearing = self.bearing
 
         self.sense_front(location, bearing, sensor_data[:3])
-        self.sense_left(location, bearing, sensor_data[3])
-        self.sense_right(location, bearing, sensor_data[4])
+        self.sense_left(location, bearing, sensor_data[3:5])
+        self.sense_right(location, bearing, sensor_data[5])
 
         for i in range(1, backtrack + 1):
             if bearing == Bearing.NORTH:

@@ -70,8 +70,8 @@ class SimulatedRobot(Robot):
         else:
             print("    [ERROR] Invalid direction!")
 
-    def get_left(self):
-        detect_range = config.sensor_range['left']
+    def get_left_front(self):
+        detect_range = config.sensor_range['left_front']
         robot_x, robot_y = self.handler.robot.get_location()
         direction = self.handler.robot.bearing
         if direction == Bearing.NORTH:
@@ -85,6 +85,25 @@ class SimulatedRobot(Robot):
             return self.get_sensor_data(sensor_location, Bearing.SOUTH, detect_range)
         elif direction == Bearing.EAST:
             sensor_location = [robot_x + 1, robot_y - 1]
+            return self.get_sensor_data(sensor_location, Bearing.NORTH, detect_range)
+        else:
+            print("    [ERROR] Invalid direction!")
+
+    def get_left_middle(self):
+        detect_range = config.sensor_range['left_middle']
+        robot_x, robot_y = self.handler.robot.get_location()
+        direction = self.handler.robot.bearing
+        if direction == Bearing.NORTH:
+            sensor_location = [robot_x - 1, robot_y]
+            return self.get_sensor_data(sensor_location, Bearing.WEST, detect_range)
+        elif direction == Bearing.SOUTH:
+            sensor_location = [robot_x + 1, robot_y]
+            return self.get_sensor_data(sensor_location, Bearing.EAST, detect_range)
+        elif direction == Bearing.WEST:
+            sensor_location = [robot_x, robot_y + 1]
+            return self.get_sensor_data(sensor_location, Bearing.SOUTH, detect_range)
+        elif direction == Bearing.EAST:
+            sensor_location = [robot_x, robot_y - 1]
             return self.get_sensor_data(sensor_location, Bearing.NORTH, detect_range)
         else:
             print("    [ERROR] Invalid direction!")
@@ -156,7 +175,8 @@ class SimulatedRobot(Robot):
         return [self.get_front_left(),
                 self.get_front_middle(),
                 self.get_front_right(),
-                self.get_left(),
+                self.get_left_front(),
+                self.get_left_middle(),
                 self.get_right()]
 
     # ----------------------------------------------------------------------
