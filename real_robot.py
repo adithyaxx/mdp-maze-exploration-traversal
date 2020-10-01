@@ -63,24 +63,24 @@ class RealRobot(Robot):
 
     def get_msg(self):
         # Handle other events
-        while not general_queue.empty():
-            msg = general_queue.get()
-
-            if msg[0] == DONE_TAKING_PICTURE:
-                # TODO
-                continue
-            elif msg[:3] == START_EXPLORATION:
-                self.handler.simulator.explore()
-                continue
-            elif msg[:3] == START_FASTEST_PATH:
-                self.handler.simulator.findFP()
-                continue
-            elif msg[:3] == GET_MAP:
-                # explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
-                # json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + obstacles_hex + "\"}]}"
-                # self.send(json_str)
-                self.send_map()
-                continue
+        # while not general_queue.empty():
+        #     msg = general_queue.get()
+        #
+        #     if msg[0] == DONE_TAKING_PICTURE:
+        #         # TODO
+        #         continue
+        #     elif msg[:3] == START_EXPLORATION:
+        #         self.handler.simulator.explore()
+        #         continue
+        #     elif msg[:3] == START_FASTEST_PATH:
+        #         self.handler.simulator.findFP()
+        #         continue
+        #     elif msg[:3] == GET_MAP:
+        #         # explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
+        #         # json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + obstacles_hex + "\"}]}"
+        #         # self.send(json_str)
+        #         self.send_map()
+        #         continue
 
         # Handle arduino events
         while arduino_queue.empty():

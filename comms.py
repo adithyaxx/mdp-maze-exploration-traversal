@@ -46,14 +46,15 @@ class ListenerThread(threading.Thread):
 
                 for msg in msges.split('\n'):
                     if msg:
-                        logging.debug('Received: ' + msg)
                         if msg[0] == DONE_TAKING_PICTURE or msg[:3] in ANDROID_CMDS:
                             general_queue.put(msg)
+                            logging.debug(
+                                'Putting ' + msg + '(' + str(general_queue.qsize()) + ' items in queue)')
                         else:
                             arduino_queue.put(msg)
                             logging.debug(
                                 'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
-                            time.sleep(0.1)
+                        time.sleep(0.1)
 
                         # if msg[0] == DONE_TAKING_PICTURE:
                         #     # TODO
