@@ -285,7 +285,11 @@ class Robot:
                 self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or self.map.is_obstacle(img_pos[2][0],
                                                                                                   img_pos[2][1],
                                                                                                   False)):
+
             # print(robot_bearing)
+            for i in range(3):
+                if not self.map.is_obstacle(img_pos[i][0], img_pos[i][1], sim = False):
+                    img_pos[i] = [-1, -1]
             print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
