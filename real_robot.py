@@ -226,7 +226,6 @@ class RealRobot(Robot):
                     agg_movements.append('l83')
                 else:
                     agg_movements.append('r83')
-            print("AGREGGATE MOVEMENT", agg_movements)
 
         if forward > 0:
             agg_movements.append('f{:0>2d}'.format(forward))
