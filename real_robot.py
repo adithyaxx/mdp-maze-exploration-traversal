@@ -92,6 +92,8 @@ class RealRobot(Robot):
     def receive(self):
         msg = self.get_msg()
 
+        print('real_robot', msg)
+
         # Straight line correction
         # if abs(convert_short(msg[1]) - convert_short(msg[0])) > 0:
         #     if abs(float(msg[1]) - float(msg[0])) < 3:
@@ -198,6 +200,37 @@ class RealRobot(Robot):
             return '270'
 
     def execute_fastest_path(self, movements):
-        # TODO: Send movements
-        super().execute_fastest_path()
+        forward = 0
+        forward_diag = 0
+        agg_movements = ['g']
+
+        for movement in reversed(movements):
+            if movement == MOVEMENT.FORWARD:
+                forward += 1
+            elif movement == MOVEMENT.FORWARD_DIAG:
+                forward_diag += 1
+            else:
+                if forward > 0:
+                    agg_movements.append('f{:0>2d}'.format(forward))
+                    forward = 0
+
+                if forward_diag > 0:
+                    agg_movements.append('h{:0>2d}'.format(forward_diag))
+                    forward_diag = 0
+
+                if movement == MOVEMENT.LEFT_DIAG:
+                    agg_movements.append('l33')
+                elif movement == MOVEMENT.RIGHT_DIAG:
+                    agg_movements.append('r33')
+                elif movement == MOVEMENT.LEFT:
+                    agg_movements.append('l83')
+                else:
+                    agg_movements.append('r83')
+
+        agg_movements.append('\n')
+
+        self.send(''.join(agg_movements))
+        self.send_map()
+
+        super().execute_fastest_path(movements)
         return
