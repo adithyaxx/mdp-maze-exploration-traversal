@@ -303,3 +303,30 @@ class Robot:
             print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+
+    def execute_fastest_path(self, movements):
+        num_move = 1
+        movement = movements.pop(0)
+        if movement == MOVEMENT.FORWARD or movement == MOVEMENT.FORWARD_DIAG:
+            while len(movements) > 0:
+                if movements[0] == movement:
+                    movements.pop(0)
+                    num_move += 1
+                else:
+                    break
+
+        if (movement == MOVEMENT.LEFT):
+            self.handler.left(sense=False, ir=False)
+        elif (movement == MOVEMENT.RIGHT):
+            self.handler.right(sense=False, ir=False)
+        elif (movement == MOVEMENT.LEFT_DIAG):
+            self.handler.left_diag()
+        elif (movement == MOVEMENT.RIGHT_DIAG):
+            self.handler.right_diag()
+        elif (movement == MOVEMENT.FORWARD_DIAG):
+            self.handler.move_diag(steps=num_move)
+        else:
+            self.handler.move(steps=num_move, sense=False, ir=False)
+
+        if len(movements) > 0:
+            self.handler.simulator.job = self.handler.simulator.root.after(2, self.execute_fastest_path)

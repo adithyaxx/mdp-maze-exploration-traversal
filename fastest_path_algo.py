@@ -210,7 +210,8 @@ class FastestPathAlgo():
         if sim:
             self.get_fastest_path_movements(self.fastest_path_goal_node)
             # print("[FASTEST PATH] EXECUTING FASTEST PATH")
-            self.execute_fastest_path()
+            self.robot.execute_fastest_path(self.movements)
+            return
         else:
             self.get_fastest_path_movements(self.fastest_path_goal_node)
             return self.movements
@@ -300,32 +301,32 @@ class FastestPathAlgo():
         # for m in self.movements:
         #     print(m)
 
-    def execute_fastest_path(self):
-        num_move = 1
-        movement = self.movements.pop(0)
-        if movement == MOVEMENT.FORWARD or movement == MOVEMENT.FORWARD_DIAG:
-            while len(self.movements) > 0:
-                if self.movements[0] == movement:
-                    self.movements.pop(0)
-                    num_move += 1
-                else:
-                    break
-
-        if(movement == MOVEMENT.LEFT):
-            self.handler.left(sense = False, ir = False)
-        elif(movement == MOVEMENT.RIGHT):
-            self.handler.right(sense = False, ir = False)
-        elif (movement == MOVEMENT.LEFT_DIAG):
-            self.handler.left_diag()
-        elif (movement == MOVEMENT.RIGHT_DIAG):
-            self.handler.right_diag()
-        elif (movement == MOVEMENT.FORWARD_DIAG):
-            self.handler.move_diag(steps=num_move)
-        else:
-            self.handler.move(steps = num_move, sense = False, ir = False)
-
-        if len(self.movements) > 0 :
-            self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.execute_fastest_path)
+    # def execute_fastest_path(self):
+    #     num_move = 1
+    #     movement = self.movements.pop(0)
+    #     if movement == MOVEMENT.FORWARD or movement == MOVEMENT.FORWARD_DIAG:
+    #         while len(self.movements) > 0:
+    #             if self.movements[0] == movement:
+    #                 self.movements.pop(0)
+    #                 num_move += 1
+    #             else:
+    #                 break
+    #
+    #     if(movement == MOVEMENT.LEFT):
+    #         self.handler.left(sense = False, ir = False)
+    #     elif(movement == MOVEMENT.RIGHT):
+    #         self.handler.right(sense = False, ir = False)
+    #     elif (movement == MOVEMENT.LEFT_DIAG):
+    #         self.handler.left_diag()
+    #     elif (movement == MOVEMENT.RIGHT_DIAG):
+    #         self.handler.right_diag()
+    #     elif (movement == MOVEMENT.FORWARD_DIAG):
+    #         self.handler.move_diag(steps=num_move)
+    #     else:
+    #         self.handler.move(steps = num_move, sense = False, ir = False)
+    #
+    #     if len(self.movements) > 0 :
+    #         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.execute_fastest_path)
 
     def get_target_movement(self, from_dir, to_dir):
         if Bearing.is_diag_bearing(to_dir):

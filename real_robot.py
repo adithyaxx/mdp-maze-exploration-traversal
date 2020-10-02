@@ -199,4 +199,5 @@ class RealRobot(Robot):
 
     def execute_fastest_path(self, movements):
         # TODO: Send movements
+        super().execute_fastest_path()
         return
