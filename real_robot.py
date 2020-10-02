@@ -234,3 +234,13 @@ class RealRobot(Robot):
 
         super().execute_fastest_path(movements)
         return
+
+    def take_image(self):
+        first, second, third = super().take_image()
+        self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
+        msg = self.get_msg()
+
+        if msg and msg == DONE_TAKING_PICTURE:
+            return
+        else:
+            self.take_image()
