@@ -175,20 +175,18 @@ class Simulator:
         while not general_queue.empty():
             msg = general_queue.get()
 
-            if msg[0] == DONE_TAKING_PICTURE:
-                # TODO
-                continue
-            elif msg[:3] == START_EXPLORATION:
+            if msg[:3] == START_EXPLORATION:
                 print('Starting exploration')
                 self.explore()
                 continue
             elif msg[:3] == START_FASTEST_PATH:
                 self.findFP()
                 continue
+            elif msg[:3] == WAYPOINT:
+                xy = msg.split('|')
+                self.waypoint_x = xy[1]
+                self.waypoint_y = xy[2]
             elif msg[:3] == GET_MAP:
-                # explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
-                # json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + obstacles_hex + "\"}]}"
-                # self.send(json_str)
                 self.robot.send_map()
                 continue
 
