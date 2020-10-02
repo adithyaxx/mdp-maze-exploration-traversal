@@ -1,11 +1,14 @@
+from time import sleep
 from tkinter import *
 import tkinter.ttk as ttk
 from tkinter import scrolledtext
 from tkinter.filedialog import askopenfilename
 
 import config
+from comms import *
 from constants import *
 from handler import Handler
+from map import *
 
 
 class Simulator:
@@ -125,8 +128,10 @@ class Simulator:
         exploration_label = ttk.Label(parameter_pane, text="Exploration Algo:")
         exploration_label.grid(column=0, row=10, sticky=EW)
         self.exploration_dropdown = ttk.Combobox(parameter_pane, state="readonly",
-                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)", "Left Wall Hugging (Optimized, Return Home)", "Image Recognition", "Image Recognition (Return Home)"])
-        self.exploration_dropdown.current(2)
+                                                 values=["Left Wall Hugging", "Left Wall Hugging (Return Home)",
+                                                         "Left Wall Hugging (Optimized, Return Home)",
+                                                         "Image Recognition", "Image Recognition (Return Home)"])
+        self.exploration_dropdown.current(1)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
 
         # self.return_home = BooleanVar()
@@ -162,7 +167,32 @@ class Simulator:
         self.control_panel.rowconfigure(0, weight=1)
 
         self.update_map(full=True)
+        self.event_loop()
         self.root.mainloop()
+
+    def event_loop(self):
+
+        while not general_queue.empty():
+            msg = general_queue.get()
+
+            if msg[0] == DONE_TAKING_PICTURE:
+                # TODO
+                continue
+            elif msg[:3] == START_EXPLORATION:
+                print('Starting exploration')
+                self.explore()
+                continue
+            elif msg[:3] == START_FASTEST_PATH:
+                self.findFP()
+                continue
+            elif msg[:3] == GET_MAP:
+                # explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
+                # json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + obstacles_hex + "\"}]}"
+                # self.send(json_str)
+                self.robot.send_map()
+                continue
+
+        self.root.after(200, self.event_loop)
 
     def explore(self):
         self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
@@ -178,8 +208,8 @@ class Simulator:
                 ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
             color = 'gold'
         else:
-            if self.map.map_is_explored[y][x] == 0:
-                if self.map.map_sim[y][x] == 0:
+            if map_is_explored[y][x] == 0:
+                if map_sim[y][x] == 0:
                     color = 'gray64'
                 else:
                     color = 'light pink'
@@ -199,10 +229,10 @@ class Simulator:
         x = event.x // 40
         y = event.y // 40
 
-        if self.map.map_sim[y][x] == 0:
-            self.map.map_sim[y][x] = 1
+        if map_sim[y][x] == 0:
+            map_sim[y][x] = 1
         else:
-            self.map.map_sim[y][x] = 0
+            map_sim[y][x] = 0
         self.update_cell(x, y)
 
     def put_robot(self, x, y, bearing):
@@ -250,21 +280,24 @@ class Simulator:
 
         for y in y_range:
             for x in x_range:
-                self.update_cell(x, y)
+                try:
+                    self.update_cell(x, y)
+                except IndexError:
+                    pass
 
         self.put_robot(self.robot.x, self.robot.y, self.robot.bearing)
 
     # Robot's movement manual control
     def move(self):
-        self.handler.move()
+        self.handler.move(True, False)
         self.update_map()
 
     def left(self):
-        self.handler.left()
+        self.handler.left(True, False)
         self.update_map()
 
     def right(self):
-        self.handler.right()
+        self.handler.right(True, False)
         self.update_map()
 
     def reset(self):
@@ -279,12 +312,13 @@ class Simulator:
             self.map.clear_map_for_real_exploration()
             self.update_map(full=True)
             if self.handler.connect(self.ip_addr.get()):
+                self.robot = self.handler.get_robot()
                 self.connect_button.config(text='Disconnect')
                 return
 
         self.robot_simulation = True
-        # self.handler.disconnect()
         self.connect_button.config(text='Connect')
+        self.handler.disconnect()
         self.handler = Handler(self)
         self.map = self.handler.map
         self.core = self.handler.core

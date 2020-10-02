@@ -2,7 +2,7 @@ import time
 from copy import deepcopy
 import config
 from constants import Bearing, MOVEMENT
-
+from map import *
 
 INFINITE_COST = 9999
 MOVE_COST = 10
@@ -42,12 +42,12 @@ class FastestPathAlgo():
         self.diag = False
         self.delay = 10
 
-
     def check_valid_open(self, node):
         # print("Node ({}, {}) : {} {} {} {}".format(node.x, node.y, self.map.valid_range(node.y, node.x) , \
-        #                     self.map.map_virtual[node.y][node.x] , self.map.map_is_explored[node.y][node.x] == 1, self.map.is_virtual_wall(node.x, node.y)))
-        return self.map.valid_range(node.y, node.x) and self.map.is_valid_open(node.x, node.y) and not self.map.is_virtual_wall(node.x, node.y)
-
+        #                     map_virtual[node.y][node.x] , map_is_explored[node.y][node.x] == 1, self.map.is_virtual_wall(node.x, node.y)))
+        return self.map.valid_range(node.y, node.x) and self.map.is_valid_open(node.x,
+                                                                               node.y) and not self.map.is_virtual_wall(
+            node.x, node.y)
 
     def best_first(self):
         min_cost = INFINITE_COST
@@ -55,28 +55,27 @@ class FastestPathAlgo():
 
         for i in range(len(self.open_list)):
             f = self.open_list[i].g + self.open_list[i].h
-            if(f < min_cost):
+            if (f < min_cost):
                 min_cost = f
                 best_node_index = i
         return best_node_index
-
 
     def cost_h(self, node):
         turn_cost = 0
         move_cost = abs(node.x - self.goal_node.x) + abs(node.y - self.goal_node.y)
 
-        if(move_cost == 0):
+        if (move_cost == 0):
             return move_cost
 
-        if(node.x != self.goal_node.x and node.y != self.goal_node.y):
+        if (node.x != self.goal_node.x and node.y != self.goal_node.y):
             turn_cost = TURN_COST
 
         return move_cost * MOVE_COST + turn_cost
 
 
     def get_turn_cost(self, from_dir, to_dir):
-        if(from_dir == to_dir):
-            return  0
+        if (from_dir == to_dir):
+            return 0
 
         prev_bearing = Bearing.prev_bearing_diag(from_dir)
         next_bearing = Bearing.next_bearing_diag(from_dir)
@@ -90,7 +89,6 @@ class FastestPathAlgo():
 
             prev_bearing = Bearing.prev_bearing_diag(prev_bearing)
             next_bearing = Bearing.next_bearing_diag(next_bearing)
-
 
     def get_target_dir(self, from_node, to_node):
         if self.diag:
@@ -111,35 +109,35 @@ class FastestPathAlgo():
             return Bearing.SOUTH
         return Bearing.NORTH
 
-
-    def cost_g(self, current_dir , next_dir):
-        turn_cost = self.get_turn_cost(current_dir, next_dir )
+    def cost_g(self, current_dir, next_dir):
+        turn_cost = self.get_turn_cost(current_dir, next_dir)
         if Bearing.is_diag_bearing(next_dir):
             return MOVE_COST_DIAG + turn_cost
         return MOVE_COST + turn_cost
 
-
     def create_virtual_wall(self):
-        for i in range(config.map_size['height']):
-            for j in range(config.map_size['width']):
+        try:
+            for i in range(config.map_size['height']):
+                for j in range(config.map_size['width']):
 
-                if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
-                    self.map.set_virtual_wall_around(j, i)
+                    if self.map.is_physical_wall(j, i) or not self.map.is_explored(j, i):
+                        self.map.set_virtual_wall_around(j, i)
 
-                if( self.map.map_virtual[i][j] == 3 ):
-                    self.map.map_virtual[i][j] = 0
+                    if (map_virtual[i][j] == 3):
+                        map_virtual[i][j] = 0
 
-        self.map.set_virtual_wall_border()
-
+            self.map.set_virtual_wall_border()
+        except IndexError:
+            pass
 
     def restore_map(self):
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
-                if (self.map.map_virtual[i][j] == 3 or self.map.map_virtual[i][j] == 2):
-                    self.map.map_virtual[i][j] = 0
+                if (map_virtual[i][j] == 3 or map_virtual[i][j] == 2):
+                    map_virtual[i][j] = 0
 
-
-    def find_fastest_path(self, diag , delay, goalX, goalY, waypointX, waypointY, startX = 1, startY = config.map_size['height'] - 2, sim = True):
+    def find_fastest_path(self, diag, delay, goalX, goalY, waypointX, waypointY, startX=1,
+                          startY=config.map_size['height'] - 2, sim=True):
         self.create_virtual_wall()
         self.open_list.clear()
         self.closed_list.clear()
@@ -159,11 +157,11 @@ class FastestPathAlgo():
 
         self.open_list.append(self.start_node)
 
-
         path_found_wp = False
-        if self.waypoint.x > 0 and self.waypoint.x < config.map_size['width']-1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height']-1:
+        if self.waypoint.x > 0 and self.waypoint.x < config.map_size[
+            'width'] - 1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height'] - 1:
             path_found_wp = self.run()
-            if(not path_found_wp):
+            if (not path_found_wp):
                 print("[FASTEST PATH] No path found from start to waypoint")
 
             else:
@@ -176,7 +174,7 @@ class FastestPathAlgo():
 
                 path_found_wp = self.run()
 
-                if(not path_found_wp):
+                if (not path_found_wp):
                     print("[FASTEST PATH] No path found from waypoint to goal")
         else:
             print("[FASTEST PATH] Waypoints out of bound")
@@ -192,13 +190,14 @@ class FastestPathAlgo():
         self.open_list.append(self.start_node)
 
         path_found_fp = self.run()
-        if(not path_found_fp):
+        if (not path_found_fp):
             print("[FASTEST PATH] No path found from start to goal")
             return
 
         if path_found_wp and path_found_fp:
-            if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[len(self.closed_list)-1].g  > WAYPONT_PENALTY:
-                self.fastest_path_goal_node = self.closed_list[len(self.closed_list)-1]
+            if self.temp_path[len(self.temp_path) - 1].g - self.closed_list[
+                len(self.closed_list) - 1].g > WAYPONT_PENALTY:
+                self.fastest_path_goal_node = self.closed_list[len(self.closed_list) - 1]
             else:
                 self.fastest_path_goal_node = self.temp_path[len(self.temp_path) - 1]
         elif path_found_fp:
@@ -209,14 +208,13 @@ class FastestPathAlgo():
         self.restore_map()
 
         if sim:
-            self.path_counter = 0
             self.get_fastest_path_movements(self.fastest_path_goal_node)
             # print("[FASTEST PATH] EXECUTING FASTEST PATH")
-            self.execute_fastest_path()
+            self.robot.execute_fastest_path(self.movements)
+            return
         else:
             self.get_fastest_path_movements(self.fastest_path_goal_node)
             return self.movements
-
 
     def run(self):
 
@@ -284,48 +282,51 @@ class FastestPathAlgo():
 
         return False
 
-
     def get_fastest_path_movements(self, goal_node):
         node = goal_node
         self.path = []
         self.movements = []
         while node != None:
-            # self.map.map_virtual[node.y][node.x] = 3
+            # map_virtual[node.y][node.x] = 3
             self.path.insert(0, node)
             node = node.parent
-            if(node != None):
+            if (node != None):
                 self.get_target_movement(node.dir, self.path[0].dir)
 
         # for y in range(config.map_size['height']):
-        #     print((self.map.map_virtual)[y])
+        #     print((map_virtual)[y])
 
         print("[FASTEST PATH] Total cost: {}".format(goal_node.g))
         #
         # for m in self.movements:
         #     print(m)
 
-
-    def execute_fastest_path(self):
-
-        # print(self.movements[self.path_counter])
-
-        if(self.movements[self.path_counter] == MOVEMENT.LEFT):
-            self.handler.left()
-        elif(self.movements[self.path_counter] == MOVEMENT.RIGHT):
-            self.handler.right()
-        elif (self.movements[self.path_counter] == MOVEMENT.LEFT_DIAG):
-            self.handler.left_diag()
-        elif (self.movements[self.path_counter] == MOVEMENT.RIGHT_DIAG):
-            self.handler.right_diag()
-        elif (self.movements[self.path_counter] == MOVEMENT.FORWARD_DIAG):
-            self.handler.move_diag()
-        else:
-            self.handler.move(1)
-        self.path_counter += 1
-
-        if(self.path_counter < len(self.movements) ):
-            self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.execute_fastest_path)
-
+    # def execute_fastest_path(self):
+    #     num_move = 1
+    #     movement = self.movements.pop(0)
+    #     if movement == MOVEMENT.FORWARD or movement == MOVEMENT.FORWARD_DIAG:
+    #         while len(self.movements) > 0:
+    #             if self.movements[0] == movement:
+    #                 self.movements.pop(0)
+    #                 num_move += 1
+    #             else:
+    #                 break
+    #
+    #     if(movement == MOVEMENT.LEFT):
+    #         self.handler.left(sense = False, ir = False)
+    #     elif(movement == MOVEMENT.RIGHT):
+    #         self.handler.right(sense = False, ir = False)
+    #     elif (movement == MOVEMENT.LEFT_DIAG):
+    #         self.handler.left_diag()
+    #     elif (movement == MOVEMENT.RIGHT_DIAG):
+    #         self.handler.right_diag()
+    #     elif (movement == MOVEMENT.FORWARD_DIAG):
+    #         self.handler.move_diag(steps=num_move)
+    #     else:
+    #         self.handler.move(steps = num_move, sense = False, ir = False)
+    #
+    #     if len(self.movements) > 0 :
+    #         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.execute_fastest_path)
 
     def get_target_movement(self, from_dir, to_dir):
         if Bearing.is_diag_bearing(to_dir):
@@ -353,7 +354,6 @@ class FastestPathAlgo():
         else:
             self.get_target_movement_northwest(to_dir)
 
-
     def get_target_movement_north(self, to_dir):
         if to_dir == Bearing.NORTH_EAST:
             self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
@@ -372,7 +372,6 @@ class FastestPathAlgo():
         elif to_dir == Bearing.SOUTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
-
 
     def get_target_movement_east(self, to_dir):
         if to_dir == Bearing.NORTH:
@@ -393,7 +392,6 @@ class FastestPathAlgo():
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
 
-
     def get_target_movement_south(self, to_dir):
         if to_dir == Bearing.EAST:
             self.movements.insert(0, MOVEMENT.LEFT)
@@ -412,7 +410,6 @@ class FastestPathAlgo():
         elif to_dir == Bearing.NORTH:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
-
 
     def get_target_movement_west(self, to_dir):
         if to_dir == Bearing.NORTH:
@@ -453,23 +450,23 @@ class FastestPathAlgo():
             self.movements.insert(0, MOVEMENT.RIGHT)
 
     def get_target_movement_southeast(self, to_dir):
-       if to_dir == Bearing.EAST:
-           self.movements.insert(0, MOVEMENT.LEFT_DIAG)
-       elif to_dir == Bearing.SOUTH:
-           self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
-       elif to_dir == Bearing.NORTH_EAST:
-           self.movements.insert(0, MOVEMENT.LEFT)
-       elif to_dir == Bearing.SOUTH_WEST:
-           self.movements.insert(0, MOVEMENT.RIGHT)
-       elif to_dir == Bearing.NORTH:
-           self.movements.insert(0, MOVEMENT.LEFT)
-           self.movements.insert(0, MOVEMENT.LEFT_DIAG)
-       elif to_dir == Bearing.WEST:
-           self.movements.insert(0, MOVEMENT.RIGHT)
-           self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
-       elif to_dir == Bearing.NORTH_WEST:
-           self.movements.insert(0, MOVEMENT.RIGHT)
-           self.movements.insert(0, MOVEMENT.RIGHT)
+        if to_dir == Bearing.EAST:
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.SOUTH:
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.NORTH_EAST:
+            self.movements.insert(0, MOVEMENT.LEFT)
+        elif to_dir == Bearing.SOUTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+        elif to_dir == Bearing.NORTH:
+            self.movements.insert(0, MOVEMENT.LEFT)
+            self.movements.insert(0, MOVEMENT.LEFT_DIAG)
+        elif to_dir == Bearing.WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT_DIAG)
+        elif to_dir == Bearing.NORTH_WEST:
+            self.movements.insert(0, MOVEMENT.RIGHT)
+            self.movements.insert(0, MOVEMENT.RIGHT)
 
     def get_target_movement_southwest(self, to_dir):
         if to_dir == Bearing.SOUTH:
@@ -508,4 +505,3 @@ class FastestPathAlgo():
         elif to_dir == Bearing.SOUTH_EAST:
             self.movements.insert(0, MOVEMENT.RIGHT)
             self.movements.insert(0, MOVEMENT.RIGHT)
-

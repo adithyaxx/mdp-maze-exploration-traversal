@@ -30,6 +30,7 @@ class Core:
             else:
                 self.explorer.set_optimized(False)
             self.explorer.set_status(do_img_rec=False)
+        self.explorer.sense()
         self.explorer.explore(delay, steps_per_second, coverage, time_limit, is_return_home)
 
 

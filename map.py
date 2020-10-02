@@ -2,147 +2,180 @@ import config
 import numpy as np
 from constants import Bearing
 
+# ----------------------------------------------------------------------
+#   Map Legend:
+#   0 - not explored
+#   1 - explored
+# ----------------------------------------------------------------------
+
+# map_is_explored = \
+# [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
+#
+map_is_explored = \
+    [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+# ----------------------------------------------------------------------
+#   Map Legend:
+#   0 - free
+#   1 - obstacle
+# ----------------------------------------------------------------------
+map_sim = \
+    [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+     [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+# ----------------------------------------------------------------------
+#   Map Legend:
+#   0 - free
+#   1 - obstacle
+#   2 - virtual wall
+# ----------------------------------------------------------------------
+
+# map_virtual = \
+#     [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+#      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+#      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+map_virtual = \
+    [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
+# ----------------------------------------------------------------------
+#   Map Legend:
+#   -ve - free
+#   +ve - obstacle
+# ----------------------------------------------------------------------
+
+map_virtual_w = \
+    [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+
 
 class Map:
-    def __init__(self):
-        # ----------------------------------------------------------------------
-        #   Map Legend:
-        #   0 - not explored
-        #   1 - explored
-        # ----------------------------------------------------------------------
-
-        # self.map_is_explored = \
-        # [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        #  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]]
-        #
-        self.map_is_explored = \
-            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-        # ----------------------------------------------------------------------
-        #   Map Legend:
-        #   0 - free
-        #   1 - obstacle
-        # ----------------------------------------------------------------------
-        self.map_sim = \
-            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-        # ----------------------------------------------------------------------
-        #   Map Legend:
-        #   0 - free
-        #   1 - obstacle
-        #   2 - virtual wall
-        # ----------------------------------------------------------------------
-
-        # self.map_virtual = \
-        #     [[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-        #      [0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-        #      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
-
-        self.map_virtual = \
-            [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-             [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+    # def __init__(self):
 
     def is_explored(self, x, y):
         try:
-            return self.map_is_explored[y][x]
+            return map_is_explored[y][x]
         except IndexError:
             print(y, x, sep="; ")
 
-    def is_obstacle(self, x, y, sim=True):
+    def is_obstacle(self, x, y, sim=True, use_confidence=False):
         if sim:
-            return self.map_sim[y][x] == 1
-        return self.map_virtual[y][x] == 1
+            return map_sim[y][x] == 1
+
+        if use_confidence:
+            return map_virtual_w[y][x] >= 1000
+
+        return map_virtual[y][x] == 1
 
     def is_free(self, x, y, sim=True):
         return not self.is_obstacle(x, y, sim)
@@ -160,47 +193,57 @@ class Map:
         # else:
         #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
 
-    def mark_explored(self, x, y, is_explored, is_obstacle):
-        print('mark', x, y)
-        self.map_is_explored[y][x] = is_explored
-        self.map_virtual[y][x] = is_obstacle
+    def mark_explored(self, x, y, is_explored, is_obstacle, is_sim):
+        try:
+            map_is_explored[y][x] = is_explored
+
+            if is_sim:
+                map_virtual[y][x] = is_obstacle
+            else:
+                map_virtual_w[y][x] += is_obstacle
+
+                map_virtual[y][x] = 1 if map_virtual_w[y][x] > 0 else 0
+                # map_virtual[y][x] = is_obstacle
+
+        except IndexError:
+            pass
 
     def set_virtual_wall_around(self, x, y):
         for i in range(3):
             for j in range(3):
-                if (self.valid_range(y + j - 1, x + i - 1) and self.map_virtual[y + j - 1][x + i - 1] == 0):
+                if (self.valid_range(y + j - 1, x + i - 1) and map_virtual[y + j - 1][x + i - 1] == 0):
                     # print(y + j - 1, x + i - 1)
-                    self.map_virtual[y + j - 1][x + i - 1] = 2
+                    map_virtual[y + j - 1][x + i - 1] = 2
 
     def set_virtual_wall_border(self):
         for y in range(config.map_size['height']):
-            if (self.map_virtual[y][0] != 1):
-                self.map_virtual[y][0] = 2
-            if (self.map_virtual[y][config.map_size['width'] - 1] != 1):
-                self.map_virtual[y][config.map_size['width'] - 1] = 2
+            if (map_virtual[y][0] != 1):
+                map_virtual[y][0] = 2
+            if (map_virtual[y][config.map_size['width'] - 1] != 1):
+                map_virtual[y][config.map_size['width'] - 1] = 2
 
         for x in range(config.map_size['width']):
-            if (self.map_virtual[0][x] != 1):
-                self.map_virtual[0][x] = 2
-            if (self.map_virtual[config.map_size['height'] - 1][x] != 1):
-                self.map_virtual[config.map_size['height'] - 1][x] = 2
+            if (map_virtual[0][x] != 1):
+                map_virtual[0][x] = 2
+            if (map_virtual[config.map_size['height'] - 1][x] != 1):
+                map_virtual[config.map_size['height'] - 1][x] = 2
 
     def is_virtual_wall(self, x, y):
-        return self.map_virtual[y][x] == 2
+        return map_virtual[y][x] == 2
 
     def is_valid_open(self, x, y):
-        return self.map_virtual[y][x] == 0 and self.map_is_explored[y][x] == 1
+        return map_virtual[y][x] == 0 and map_is_explored[y][x] == 1
 
     def is_physical_wall(self, x, y):
-        return self.map_virtual[y][x] == 1
+        return map_virtual[y][x] == 1
 
     def get_coverage(self):
-        flattened = [i for sub in self.map_is_explored for i in sub]
+        flattened = [i for sub in map_is_explored for i in sub]
 
         return (sum(flattened) / (config.map_size['height'] * config.map_size['width'])) * 100
 
     def create_map_descriptor(self):
-        explored_str = [str(i) for sub in reversed(self.map_is_explored) for i in sub]
+        explored_str = [str(i) for sub in reversed(map_is_explored) for i in sub]
         explored_str.insert(0, '1')
         explored_str.insert(0, '1')
         explored_str.append('1')
@@ -208,9 +251,9 @@ class Map:
         explored_str = "".join(explored_str)
 
         obstacles_str = []
-        reversed_list = list(reversed(self.map_virtual))
+        reversed_list = list(reversed(map_virtual))
 
-        for y, row in enumerate(reversed(self.map_is_explored)):
+        for y, row in enumerate(reversed(map_is_explored)):
             for x, val in enumerate(row):
                 if val:
                     obstacles_str.append(str(reversed_list[y][x]))
@@ -247,39 +290,52 @@ class Map:
             (config.map_size['height'], config.map_size['width'])
         )
 
-        self.map_sim = map_bin
-        self.map_virtual = map_bin
+        for i in range(len(map_bin)):
+            map_bin[i] = list(reversed(map_bin[i]))
 
-        print(self.map_sim)
+        for x in range(config.map_size['width']):
+            for y in range(config.map_size['height']):
+                map_sim[y][x] = map_bin[y][x]
+                map_virtual[y][x] = map_bin[y][x]
+
+        print(map_sim)
 
     def clear_map_for_real_exploration(self):
-        self.map_sim = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
+        for x in range(config.map_size['width']):
+            for y in range(config.map_size['height']):
+                map_sim[y][x] = 0
 
     def reset(self):
-        self.map_virtual = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
-        self.map_is_explored = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
+        # map_virtual = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
+        # map_is_explored = [[0 for x in range(config.map_size['width'])] for y in range(config.map_size['height'])]
+
+        for x in range(config.map_size['width']):
+            for y in range(config.map_size['height']):
+                map_virtual[y][x] = 0
+                map_is_explored[y][x] = 0
 
         # assuming robot always start at the start position
         for i in range(3):
             for j in range(3):
-                self.map_is_explored[config.map_size['height'] - 1 - i][j] = 1
-                self.map_is_explored[i][config.map_size['width'] - 1 - j] = 1
+                map_is_explored[config.map_size['height'] - 1 - i][j] = 1
+                map_is_explored[i][config.map_size['width'] - 1 - j] = 1
 
     def get_unexplored_grid(self):
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
-                if(self.map_is_explored[config.map_size['height'] - i - 1][j] == 0):
+                if (map_is_explored[config.map_size['height'] - i - 1][j] == 0):
                     return j, config.map_size['height'] - i - 1
 
     def is_free_space(self, x, y):
-
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                # print(self.map_virtual[y + j][x + i])
-                if not self.is_explored(x + i, y + j ) or self.map_virtual[y + j][x + i] != 0:
-                    return False
-        return True
-
+        try:
+            for i in range(-1, 2):
+                for j in range(-1, 2):
+                    # print(map_virtual[y + j][x + i])
+                    if not self.is_explored(x + i, y + j) or map_virtual[y + j][x + i] != 0:
+                        return False
+            return True
+        except IndexError:
+            pass
 
     def find_adjacent_free_space(self, x, y):
         center = {
@@ -307,26 +363,76 @@ class Map:
 
         # if cant find, will return None
 
-
     def get_unexplored_grids(self):
         unexplored_grids = []
         for j in range(config.map_size['width']):
             for i in range(config.map_size['height']):
-                if (self.map_is_explored[i][config.map_size['width'] - j - 1] == 0):
+                if (map_is_explored[i][config.map_size['width'] - j - 1] == 0):
                     unexplored_grids.append((config.map_size['width'] - j - 1, i))
         return unexplored_grids
 
-
     def find_adjacent_free_space_front(self, x, y):
         center = {
+            Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
             Bearing.EAST: [[x - 2, y - 1], [x - 2, y], [x - 2, y + 1]],
             Bearing.SOUTH: [[x - 1, y - 2], [x, y - 2], [x + 1, y - 2]],
-            Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
             Bearing.WEST: [[x + 2, y - 1], [x + 2, y], [x + 2, y + 1]]
         }
 
         for k, v in center.items():
             for e in v:
                 # print("coordinates: ", e, k)
-                if e[0] > 0 and e[0] < config.map_size['width'] -1 and e[1] > 0 and e[1] < config.map_size['height'] -1 and self.is_free_space(e[0], e[1]):
-                    return e , k
+                if e[0] > 0 and e[0] < config.map_size['width'] - 1 and e[1] > 0 and e[1] < config.map_size[
+                    'height'] - 1 and self.is_free_space(e[0], e[1]):
+                    return e, k
+
+    def find_left_wall_or_obstacle(self, x, y, bearing):
+        try:
+            left_wall = False
+
+            if bearing == Bearing.NORTH:
+                if x == 1:
+                    left_wall = True
+            elif bearing == Bearing.EAST:
+                if y == 1:
+                    left_wall = True
+            elif bearing == Bearing.SOUTH:
+                if x == 13:
+                    left_wall = True
+            else:
+                if y == 18:
+                    left_wall = True
+
+            if left_wall:
+                return True
+
+            left_obstacle = False
+
+            if bearing == Bearing.NORTH:
+                if self.is_explored(x - 2, y - 1) and self.is_obstacle(x - 2, y - 1, False) and \
+                        self.is_explored(x - 2, y) and self.is_obstacle(x - 2, y, False):
+                    # self.is_explored(x - 2, y + 1) and self.is_obstacle(x - 2, y + 1):
+                    left_obstacle = True
+
+            elif bearing == Bearing.EAST:
+                # if self.is_explored(x - 1, y - 2) and self.is_obstacle(x - 1, y - 2) and \
+                if self.is_explored(x, y - 2) and self.is_obstacle(x, y - 2, False) and \
+                        self.is_explored(x + 1, y - 2) and self.is_obstacle(x + 1, y - 2, False):
+                    left_obstacle = True
+
+            elif bearing == Bearing.SOUTH:
+                # if self.is_explored(x + 2, y - 1) and self.is_obstacle(x + 2, y - 1) and \
+                if self.is_explored(x + 2, y) and self.is_obstacle(x + 2, y, False) and \
+                        self.is_explored(x + 2, y + 1) and self.is_obstacle(x + 2, y + 1, False):
+                    left_obstacle = True
+
+            else:
+                if self.is_explored(x - 1, y + 2) and self.is_obstacle(x - 1, y + 2, False) and \
+                        self.is_explored(x, y + 2) and self.is_obstacle(x, y + 2, False):
+                    # self.is_explored(x + 1, y + 2) and self.is_obstacle(x + 1, y + 2):
+                    left_obstacle = True
+
+            return left_obstacle
+        except IndexError:
+            print('Index error during calibration check')
+            pass
