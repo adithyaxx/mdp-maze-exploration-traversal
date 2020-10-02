@@ -204,7 +204,7 @@ class RealRobot(Robot):
         forward_diag = 0
         agg_movements = ['g']
 
-        for movement in reversed(movements):
+        for movement in movements:
             if movement == MOVEMENT.FORWARD:
                 forward += 1
             elif movement == MOVEMENT.FORWARD_DIAG:
@@ -226,6 +226,12 @@ class RealRobot(Robot):
                     agg_movements.append('l83')
                 else:
                     agg_movements.append('r83')
+            print("AGREGGATE MOVEMENT", agg_movements)
+
+        if forward > 0:
+            agg_movements.append('f{:0>2d}'.format(forward))
+        elif forward_diag > 0:
+            agg_movements.append('h{:0>2d}'.format(forward_diag))
 
         agg_movements.append('\n')
 
