@@ -1,9 +1,11 @@
+from time import sleep
 from tkinter import *
 import tkinter.ttk as ttk
 from tkinter import scrolledtext
 from tkinter.filedialog import askopenfilename
 
 import config
+from comms import *
 from constants import *
 from handler import Handler
 from map import *
@@ -165,7 +167,32 @@ class Simulator:
         self.control_panel.rowconfigure(0, weight=1)
 
         self.update_map(full=True)
+        self.event_loop()
         self.root.mainloop()
+
+    def event_loop(self):
+
+        while not general_queue.empty():
+            msg = general_queue.get()
+
+            if msg[0] == DONE_TAKING_PICTURE:
+                # TODO
+                continue
+            elif msg[:3] == START_EXPLORATION:
+                print('Starting exploration')
+                self.explore()
+                continue
+            elif msg[:3] == START_FASTEST_PATH:
+                self.findFP()
+                continue
+            elif msg[:3] == GET_MAP:
+                # explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
+                # json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"" + explored_hex + "\", \"obstacle\": \"" + obstacles_hex + "\"}]}"
+                # self.send(json_str)
+                self.robot.send_map()
+                continue
+
+        self.root.after(200, self.event_loop)
 
     def explore(self):
         self.core.explore(int(self.steps_per_second.get()), int(self.coverage_figure.get()),
@@ -174,8 +201,6 @@ class Simulator:
     def findFP(self):
         self.core.findFP(int(self.steps_per_second.get()), int(self.goal_x.get()), int(self.goal_y.get()),
                          int(self.waypoint_x.get()), int(self.waypoint_y.get()), self.fp_dropdown.get())
-        print(map_virtual)
-        print(map_sim)
 
     def update_cell(self, x, y):
         # Start & End box
