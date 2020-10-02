@@ -314,7 +314,6 @@ class Robot:
                     num_move += 1
                 else:
                     break
-
         if (movement == MOVEMENT.LEFT):
             self.handler.left(sense=False, ir=False)
         elif (movement == MOVEMENT.RIGHT):
@@ -329,4 +328,4 @@ class Robot:
             self.handler.move(steps=num_move, sense=False, ir=False)
 
         if len(movements) > 0:
-            self.handler.simulator.job = self.handler.simulator.root.after(2, self.execute_fastest_path)
+            self.handler.simulator.job = self.handler.simulator.root.after(1000, self.execute_fastest_path, movements)
