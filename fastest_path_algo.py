@@ -301,8 +301,6 @@ class FastestPathAlgo():
         #     print(m)
 
     def execute_fastest_path(self):
-
-
         num_move = 1
         movement = self.movements.pop(0)
         if movement == MOVEMENT.FORWARD or movement == MOVEMENT.FORWARD_DIAG:

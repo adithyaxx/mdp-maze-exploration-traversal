@@ -129,18 +129,25 @@ class RealRobot(Robot):
 
         self.send_map()
 
-        while arduino_queue.qsize() != steps:
-            sleep(0.1)
+        if sense:
+            while arduino_queue.qsize() < 1:
+                sleep(0.1)
 
         super().move(sense, ir, steps)
+
+    def move_diag(self, steps=1):
+        self.send('f' + str(steps) + '\n')
+        self.send_map()
+        super().move_diag(steps)
 
     def left(self, sense, ir):
         # rotate anticlockwise by 90 deg
         self.send('l83\n')
         self.send_map()
 
-        while arduino_queue.qsize() < 1:
-            sleep(0.1)
+        if sense:
+            while arduino_queue.qsize() < 1:
+                sleep(0.1)
 
         super().left(sense, ir)
 
@@ -149,13 +156,14 @@ class RealRobot(Robot):
         self.send('r83\n')
         self.send_map()
 
-        while arduino_queue.qsize() < 1:
-            sleep(0.1)
+        if sense:
+            while arduino_queue.qsize() < 1:
+                sleep(0.1)
 
         super().right(sense, ir)
 
     def left_diag(self):
-        self.send('l40\n')
+        self.send('l33\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -164,7 +172,7 @@ class RealRobot(Robot):
         super().left_diag()
 
     def right_diag(self):
-        self.send('r40\n')
+        self.send('r33\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -188,3 +196,7 @@ class RealRobot(Robot):
             return '180'
         else:
             return '270'
+
+    def execute_fastest_path(self, movements):
+        # TODO: Send movements
+        return

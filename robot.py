@@ -84,6 +84,8 @@ class Robot:
             self.x -= steps
             self.y -= steps
 
+
+
     # check obstacles
     def north_is_free(self):
         for i in range(3):

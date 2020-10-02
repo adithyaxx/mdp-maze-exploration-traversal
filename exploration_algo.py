@@ -2,6 +2,7 @@ import time
 
 import config
 from constants import Bearing, MOVEMENT
+from map import *
 
 
 class STATUS:
@@ -375,14 +376,16 @@ class ExplorationAlgo:
         elif (next_move == MOVEMENT.FORWARD_DIAG):
             self.handler.move_diag()
         else:
-            self.handler.move(sense, ir, steps=num_move)
+            self.handler.move(sense=sense, ir=ir, steps=num_move)
 
     def go_home(self):
+
         self.movements.clear()
-        self.movements = self.path_finder.find_fastest_path(diag=True, delay=0, goalX=1, goalY=18, waypointX=0,
+        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=1, goalY=18, waypointX=0,
                                                             waypointY=0, \
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
+        print("Going Home from {}, len movements: {}".format(self.handler.robot.get_location(), len(self.movements)))
         self.status = STATUS.RETURN_HOME
 
     def add_bearing(self, dir):
