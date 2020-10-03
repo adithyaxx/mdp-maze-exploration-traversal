@@ -252,7 +252,8 @@ class RealRobot(Robot):
         try:
             first, second, third = super().take_image()
             # print(first, second, third)
-            self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
+            self.send('P[{},{}|{},{}|{},{}]'.format(third[0], third[1], second[0], second[1], first[0], first[1]))
+            # self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
             msg = self.get_msg()
             # print("MESSAGE: ", msg)
             # print("MESSAGE: ", msg == DONE_TAKING_PICTURE)

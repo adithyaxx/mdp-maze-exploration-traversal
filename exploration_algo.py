@@ -89,8 +89,8 @@ class ExplorationAlgo:
                 # print("restarting")
                 self.get_image_rec_target()
                 self.spelunkprep()
-                if self.temp_pos == None:
-                    # print("Image Rec completed. Going Home")
+                if self.temp_pos == None :
+                    print("Image Rec completed. Going Home")
                     self.go_home()
             elif self.start_pos == (-1, -1) and len(self.movements) == 0:
                 self.update_start_pos()
@@ -377,21 +377,24 @@ class ExplorationAlgo:
         return result, dir
 
     def execute_algo_move(self, sense, ir, num_move=1):
-        for _ in range(num_move):
-            next_move = self.movements.pop(0)
+        try:
+            for _ in range(num_move):
+                next_move = self.movements.pop(0)
 
-        if (next_move == MOVEMENT.LEFT):
-            self.handler.left(sense, ir)
-        elif (next_move == MOVEMENT.RIGHT):
-            self.handler.right(sense, ir)
-        elif (next_move == MOVEMENT.LEFT_DIAG):
-            self.handler.left_diag()
-        elif (next_move == MOVEMENT.RIGHT_DIAG):
-            self.handler.right_diag()
-        elif (next_move == MOVEMENT.FORWARD_DIAG):
-            self.handler.move_diag()
-        else:
-            self.handler.move(sense=sense, ir=ir, steps=num_move)
+            if (next_move == MOVEMENT.LEFT):
+                self.handler.left(sense, ir)
+            elif (next_move == MOVEMENT.RIGHT):
+                self.handler.right(sense, ir)
+            elif (next_move == MOVEMENT.LEFT_DIAG):
+                self.handler.left_diag()
+            elif (next_move == MOVEMENT.RIGHT_DIAG):
+                self.handler.right_diag()
+            elif (next_move == MOVEMENT.FORWARD_DIAG):
+                self.handler.move_diag()
+            else:
+                self.handler.move(sense=sense, ir=ir, steps=num_move)
+        except:
+            print("IR no obstacle in the middle")
 
     def go_home(self):
 
