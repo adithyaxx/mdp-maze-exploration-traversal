@@ -115,6 +115,7 @@ class ExplorationAlgo:
             self.left_wall_hugging()
         else:
             if len(self.movements) <= 0:
+                print("here")
                 self.spelunkprep()
                 if len(self.movements) <= 0:
                     if self.return_home:
@@ -123,6 +124,9 @@ class ExplorationAlgo:
             if self.status == STATUS.SPELUNKING:
                 self.move_and_sense()
             else:
+                print("Current Status: ", self.status)
+                for i in self.handler.robot.map_img_rec:
+                    print(i)
                 self.move_and_sense(sense=False)
 
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
@@ -294,6 +298,8 @@ class ExplorationAlgo:
     def spelunkprep(self):
         if self.status == STATUS.IMAGE_REC:
             result, dir = self.get_image_rec_target()
+            print("Getting image rec target")
+            print("Target: ", result)
             self.start_pos = (-1, -1)
             self.temp_pos = result
             # print("new start pos" ,self.temp_pos)
@@ -302,6 +308,9 @@ class ExplorationAlgo:
 
         if result is None:
             print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
+            for i in self.handler.robot.map_img_rec:
+                print(i)
+
             return
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1],
                                                             waypointX=0,
@@ -323,24 +332,28 @@ class ExplorationAlgo:
                 for j in range(config.map_size['width']):
                     if self.handler.robot.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
                         if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
-                            if self.map.is_obstacle(j, config.map_size['height'] - i - 1):
+                            if self.map.is_obstacle(j, config.map_size['height'] - i - 1, sim = False):
                                 explored.append((j, config.map_size['height'] - i - 1))
+                                print((j, config.map_size['height'] - i - 1))
                         else:
                             unexplored.append((j, config.map_size['height'] - i - 1))
+                            print((j, config.map_size['height'] - i - 1))
 
             while result == None and len(explored) > 0:
                 obs = explored.pop(0)
                 try:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
                 except:
-                    pass
+                    print("No explored target for image rec")
+            print("Explored results: ", result)
 
             while result == None and len(unexplored) > 0:
                 obs = unexplored.pop(0)
                 try:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
                 except:
-                    pass
+                    print("No unexplored target for image rec")
+            print("Unexplored results: ", result)
 
             # for p in self.map_img_rec:
             #     print(p)
@@ -444,7 +457,8 @@ class ExplorationAlgo:
         if do_img_rec:
             self.status = STATUS.IMAGE_REC
             self.max_move = 3
-            self.set_optimized(True)
+            self.set_optimized(False)
+            # self.set_optimized(True)
         else:
             self.status = STATUS.LEFT_WALL_HUGGING
             self.max_move = 999

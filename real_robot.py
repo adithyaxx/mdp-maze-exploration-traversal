@@ -254,11 +254,13 @@ class RealRobot(Robot):
             # print(first, second, third)
             self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
             msg = self.get_msg()
-            print("MESSAGE: ", msg)
-            if msg and msg == DONE_TAKING_PICTURE:
+            # print("MESSAGE: ", msg)
+            # print("MESSAGE: ", msg == DONE_TAKING_PICTURE)
+            # print("MESSAGE: ", msg and msg == DONE_TAKING_PICTURE)
+            if msg and msg[0] == DONE_TAKING_PICTURE:
                 return
             else:
-                print("Recall")
+                # print("Recall")
                 self.take_image()
         except:
             print("No obstacle. Don't worry")
