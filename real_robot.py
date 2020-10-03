@@ -135,7 +135,9 @@ class RealRobot(Robot):
             while arduino_queue.qsize() < 1:
                 sleep(0.1)
 
-        super().move(sense, ir, steps)
+        super().move(sense, ir=False, steps=steps)
+        if ir:
+            self.take_image()
 
     def move_diag(self, steps=1):
         self.send('f' + str(steps) + '\n')
@@ -151,7 +153,10 @@ class RealRobot(Robot):
             while arduino_queue.qsize() < 1:
                 sleep(0.1)
 
-        super().left(sense, ir)
+        super().left(sense, ir=False)
+        if ir:
+            self.take_image()
+
 
     def right(self, sense, ir):
         # rotate clockwise by 90 deg
@@ -162,7 +167,9 @@ class RealRobot(Robot):
             while arduino_queue.qsize() < 1:
                 sleep(0.1)
 
-        super().right(sense, ir)
+        super().right(sense, ir=False)
+        if ir:
+            self.take_image()
 
     def left_diag(self):
         self.send('l33\n')
@@ -237,15 +244,21 @@ class RealRobot(Robot):
         self.send(''.join(agg_movements))
         self.send_map()
 
-        super().execute_fastest_path(movements)
+        # super().execute_fastest_path(movements)
         return
 
     def take_image(self):
-        first, second, third = super().take_image()
-        self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
-        msg = self.get_msg()
 
-        if msg and msg == DONE_TAKING_PICTURE:
-            return
-        else:
-            self.take_image()
+        try:
+            first, second, third = super().take_image()
+            # print(first, second, third)
+            self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
+            msg = self.get_msg()
+            print("MESSAGE: ", msg)
+            if msg and msg == DONE_TAKING_PICTURE:
+                return
+            else:
+                print("Recall")
+                self.take_image()
+        except:
+            print("No obstacle. Don't worry")

@@ -73,6 +73,8 @@ class ExplorationAlgo:
                     'height'] *
                  config.map_size['width'] and \
                  list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
+            if self.return_home and self.handler.robot.get_location() == (1, 18):
+                self.reach_start()
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
@@ -480,3 +482,31 @@ class ExplorationAlgo:
     #                 if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
     #                     unexplored_grids.append((k, j))
     #     return unexplored_grids
+
+    def reach_start(self):
+        robot_bearing = self.handler.robot.bearing
+        if robot_bearing == Bearing.NORTH:
+            return
+        elif robot_bearing == Bearing.EAST:
+            self.movements.append(MOVEMENT.LEFT)
+        elif robot_bearing == Bearing.SOUTH:
+            self.movements.append(MOVEMENT.RIGHT)
+            self.movements.append(MOVEMENT.RIGHT)
+        elif robot_bearing == Bearing.WEST:
+            self.movements.append(MOVEMENT.RIGHT)
+        elif robot_bearing == Bearing.NORTH_EAST:
+            self.movements.append(MOVEMENT.LEFT_DIAG)
+        elif robot_bearing == Bearing.SOUTH_EAST:
+            self.movements.append(MOVEMENT.LEFT_DIAG)
+            self.movements.append(MOVEMENT.LEFT)
+        elif robot_bearing == Bearing.SOUTH_WEST:
+            self.movements.append(MOVEMENT.RIGHT_DIAG)
+            self.movements.append(MOVEMENT.RIGHT)
+        elif robot_bearing == Bearing.NORTH_WEST:
+            self.movements.append(MOVEMENT.RIGHT_DIAG)
+        else:
+            print("[EXPLORATION] Reached start: invalid direction")
+
+        for _ in range(len(self.movements)):
+            self.execute_algo_move(sense=False, ir=False, num_move=1)
+
