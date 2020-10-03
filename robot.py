@@ -259,6 +259,23 @@ class Robot:
         except IndexError:
             pass
 
+    # def check_take_image(self):
+    #     robot_x, robot_y = self.get_location()
+    #     robot_bearing = self.bearing
+    #     for i in range(3):
+    #         for j in range(3):
+    #             if self.map.valid_range(robot_y + i - 1, robot_x + j - 1):
+    #                 self.map_img_rec[robot_y + i - 1][robot_x + j - 1] = 1
+    #     if robot_x < 2 and robot_bearing == Bearing.NORTH:
+    #         return False
+    #     if robot_y < 2 and robot_bearing == Bearing.EAST:
+    #         return False
+    #     if robot_x > config.map_size['width'] - 3 and robot_bearing == Bearing.SOUTH:
+    #         return False
+    #     if robot_y > config.map_size['height'] - 3 and robot_bearing == Bearing.WEST:
+    #         return False
+    #     return True
+
     def take_image(self):
         robot_x, robot_y = self.get_location()
         robot_bearing = self.bearing
