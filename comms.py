@@ -13,7 +13,7 @@ START_EXPLORATION = 'ES|'
 START_FASTEST_PATH = 'FS|'
 GET_MAP = 'GM|'
 WAYPOINT = 'WP|'
-GET_ROBOT_POS = 'GR|'
+RESET = 'RS|'
 DONE_TAKING_PICTURE = 'D'
 
 ANDROID_CMDS = [
@@ -21,7 +21,7 @@ ANDROID_CMDS = [
     START_FASTEST_PATH,
     GET_MAP,
     WAYPOINT,
-    GET_ROBOT_POS
+    RESET
 ]
 
 
@@ -46,7 +46,7 @@ class ListenerThread(threading.Thread):
 
                 for msg in msges.split('\n'):
                     if msg:
-                        if msg[0] == DONE_TAKING_PICTURE or msg[:3] in ANDROID_CMDS:
+                        if msg[:3] in ANDROID_CMDS:
                             general_queue.put(msg)
                             logging.debug(
                                 'Putting ' + msg + '(' + str(general_queue.qsize()) + ' items in queue)')

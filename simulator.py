@@ -186,6 +186,8 @@ class Simulator:
                 xy = msg.split('|')
                 self.waypoint_x = xy[1]
                 self.waypoint_y = xy[2]
+            elif msg[:3] == RESET:
+                self.reset()
             elif msg[:3] == GET_MAP:
                 self.robot.send_map()
                 continue
@@ -301,6 +303,8 @@ class Simulator:
     def reset(self):
         if self.job:
             self.root.after_cancel(self.job)
+        while not arduino_queue.empty():
+            arduino_queue.get()
         self.handler.reset()
         self.update_map(full=True)
 
