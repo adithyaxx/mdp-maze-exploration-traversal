@@ -254,27 +254,9 @@ class Robot:
                         break
                     free += 1
                 front_free.append(free)
-            # print("[ROBOT] front_free ", front_free)
             return front_free
         except IndexError:
             pass
-
-    # def check_take_image(self):
-    #     robot_x, robot_y = self.get_location()
-    #     robot_bearing = self.bearing
-    #     for i in range(3):
-    #         for j in range(3):
-    #             if self.map.valid_range(robot_y + i - 1, robot_x + j - 1):
-    #                 self.map_img_rec[robot_y + i - 1][robot_x + j - 1] = 1
-    #     if robot_x < 2 and robot_bearing == Bearing.NORTH:
-    #         return False
-    #     if robot_y < 2 and robot_bearing == Bearing.EAST:
-    #         return False
-    #     if robot_x > config.map_size['width'] - 3 and robot_bearing == Bearing.SOUTH:
-    #         return False
-    #     if robot_y > config.map_size['height'] - 3 and robot_bearing == Bearing.WEST:
-    #         return False
-    #     return True
 
     def take_image(self):
         robot_x, robot_y = self.get_location()
@@ -310,7 +292,6 @@ class Robot:
             self.map_img_rec[img_pos[1][1]][img_pos[1][0]] = 1
             self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
 
-            # print(robot_bearing)
             for i in range(3):
                 if not self.map.is_obstacle(img_pos[i][0], img_pos[i][1], sim = False):
                     img_pos[i] = [-1, -1]
@@ -320,7 +301,7 @@ class Robot:
             print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-            return img_pos[0], img_pos[1], img_pos[2]
+            return img_pos[2], img_pos[1], img_pos[0]
 
     def execute_fastest_path(self, movements):
         num_move = 1
