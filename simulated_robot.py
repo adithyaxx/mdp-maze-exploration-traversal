@@ -1,4 +1,5 @@
 from robot import *
+from utils import *
 
 
 class SimulatedRobot(Robot):
@@ -172,12 +173,14 @@ class SimulatedRobot(Robot):
     #         right
     # ----------------------------------------------------------------------
     def receive(self):
-        return [self.get_front_left(),
-                self.get_front_middle(),
-                self.get_front_right(),
-                self.get_left_front(),
-                self.get_left_middle(),
-                self.get_right()]
+        out = [self.get_front_left(),
+               self.get_front_middle(),
+               self.get_front_right(),
+               self.get_left_front(),
+               self.get_left_middle(),
+               self.get_right()]
+
+        return out
 
     # ----------------------------------------------------------------------
 

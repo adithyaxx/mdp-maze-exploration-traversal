@@ -142,7 +142,7 @@ class Simulator:
         fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
         fp_algo_label.grid(column=0, row=12, sticky=EW)
         self.fp_dropdown = ttk.Combobox(parameter_pane, state="readonly",
-                                        values=["A* Search", "A* Search (With Diagonals)"])
+                                        values=["A* Search", "A* Search (With Diagonals)", "Left Wall Hugging"])
         self.fp_dropdown.current(1)
         self.fp_dropdown.grid(column=0, row=13, pady=(0, 10), sticky=EW)
 
