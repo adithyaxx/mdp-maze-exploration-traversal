@@ -24,3 +24,27 @@ def convert_short(distance):
     elif 19 < distance <= 29:
         return 2
     return 3
+
+
+def convert_to_cm_long(units):
+    if units == 0:
+        return 11
+    elif units == 1:
+        return 17
+    elif units == 2:
+        return 27
+    elif units == 3:
+        return 37
+    elif units == 4:
+        return 47
+    return 57
+
+
+def convert_to_cm_short(units):
+    if units == 0:
+        return 10
+    elif units == 1:
+        return 19
+    elif units == 2:
+        return 29
+    return 39
