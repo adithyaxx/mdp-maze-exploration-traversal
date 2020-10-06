@@ -129,10 +129,10 @@ class ExplorationAlgo:
             if self.status == STATUS.SPELUNKING:
                 self.move_and_sense()
             else:
-                print("Current Status: ", self.status)
-                for i in self.handler.robot.map_img_rec:
-                    print(i)
-                self.move_and_sense(sense=False)
+                # print("Current Status: ", self.status)
+                # for i in self.handler.robot.map_img_rec:
+                #     print(i)
+                self.move_and_sense(sense=True)
 
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
