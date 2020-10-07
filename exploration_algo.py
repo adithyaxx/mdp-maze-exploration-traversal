@@ -4,7 +4,6 @@ import config
 from constants import Bearing, MOVEMENT
 from map import *
 
-
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
     SPELUNKING = "Spelunking",  # use front sensors
@@ -43,11 +42,14 @@ class ExplorationAlgo:
         self.max_move = 999
         self.start_pos = (0, 0)
         self.optimized = True
+        self.ir_completed = False
+        self.start_time = 0
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
         self.movements.clear()
         self.start_pos = (0, 0)
+        self.ir_completed = False
         # for i in range(config.map_size['height']):
         #     for j in range(config.map_size['width']):
         #         self.map_img_rec[i][j] = 0
@@ -65,6 +67,7 @@ class ExplorationAlgo:
         current = time.time()
         elapsed = current - self.start
 
+        print("Elapsed: ", elapsed)
         if elapsed >= self.time_limit or (
                 self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
                 (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
@@ -84,7 +87,10 @@ class ExplorationAlgo:
 
         # print(self.status,self.handler.robot.get_location(),  self.start_pos)
         if self.status == STATUS.IMAGE_REC:
-            if (self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST) or \
+            if self.ir_completed or elapsed >= 300:
+                self.movements.clear()
+                self.go_home()
+            elif (self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST) or \
                     list(self.handler.robot.get_location()) == list(self.start_pos):
                 # print("restarting")
                 self.get_image_rec_target()
@@ -527,3 +533,5 @@ class ExplorationAlgo:
         for _ in range(len(self.movements)):
             self.execute_algo_move(sense=False, ir=False, num_move=1)
 
+    def stop_ir(self):
+        self.ir_completed = True
