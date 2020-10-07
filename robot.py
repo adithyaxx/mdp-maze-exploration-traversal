@@ -298,6 +298,7 @@ class Robot:
             print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
             print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+            print("\n")
             return img_pos[2], img_pos[1], img_pos[0]
 
     def execute_fastest_path(self, movements):
