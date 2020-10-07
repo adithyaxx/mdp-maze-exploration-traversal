@@ -56,37 +56,42 @@ class ExplorationAlgo:
         #     for j in range(config.map_size['width']):
         #         self.map_img_rec[i][j] = 0
 
-    def explore(self, delay, steps_per_second, coverage, time_limit, return_home):
+    def explore(self, delay, steps_per_second, coverage, time_limit, return_home, perform_fp=False):
         self.delay = delay
         self.steps_per_second = steps_per_second
         self.coverage = coverage
         self.time_limit = time_limit
         self.start = time.time()
         self.return_home = return_home
+        self.perform_fp = perform_fp
         self.periodic_check()
 
     def periodic_check(self):
         current = time.time()
         elapsed = current - self.start
 
-        # print("Elapsed: ", elapsed)
-        if elapsed >= self.time_limit or (
-                self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
-                (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
-                (self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18)) or \
-                (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size[
-                    'height'] *
-                 config.map_size['width'] and \
-                 list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
-            if self.return_home and self.handler.robot.get_location() == (1, 18):
-                self.reach_start()
-            self.handler.robot.calibrate()
-            explored_hex, obstacles_hex = self.map.create_map_descriptor()
-            self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
-            self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
-            # for p in self.map_img_rec:
-            #     print(p)
-            return
+        if self.perform_fp:
+            if self.handler.robot.x == 13 and self.handler.robot.y == 1:
+                return
+        else:
+            # print("Elapsed: ", elapsed)
+            if elapsed >= self.time_limit or (
+                    self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
+                    (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
+                    (self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18)) or \
+                    (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size[
+                        'height'] *
+                     config.map_size['width'] and \
+                     list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
+                if self.return_home and self.handler.robot.get_location() == (1, 18):
+                    self.reach_start()
+                self.handler.robot.calibrate()
+                explored_hex, obstacles_hex = self.map.create_map_descriptor()
+                self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
+                self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
+                # for p in self.map_img_rec:
+                #     print(p)
+                return
 
         # print(self.status,self.handler.robot.get_location(),  self.start_pos)
         if self.status == STATUS.IMAGE_REC:
@@ -103,7 +108,7 @@ class ExplorationAlgo:
                 # print("restarting")
                 # self.get_image_rec_target()
                 self.spelunkprep()
-                if self.temp_pos == None :
+                if self.temp_pos == None:
                     print("Image Rec completed. Going Home")
                     self.go_home()
             elif self.start_pos == (-1, -1) and len(self.movements) == 0:

@@ -22,7 +22,6 @@ class Robot:
     def move(self, sense, ir, steps=1):
         # print(steps)
         for _ in range(steps):
-            print('FORWARD')
             if self.bearing == Bearing.NORTH:
                 if self.validate(0, -1) and self.north_is_free():
                     self.y -= 1
@@ -45,7 +44,6 @@ class Robot:
     def left(self, sense, ir):
         # rotate anticlockwise by 90 deg
         self.bearing = Bearing.prev_bearing(self.bearing)
-        print('L90')
         if sense:
             self.sense()
         if ir:
@@ -55,7 +53,6 @@ class Robot:
     def right(self, sense, ir):
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
-        print('R90')
         if sense:
             self.sense()
         if ir:
@@ -64,11 +61,9 @@ class Robot:
 
     def left_diag(self):
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
-        print('L45')
 
     def right_diag(self):
         self.bearing = Bearing.next_bearing_diag(self.bearing)
-        print('R45')
 
     def move_diag(self, steps=1):
         if self.bearing == Bearing.NORTH_EAST:

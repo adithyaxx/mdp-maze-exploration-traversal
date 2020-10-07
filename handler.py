@@ -55,8 +55,10 @@ class Handler:
         if not self.simulator.robot_simulation:
             val = 0
 
-            if dist in [0, 1]:
+            if dist == 0:
                 val = 1000
+            elif dist == 1:
+                val = 500
             elif dist in [2, 3]:
                 val = 10
             else:
