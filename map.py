@@ -371,13 +371,20 @@ class Map:
                     unexplored_grids.append((config.map_size['width'] - j - 1, i))
         return unexplored_grids
 
-    def find_adjacent_free_space_front(self, x, y):
+    def find_adjacent_free_space_front(self, x, y, ir=False):
         center = {
             Bearing.NORTH: [[x - 1, y + 2], [x, y + 2], [x + 1, y + 2]],
             Bearing.EAST: [[x - 2, y - 1], [x - 2, y], [x - 2, y + 1]],
             Bearing.SOUTH: [[x - 1, y - 2], [x, y - 2], [x + 1, y - 2]],
             Bearing.WEST: [[x + 2, y - 1], [x + 2, y], [x + 2, y + 1]]
         }
+        if ir:
+            center = {
+                Bearing.NORTH: [[x, y + 2]],
+                Bearing.EAST: [[x - 2, y]],
+                Bearing.SOUTH: [[x, y - 2]],
+                Bearing.WEST: [[x + 2, y]]
+            }
 
         for k, v in center.items():
             for e in v:

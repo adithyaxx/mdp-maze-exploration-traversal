@@ -44,12 +44,14 @@ class ExplorationAlgo:
         self.optimized = True
         self.ir_completed = False
         self.start_time = 0
+        self.partial_ir = False
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
         self.movements.clear()
         self.start_pos = (0, 0)
         self.ir_completed = False
+        self.partial_ir = False
         # for i in range(config.map_size['height']):
         #     for j in range(config.map_size['width']):
         #         self.map_img_rec[i][j] = 0
@@ -67,7 +69,7 @@ class ExplorationAlgo:
         current = time.time()
         elapsed = current - self.start
 
-        print("Elapsed: ", elapsed)
+        # print("Elapsed: ", elapsed)
         if elapsed >= self.time_limit or (
                 self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
                 (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
@@ -78,6 +80,7 @@ class ExplorationAlgo:
                  list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
             if self.return_home and self.handler.robot.get_location() == (1, 18):
                 self.reach_start()
+            self.handler.robot.calibrate()
             explored_hex, obstacles_hex = self.map.create_map_descriptor()
             self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
             self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
@@ -90,16 +93,24 @@ class ExplorationAlgo:
             if self.ir_completed or elapsed >= 300:
                 self.movements.clear()
                 self.go_home()
+            elif self.partial_ir and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
+                self.status = STATUS.SPELUNKING
+                self.do_img_rec = False
+                print("Image rec to spelunk")
+
             elif (self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST) or \
                     list(self.handler.robot.get_location()) == list(self.start_pos):
                 # print("restarting")
-                self.get_image_rec_target()
+                # self.get_image_rec_target()
                 self.spelunkprep()
                 if self.temp_pos == None :
                     print("Image Rec completed. Going Home")
                     self.go_home()
             elif self.start_pos == (-1, -1) and len(self.movements) == 0:
                 self.update_start_pos()
+                self.left_wall_hugging()
+                # self.ir_spelunk_delay = True
+                # print("updating start pos, ", self.temp_pos)
 
         #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlunking
         elif self.status == STATUS.LEFT_WALL_HUGGING and self.handler.robot.get_location() == (
@@ -121,7 +132,7 @@ class ExplorationAlgo:
             self.left_wall_hugging()
         else:
             if len(self.movements) <= 0:
-                print("here")
+                # print("here")
                 self.spelunkprep()
                 if len(self.movements) <= 0:
                     if self.return_home:
@@ -302,6 +313,8 @@ class ExplorationAlgo:
         return min(sensor_data[:3])
 
     def spelunkprep(self):
+        if self.max_move> 1:
+            self.max_move = 1
         if self.status == STATUS.IMAGE_REC:
             result, dir = self.get_image_rec_target()
             print("Getting image rec target")
@@ -314,8 +327,8 @@ class ExplorationAlgo:
 
         if result is None:
             print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
-            for i in self.handler.robot.map_img_rec:
-                print(i)
+            # for i in self.handler.robot.map_img_rec:
+            #     print(i)
 
             return
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1],
@@ -324,7 +337,9 @@ class ExplorationAlgo:
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
         if self.status == STATUS.IMAGE_REC:
+            # print("old dir: ",dir)
             dir = Bearing.next_bearing(dir)
+            # print("new dir: ",dir)
 
         self.add_bearing(dir)
 
@@ -334,21 +349,37 @@ class ExplorationAlgo:
             unexplored = []
             result = None
             dir = None
+            # for i in self.handler.robot.map_img_rec:
+            #     print(i)
+            # for i in range(config.map_size['height']):
+            #     for j in range(config.map_size['width']):
+            #         if self.handler.robot.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
+            #             if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
+            #                 if self.map.is_obstacle(j, config.map_size['height'] - i - 1, sim = False):
+            #                     explored.append((j, config.map_size['height'] - i - 1))
+            #                     print((j, config.map_size['height'] - i - 1))
+            #             else:
+            #                 unexplored.append((j, config.map_size['height'] - i - 1))
+            #                 print((j, config.map_size['height'] - i - 1))
+
+            robot_x , robot_y = self.handler.robot.get_location()
             for i in range(config.map_size['height']):
-                for j in range(config.map_size['width']):
-                    if self.handler.robot.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
-                        if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
-                            if self.map.is_obstacle(j, config.map_size['height'] - i - 1, sim = False):
-                                explored.append((j, config.map_size['height'] - i - 1))
-                                print((j, config.map_size['height'] - i - 1))
-                        else:
-                            unexplored.append((j, config.map_size['height'] - i - 1))
-                            print((j, config.map_size['height'] - i - 1))
+                for k in range(robot_x - i, robot_x + i, 1):
+                     for j in range(robot_y - i, robot_y + i):
+                        if self.map.valid_range(j, k):
+                            if self.handler.robot.map_img_rec[j][k] == 0:
+                                if self.map.is_explored(k, j) == 1:
+                                    if self.map.is_obstacle(k, j, sim=False):
+                                        explored.append((k, j))
+                                        # print((j, config.map_size['height'] - i - 1))
+                                else:
+                                    unexplored.append((k, j))
+                                    # print((j, config.map_size['height'] - i - 1))
 
             while result == None and len(explored) > 0:
                 obs = explored.pop(0)
                 try:
-                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
+                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
                     print("No explored target for image rec")
             print("Explored results: ", result)
@@ -356,7 +387,7 @@ class ExplorationAlgo:
             while result == None and len(unexplored) > 0:
                 obs = unexplored.pop(0)
                 try:
-                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1])
+                    result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
                     print("No unexplored target for image rec")
             print("Unexplored results: ", result)
@@ -420,6 +451,7 @@ class ExplorationAlgo:
             elif (m == MOVEMENT.RIGHT):
                 cur_dir = Bearing.next_bearing(cur_dir)
 
+        # print("cur dir: ", cur_dir, " dir: ", dir)
         if cur_dir == dir:
             return
 
@@ -462,11 +494,13 @@ class ExplorationAlgo:
         else:
             print("Warning invalid direction")
 
-    def set_status(self, do_img_rec):
+    def set_status(self, do_img_rec, partial_ir):
         if do_img_rec:
             self.status = STATUS.IMAGE_REC
             self.max_move = 3
             self.set_optimized(False)
+            if partial_ir:
+                self.partial_ir = True
             # self.set_optimized(True)
         else:
             self.status = STATUS.LEFT_WALL_HUGGING

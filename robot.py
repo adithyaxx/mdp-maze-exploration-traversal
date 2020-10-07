@@ -84,6 +84,8 @@ class Robot:
             self.x -= steps
             self.y -= steps
 
+    def calibrate(self):
+        print("CALIBRATE")
 
 
     # check obstacles
@@ -328,3 +330,4 @@ class Robot:
 
         if len(movements) > 0:
             self.handler.simulator.job = self.handler.simulator.root.after(1000, self.execute_fastest_path, movements)
+
