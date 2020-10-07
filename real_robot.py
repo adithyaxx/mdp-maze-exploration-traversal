@@ -264,3 +264,7 @@ class RealRobot(Robot):
                 self.take_image()
         except:
             print("No obstacle. Don't worry")
+
+    def calibrate(self):
+        self.send('c' + '\n')
+        super().calibrate()

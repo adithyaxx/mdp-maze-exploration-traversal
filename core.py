@@ -21,13 +21,16 @@ class Core:
             delay = 1000 // steps_per_second
 
         if 'Image Recognition' in exploration_algo:
-            self.explorer.set_status(do_img_rec=True)
+            if 'Partial' in exploration_algo:
+                self.explorer.set_status(do_img_rec=True, partial_ir=True)
+            else:
+                self.explorer.set_status(do_img_rec=True, partial_ir=False)
         else:
             if 'Optimized' in exploration_algo:
                 self.explorer.set_optimized(True)
             else:
                 self.explorer.set_optimized(False)
-            self.explorer.set_status(do_img_rec=False)
+            self.explorer.set_status(do_img_rec=False, partial_ir=False)
         self.explorer.sense()
         self.explorer.explore(delay, steps_per_second, coverage, time_limit, is_return_home, perform_fp=perform_fp)
 
