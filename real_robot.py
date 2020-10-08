@@ -172,7 +172,7 @@ class RealRobot(Robot):
             self.take_image()
 
     def left_diag(self):
-        self.send('l33\n')
+        self.send('l37\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -181,7 +181,7 @@ class RealRobot(Robot):
         super().left_diag()
 
     def right_diag(self):
-        self.send('r33\n')
+        self.send('r37\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -226,9 +226,9 @@ class RealRobot(Robot):
                     forward_diag = 0
 
                 if movement == MOVEMENT.LEFT_DIAG:
-                    agg_movements.append('l33')
+                    agg_movements.append('l37')
                 elif movement == MOVEMENT.RIGHT_DIAG:
-                    agg_movements.append('r33')
+                    agg_movements.append('r37')
                 elif movement == MOVEMENT.LEFT:
                     agg_movements.append('l83')
                 else:
