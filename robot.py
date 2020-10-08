@@ -20,7 +20,7 @@ class Robot:
 
     # recalculate center of robot
     def move(self, sense, ir, steps=1):
-        # print(steps)
+        print('f' + str(steps))
         for _ in range(steps):
             if self.bearing == Bearing.NORTH:
                 if self.validate(0, -1) and self.north_is_free():
@@ -43,6 +43,7 @@ class Robot:
 
     def left(self, sense, ir):
         # rotate anticlockwise by 90 deg
+        print('l90')
         self.bearing = Bearing.prev_bearing(self.bearing)
         if sense:
             self.sense()
@@ -51,6 +52,7 @@ class Robot:
         self.handler.simulator.update_map(radius=3)
 
     def right(self, sense, ir):
+        print('r90')
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
         if sense:
@@ -60,12 +62,15 @@ class Robot:
         self.handler.simulator.update_map(radius=3)
 
     def left_diag(self):
+        print('l33')
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
 
     def right_diag(self):
+        print('r33')
         self.bearing = Bearing.next_bearing_diag(self.bearing)
 
     def move_diag(self, steps=1):
+        print('h' + str(steps))
         if self.bearing == Bearing.NORTH_EAST:
             self.x += steps
             self.y -= steps
