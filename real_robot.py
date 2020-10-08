@@ -266,5 +266,5 @@ class RealRobot(Robot):
             print("No obstacle. Don't worry")
 
     def calibrate(self):
-        self.send('c' + '\n')
+        self.send('c\nc\n')
         super().calibrate()
