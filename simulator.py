@@ -185,8 +185,8 @@ class Simulator:
                 continue
             elif msg[:3] == WAYPOINT:
                 xy = msg.split('|')
-                self.waypoint_x = int(xy[1])
-                self.waypoint_y = abs(19 - int(xy[2]))
+                self.waypoint_x.set(int(xy[1]))
+                self.waypoint_y.set(abs(19 - int(xy[2])))
             elif msg[:3] == RESET:
                 self.reset()
             elif msg[:3] == GET_MAP:
