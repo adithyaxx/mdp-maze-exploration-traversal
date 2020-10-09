@@ -174,19 +174,22 @@ class Simulator:
             if msg[:3] == START_EXPLORATION:
                 print('Starting exploration')
                 self.explore()
-                continue
             elif msg[:3] == START_FASTEST_PATH:
+                print('Starting fp')
                 self.findFP()
-                continue
             elif msg[:3] == WAYPOINT:
+                print('Waypoint set')
                 xy = msg.split('|')
                 self.waypoint_x.set(int(xy[1]))
                 self.waypoint_y.set(abs(19 - int(xy[2])))
+                print('Waypoint set:', str(self.waypoint_x.get()), str(self.waypoint_y.get()))
             elif msg[:3] == RESET:
                 self.reset()
             elif msg[:3] == GET_MAP:
                 self.robot.send_map()
-                continue
+            elif msg == STOP_IR:
+                self.core.explorer.stop_ir()
+                print('Stopping IR')
 
         self.root.after(200, self.event_loop)
 

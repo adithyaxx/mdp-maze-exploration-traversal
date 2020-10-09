@@ -15,6 +15,7 @@ GET_MAP = 'GM|'
 WAYPOINT = 'WP|'
 RESET = 'RS|'
 DONE_TAKING_PICTURE = 'D'
+STOP_IR = 'I'
 
 ANDROID_CMDS = [
     START_EXPLORATION,
@@ -46,7 +47,7 @@ class ListenerThread(threading.Thread):
 
                 for msg in msges.split('\n'):
                     if msg:
-                        if msg[:3] in ANDROID_CMDS:
+                        if msg == any(ANDROID_CMDS):
                             general_queue.put(msg)
                             logging.debug(
                                 'Putting ' + msg + '(' + str(general_queue.qsize()) + ' items in queue)')
@@ -55,32 +56,6 @@ class ListenerThread(threading.Thread):
                             logging.debug(
                                 'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
                         time.sleep(0.1)
-
-                        # if msg[0] == DONE_TAKING_PICTURE:
-                        #     # TODO
-                        #     continue
-                        # elif msg[:3] == START_EXPLORATION:
-                        #     self.handler.simulator.explore()
-                        #     continue
-                        # elif msg[:3] == START_FASTEST_PATH:
-                        #     self.handler.simulator.findFP()
-                        #     continue
-                        # elif msg[:3] == GET_MAP:
-                        #     explored_hex, obstacles_hex = self.handler.map.create_map_descriptor()
-                        #     json_str = "M{\"map\": [{\"length\": 300, \"explored\": \"{}\", \"obstacle\": \"{}\"}]}".format(
-                        #         explored_hex, obstacles_hex)
-                        #     self.send(json_str)
-                        #     continue
-                        # elif msg[:3] == WAYPOINT:
-                        #     waypoints = msg[3:].split('|')
-                        #     self.handler.simulator.waypoint_x.set(waypoints[0])
-                        #     self.handler.simulator.waypoint_y.set(waypoints[1])
-                        #     continue
-                        # else:
-                        #     arduino_queue.put(msg)
-                        #     logging.debug(
-                        #         'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
-                        #     time.sleep(0.1)
 
     def receive(self):
         try:
