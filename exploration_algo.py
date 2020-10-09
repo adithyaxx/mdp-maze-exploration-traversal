@@ -1,6 +1,7 @@
 import time
 
 import config
+import numpy as np
 from constants import Bearing, MOVEMENT
 from map import *
 
@@ -37,7 +38,7 @@ class ExplorationAlgo:
         self.start = 0
         self.movements = []
         self.status = STATUS.LEFT_WALL_HUGGING
-        self.do_img_rec = False
+        # self.do_img_rec = False
         self.start_pos = (0, 0)
         self.max_move = 999
         self.start_pos = (0, 0)
@@ -45,6 +46,7 @@ class ExplorationAlgo:
         self.ir_completed = False
         self.start_time = 0
         self.partial_ir = False
+        self.count = 0      # dummy count for testing
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
@@ -52,6 +54,7 @@ class ExplorationAlgo:
         self.start_pos = (0, 0)
         self.ir_completed = False
         self.partial_ir = False
+        self.count = 0
         # for i in range(config.map_size['height']):
         #     for j in range(config.map_size['width']):
         #         self.map_img_rec[i][j] = 0
@@ -83,24 +86,33 @@ class ExplorationAlgo:
                         'height'] *
                      config.map_size['width'] and \
                      list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
-                if self.return_home and self.handler.robot.get_location() == (1, 18):
-                    self.reach_start()
-                self.handler.robot.calibrate()
                 explored_hex, obstacles_hex = self.map.create_map_descriptor()
                 self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
                 self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
+                if self.return_home and self.handler.robot.get_location() == (1, 18):
+                    time.sleep(7)
+                    self.reach_start()
+                self.handler.robot.calibrate()
                 # for p in self.map_img_rec:
                 #     print(p)
                 return
 
-        # print(self.status,self.handler.robot.get_location(),  self.start_pos)
+        # if self.count == 300:
+        #     self.stop_ir()
+        # self.count += 1
+        # print("Status: ", self.status, self.count)
+
         if self.status == STATUS.IMAGE_REC:
-            if self.ir_completed or elapsed >= 300:
-                self.movements.clear()
-                self.go_home()
+            if self.ir_completed or elapsed >= 500:
+                m = np.multiply(map_partial_explored, map_is_explored) == map_partial_explored
+                if m.all():
+                    self.status = STATUS.SPELUNKING
+                else:
+                    self.status = STATUS.LEFT_WALL_HUGGING
+
             elif self.partial_ir and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
                 self.status = STATUS.SPELUNKING
-                self.do_img_rec = False
+                # self.do_img_rec = False
                 print("Image rec to spelunk")
 
             elif (self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST) or \
@@ -117,7 +129,7 @@ class ExplorationAlgo:
                 # self.ir_spelunk_delay = True
                 # print("updating start pos, ", self.temp_pos)
 
-        #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spenlunking
+        #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spelunking
         elif self.status == STATUS.LEFT_WALL_HUGGING and self.handler.robot.get_location() == (
                 1, 18) and self.handler.robot.bearing == Bearing.WEST:
             self.status = STATUS.SPELUNKING
@@ -132,7 +144,6 @@ class ExplorationAlgo:
 
         if self.status == STATUS.IMAGE_REC:
             self.left_wall_hugging()
-
         elif self.status == STATUS.LEFT_WALL_HUGGING:
             self.left_wall_hugging()
         else:
@@ -202,53 +213,9 @@ class ExplorationAlgo:
                         num_move += 1
 
             self.execute_algo_move(num_move=num_move, sense=sense, ir=ir)
-            # for _ in range(num_move):
-            #     self.execute_algo_move()
-            #     if sense:
-            #         self.sense()
+
         else:
             self.execute_algo_move(num_move=1, sense=sense, ir=ir)
-            # if sense:
-            #     self.sense()
-        # if self.status == STATUS.IMAGE_REC:
-        #     self.take_image()
-
-    # def take_image(self):
-    #     robot_x, robot_y = self.handler.robot.get_location()
-    #     robot_bearing = self.handler.robot.bearing
-    #     for i in range(3):
-    #         for j in range(3):
-    #             if self.map.valid_range(robot_y + i - 1, robot_x + j - 1):
-    #                 self.map_img_rec[robot_y + i - 1][robot_x + j - 1] = 1
-    #     if robot_x < 2 and robot_bearing == Bearing.NORTH:
-    #         return
-    #     if robot_y < 2 and robot_bearing == Bearing.EAST:
-    #         return
-    #     if robot_x > config.map_size['width'] - 3 and robot_bearing == Bearing.SOUTH:
-    #         return
-    #     if robot_y > config.map_size['height'] - 3 and robot_bearing == Bearing.WEST:
-    #         return
-    #
-    #     img_target = [
-    #         [[robot_x - 2, robot_y - 1], [robot_x - 2, robot_y], [robot_x - 2, robot_y + 1]],
-    #         [[robot_x + 1, robot_y - 2], [robot_x, robot_y - 2], [robot_x - 1, robot_y - 2]],
-    #         [[robot_x + 2, robot_y + 1], [robot_x + 2, robot_y], [robot_x + 2, robot_y - 1]],
-    #         [[robot_x - 1, robot_y + 2], [robot_x, robot_y + 2], [robot_x + 1, robot_y + 2]]
-    #     ]
-    #     img_pos = img_target[int(robot_bearing // 2)]
-    #
-    #     if self.map.valid_range(img_pos[1][1], img_pos[1][0]) and (
-    #             self.map.is_obstacle(img_pos[0][0], img_pos[0][1], False) or \
-    #             self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or self.map.is_obstacle(img_pos[2][0],
-    #                                                                                               img_pos[2][1],
-    #                                                                                               False)):
-    #         # print(robot_bearing)
-    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
-    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
-    #         print("[EXPLORATION] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-    #         self.map_img_rec[img_pos[0][1]][img_pos[0][0]] = 1
-    #         self.map_img_rec[img_pos[1][1]][img_pos[1][0]] = 1
-    #         self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
 
     def sense(self, backtrack=0):
         # print("[EXPLORATION] sense")
@@ -527,23 +494,6 @@ class ExplorationAlgo:
         else:
             robot_x -= 1
         return robot_x, robot_y
-
-    # def simulate_left(self, bearing):
-    #     return Bearing.prev_bearing(bearing)
-    #
-    # def simulate_right(self, bearing):
-    #     return Bearing.next_bearing(bearing)
-    #
-
-    # def get_unexplored_grids(self):
-    #     robot_x, robot_y = self.handler.robot.get_location()
-    #     unexplored_grids = []
-    #     for i in range(config.map_size['height']):
-    #         for k in range(robot_x - i, robot_x + i, 1):
-    #              for j in range(robot_y - i, robot_y + i):
-    #                 if (self.map.valid_range(j, k) and self.map.map_is_explored[j][k] == 0):
-    #                     unexplored_grids.append((k, j))
-    #     return unexplored_grids
 
     def reach_start(self):
         robot_bearing = self.handler.robot.bearing

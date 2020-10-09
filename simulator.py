@@ -132,13 +132,8 @@ class Simulator:
                                                          "Left Wall Hugging (Optimized, Return Home)",
                                                          "Image Recognition", "Image Recognition (Return Home)",
                                                          "Image Recognition (Partial, Return Home)"])
-        self.exploration_dropdown.current(1)
+        self.exploration_dropdown.current(4)
         self.exploration_dropdown.grid(column=0, row=11, pady=(0, 10), sticky=EW)
-
-        # self.return_home = BooleanVar()
-        # return_home_checkbox = ttk.Checkbutton(parameter_pane, text="Return Home", variable=self.return_home, \
-        #                                        onvalue=True, offvalue=False)
-        # return_home_checkbox.grid(column=0, row=4)
 
         fp_algo_label = ttk.Label(parameter_pane, text="FP Algo:")
         fp_algo_label.grid(column=0, row=12, sticky=EW)
