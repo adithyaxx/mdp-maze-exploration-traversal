@@ -55,7 +55,7 @@ class ListenerThread(threading.Thread):
                             arduino_queue.put(msg)
                             logging.debug(
                                 'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
-                        time.sleep(0.1)
+                        time.sleep(0.05)
 
     def receive(self):
         try:
@@ -64,6 +64,7 @@ class ListenerThread(threading.Thread):
         except socket.timeout:
             return ""
         except OSError:
+            logging.debug('OS Error.')
             sys.exit()
 
     def send(self, msg):

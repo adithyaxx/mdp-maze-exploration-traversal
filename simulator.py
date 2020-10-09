@@ -320,12 +320,11 @@ class Simulator:
         self.robot_simulation = True
         self.connect_button.config(text='Connect')
         self.handler.disconnect()
+        self.reset()
+
         self.handler = Handler(self)
         self.map = self.handler.map
         self.core = self.handler.core
-        self.robot = self.handler.get_robot()
-
-        self.reset()
         self.robot = self.handler.get_robot()
 
     def load(self):

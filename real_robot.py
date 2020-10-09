@@ -84,7 +84,7 @@ class RealRobot(Robot):
 
         # Handle arduino events
         while arduino_queue.empty():
-            sleep(0.1)
+            sleep(0.05)
 
         msg = arduino_queue.get()
         return msg.split()
