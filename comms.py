@@ -22,7 +22,8 @@ ANDROID_CMDS = [
     START_FASTEST_PATH,
     GET_MAP,
     WAYPOINT,
-    RESET
+    RESET,
+    STOP_IR
 ]
 
 
@@ -47,14 +48,14 @@ class ListenerThread(threading.Thread):
 
                 for msg in msges.split('\n'):
                     if msg:
-                        if msg == any(ANDROID_CMDS):
+                        if msg in ANDROID_CMDS:
                             general_queue.put(msg)
                             logging.debug(
-                                'Putting ' + msg + '(' + str(general_queue.qsize()) + ' items in queue)')
+                                '[GQ] Putting ' + msg + ' (' + str(general_queue.qsize()) + ' items in queue)')
                         else:
                             arduino_queue.put(msg)
                             logging.debug(
-                                'Putting ' + msg + '(' + str(arduino_queue.qsize()) + ' items in queue)')
+                                '[AQ] Putting ' + msg + ' (' + str(arduino_queue.qsize()) + ' items in queue)')
                         time.sleep(0.05)
 
     def receive(self):
