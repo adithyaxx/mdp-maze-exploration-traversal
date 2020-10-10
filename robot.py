@@ -11,6 +11,7 @@ class Robot:
         self.bearing = Bearing.NORTH
         self.map = handler.map
         self.handler = handler
+        self.update_map = True
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
 
     # check that center of robot is not at the border and lies within the map
@@ -187,9 +188,10 @@ class Robot:
         location = self.get_location()
         bearing = self.bearing
 
-        self.sense_front(location, bearing, sensor_data[:3])
-        self.sense_left(location, bearing, sensor_data[3:5])
-        self.sense_right(location, bearing, sensor_data[5])
+        if self.update_map:
+            self.sense_front(location, bearing, sensor_data[:3])
+            self.sense_left(location, bearing, sensor_data[3:5])
+            self.sense_right(location, bearing, sensor_data[5])
 
         for i in range(1, backtrack + 1):
             if bearing == Bearing.NORTH:

@@ -175,6 +175,9 @@ class Map:
         try:
             map_is_explored[y][x] = is_explored
 
+            if (x in [0, 1, 2] and y in [17, 18, 19]) or (x in [12, 13, 14] and y in [0, 1, 2]):
+                return
+
             if is_sim:
                 map_virtual[y][x] = is_obstacle
             else:
@@ -422,6 +425,7 @@ class Map:
             print('Index error during calibration check')
             pass
 
+
 map_partial_explored = \
     [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -442,4 +446,4 @@ map_partial_explored = \
      [1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1],
      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],]
+     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], ]
