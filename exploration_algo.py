@@ -5,6 +5,7 @@ import numpy as np
 from constants import Bearing, MOVEMENT
 from map import *
 
+
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
     SPELUNKING = "Spelunking",  # use front sensors
@@ -34,7 +35,7 @@ class ExplorationAlgo:
         self.path_finder = path_finder
         self.steps_per_second = -1
         self.coverage = 100
-        self.time_limit = 3600
+        self.time_limit = 360
         self.start = 0
         self.movements = []
         self.status = STATUS.LEFT_WALL_HUGGING
@@ -46,7 +47,7 @@ class ExplorationAlgo:
         self.ir_completed = False
         self.start_time = 0
         self.partial_ir = False
-        self.count = 0      # dummy count for testing
+        self.count = 0  # dummy count for testing
 
     def reset(self):
         self.status = STATUS.LEFT_WALL_HUGGING
@@ -78,23 +79,27 @@ class ExplorationAlgo:
                 return
         else:
             # print("Elapsed: ", elapsed)
-            if elapsed >= self.time_limit or (
-                    self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and \
-                    (not self.return_home or (self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
+            if elapsed >= self.time_limit or \
+ \
+                    (self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and (
+                            not self.return_home or (
+                            self.return_home and self.handler.robot.get_location() == (1, 18)))) or \
+ \
                     (self.status == STATUS.RETURN_HOME and self.handler.robot.get_location() == (1, 18)) or \
-                    (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) == config.map_size[
-                        'height'] *
-                     config.map_size['width'] and \
+ \
+                    (self.status == STATUS.IMAGE_REC and sum(sum(self.handler.robot.map_img_rec, [])) ==
+                     config.map_size[
+                         'height'] *
+                     config.map_size['width'] and
                      list(self.handler.robot.get_location()) == list(self.start_pos) and not self.return_home):
                 explored_hex, obstacles_hex = self.map.create_map_descriptor()
                 self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
                 self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
+                self.handler.robot.signal_exploration_ended()
                 if self.return_home and self.handler.robot.get_location() == (1, 18):
                     time.sleep(7)
                     self.reach_start()
                 self.handler.robot.calibrate()
-                # for p in self.map_img_rec:
-                #     print(p)
                 return
 
         # if self.count == 300:
@@ -103,14 +108,16 @@ class ExplorationAlgo:
         # print("Status: ", self.status, self.count)
 
         if self.status == STATUS.IMAGE_REC:
-            if self.ir_completed or elapsed >= 500:
+            if self.ir_completed or elapsed >= 300:
+                self.handler.robot.signal_exploration_ended()
                 m = np.multiply(map_partial_explored, map_is_explored) == map_partial_explored
                 if m.all():
                     self.status = STATUS.SPELUNKING
                 else:
                     self.status = STATUS.LEFT_WALL_HUGGING
 
-            elif self.partial_ir and self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST:
+            elif self.partial_ir and self.handler.robot.get_location() == (
+                    1, 18) and self.handler.robot.bearing == Bearing.WEST:
                 self.status = STATUS.SPELUNKING
                 # self.do_img_rec = False
                 print("Image rec to spelunk")
@@ -285,7 +292,7 @@ class ExplorationAlgo:
         return min(sensor_data[:3])
 
     def spelunkprep(self):
-        if self.max_move> 1:
+        if self.max_move > 1:
             self.max_move = 1
         if self.status == STATUS.IMAGE_REC:
             result, dir = self.get_image_rec_target()
@@ -334,10 +341,10 @@ class ExplorationAlgo:
             #                 unexplored.append((j, config.map_size['height'] - i - 1))
             #                 print((j, config.map_size['height'] - i - 1))
 
-            robot_x , robot_y = self.handler.robot.get_location()
+            robot_x, robot_y = self.handler.robot.get_location()
             for i in range(config.map_size['height']):
                 for k in range(robot_x - i, robot_x + i, 1):
-                     for j in range(robot_y - i, robot_y + i):
+                    for j in range(robot_y - i, robot_y + i):
                         if self.map.valid_range(j, k):
                             if self.handler.robot.map_img_rec[j][k] == 0:
                                 if self.map.is_explored(k, j) == 1:

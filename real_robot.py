@@ -157,7 +157,6 @@ class RealRobot(Robot):
         if ir:
             self.take_image()
 
-
     def right(self, sense, ir):
         # rotate clockwise by 90 deg
         self.send('r83\n')
@@ -268,3 +267,6 @@ class RealRobot(Robot):
     def calibrate(self):
         self.send('c\nc\n')
         super().calibrate()
+
+    def signal_exploration_ended(self):
+        self.send('N\n')

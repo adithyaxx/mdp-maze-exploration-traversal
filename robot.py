@@ -87,6 +87,8 @@ class Robot:
     def calibrate(self):
         print("CALIBRATE")
 
+    def signal_exploration_ended(self):
+        return
 
     # check obstacles
     def north_is_free(self):
@@ -250,9 +252,9 @@ class Robot:
             for grid in front:
                 free = 0
                 for i in range(3):
-                    if not self.map.valid_range(grid[1] + i * ofs[1], grid[0] + i * ofs[0]) or\
-                            not self.map.is_explored(grid[0] + i * ofs[0], grid[1] + i * ofs[1]) or\
-                            self.map.is_obstacle(grid[0] + i * ofs[0], grid[1] + i * ofs[1], sim = False):
+                    if not self.map.valid_range(grid[1] + i * ofs[1], grid[0] + i * ofs[0]) or \
+                            not self.map.is_explored(grid[0] + i * ofs[0], grid[1] + i * ofs[1]) or \
+                            self.map.is_obstacle(grid[0] + i * ofs[0], grid[1] + i * ofs[1], sim=False):
                         break
                     free += 1
                 front_free.append(free)
@@ -295,7 +297,7 @@ class Robot:
             self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
 
             for i in range(3):
-                if not self.map.is_obstacle(img_pos[i][0], img_pos[i][1], sim = False):
+                if not self.map.is_obstacle(img_pos[i][0], img_pos[i][1], sim=False):
                     img_pos[i] = [-1, -1]
                 else:
                     img_pos[i][1] = 19 - img_pos[i][1]
@@ -331,4 +333,3 @@ class Robot:
 
         if len(movements) > 0:
             self.handler.simulator.job = self.handler.simulator.root.after(1000, self.execute_fastest_path, movements)
-

@@ -152,7 +152,7 @@ class Simulator:
         self.connect_button.grid(column=0, row=16, pady=(0, 10), sticky=EW)
 
         self.coverage_figure.set(100)
-        self.time_limit.set(3600)
+        self.time_limit.set(360)
         self.steps_per_second.set(-1)
         self.waypoint_x.set(0)
         self.waypoint_y.set(0)
