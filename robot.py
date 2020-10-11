@@ -12,6 +12,9 @@ class Robot:
         self.map = handler.map
         self.handler = handler
         self.update_map = True
+        self.just_turn = False
+        self.consecutive_forward = 1
+        # self.ir_current_island = True
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
 
     # check that center of robot is not at the border and lies within the map
@@ -22,6 +25,7 @@ class Robot:
     # recalculate center of robot
     def move(self, sense, ir, steps=1):
         print('f' + str(steps))
+        self.consecutive_forward += 1
         for _ in range(steps):
             if self.bearing == Bearing.NORTH:
                 if self.validate(0, -1) and self.north_is_free():
@@ -43,9 +47,12 @@ class Robot:
         self.handler.simulator.update_map(radius=3)
 
     def left(self, sense, ir):
+        if ir:
+            self.take_image(before_turn=True)
         # rotate anticlockwise by 90 deg
         print('l90')
         self.bearing = Bearing.prev_bearing(self.bearing)
+        self.just_turn = True
         if sense:
             self.sense()
         if ir:
@@ -53,9 +60,12 @@ class Robot:
         self.handler.simulator.update_map(radius=3)
 
     def right(self, sense, ir):
+        if ir:
+            self.take_image(before_turn=True)
         print('r90')
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
+        self.just_turn = True
         if sense:
             self.sense()
         if ir:
@@ -220,6 +230,7 @@ class Robot:
         self.y = config.map_size['height'] - 2
         self.x = 1
         self.bearing = Bearing.NORTH
+        self.just_turn = False
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
                 self.map_img_rec[i][j] = 0
@@ -264,7 +275,7 @@ class Robot:
         except IndexError:
             pass
 
-    def take_image(self):
+    def take_image(self, before_turn=False):
         robot_x, robot_y = self.get_location()
         robot_bearing = self.bearing
         for i in range(3):
@@ -290,10 +301,8 @@ class Robot:
 
         if self.map.valid_range(img_pos[1][1], img_pos[1][0]) and (
                 self.map.is_obstacle(img_pos[0][0], img_pos[0][1], False) or \
-                self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or self.map.is_obstacle(img_pos[2][0],
-                                                                                                  img_pos[2][1],
-                                                                                                  False)):
-
+                self.map.is_obstacle(img_pos[1][0], img_pos[1][1], False) or \
+                self.map.is_obstacle(img_pos[2][0], img_pos[2][1], False)):
             self.map_img_rec[img_pos[0][1]][img_pos[0][0]] = 1
             self.map_img_rec[img_pos[1][1]][img_pos[1][0]] = 1
             self.map_img_rec[img_pos[2][1]][img_pos[2][0]] = 1
@@ -304,11 +313,22 @@ class Robot:
                 else:
                     img_pos[i][1] = 19 - img_pos[i][1]
 
-            print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
-            print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
-            print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-            print("\n")
-            return img_pos[2], img_pos[1], img_pos[0]
+            # if img_pos[0] == [-1, -1] and img_pos[1] == [-1, -1] and img_pos[2] == [-1, -1]:
+                # self.ir_current_island = True
+                # self.consecutive_forward = 1
+            # if not self.ir_current_island:
+            #     return
+
+            if self.just_turn or before_turn or self.handler.core.explorer.optimized or\
+                    (self.consecutive_forward == 4 and not self.handler.core.explorer.optimized):
+                if self.just_turn:
+                    self.just_turn = False
+                self.consecutive_forward = 1
+                print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
+                print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
+                print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+                print("\n")
+                return img_pos[2], img_pos[1], img_pos[0]
 
     def execute_fastest_path(self, movements):
         num_move = 1
@@ -335,3 +355,7 @@ class Robot:
 
         if len(movements) > 0:
             self.handler.simulator.job = self.handler.simulator.root.after(1000, self.execute_fastest_path, movements)
+
+    def stop_ir_current_island(self):
+        # self.ir_current_island = False
+        self.consecutive_forward = 1

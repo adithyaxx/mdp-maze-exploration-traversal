@@ -47,15 +47,18 @@ class ExplorationAlgo:
         self.ir_completed = False
         self.start_time = 0
         self.partial_ir = False
+        self.completed_partial_exploration = False
         self.count = 0  # dummy count for testing
 
     def reset(self):
+        self.handler.robot.update_map = True
         self.status = STATUS.LEFT_WALL_HUGGING
         self.movements.clear()
         self.start_pos = (0, 0)
         self.ir_completed = False
         self.partial_ir = False
         self.count = 0
+        self.completed_partial_exploration = False
         # for i in range(config.map_size['height']):
         #     for j in range(config.map_size['width']):
         #         self.map_img_rec[i][j] = 0
@@ -71,6 +74,7 @@ class ExplorationAlgo:
         self.periodic_check()
 
     def periodic_check(self):
+        # print("[Exploration] Periodic Check")
         current = time.time()
         elapsed = current - self.start
 
@@ -110,8 +114,8 @@ class ExplorationAlgo:
         if self.status == STATUS.IMAGE_REC:
             if self.ir_completed or elapsed >= 300:
                 self.handler.robot.signal_exploration_ended()
-                m = np.multiply(map_partial_explored, map_is_explored) == map_partial_explored
-                if m.all():
+                # m = np.multiply(map_partial_explored, map_is_explored) == map_partial_explored
+                if self.completed_partial_exploration:
                     self.status = STATUS.SPELUNKING
                 else:
                     self.status = STATUS.LEFT_WALL_HUGGING
@@ -172,12 +176,34 @@ class ExplorationAlgo:
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
     def left_wall_hugging(self):
-        # self.sense()
         if len(self.movements) > 0:
             self.move_and_sense()
             return
 
         left_front, left_middle, left_back = self.check_left()
+        # if left_front and left_middle and left_back and not self.completed_partial_exploration:
+        #     if self.left_obstacle():
+        #         steps = self.check_front()
+        #         if steps > 0:
+        #             self.movements.append(MOVEMENT.FORWARD)
+        #             self.move_and_sense()
+        #         else:
+        #             self.movements.append(MOVEMENT.LEFT)
+        #             self.move_and_sense()
+        #             steps = self.check_front()
+        #             if steps > 0:
+        #                 for _ in range(min(steps, 3)):
+        #                     self.movements.append(MOVEMENT.FORWARD)
+        #             self.movements.append(MOVEMENT.RIGHT)
+        #     else:
+        #         self.movements.append(MOVEMENT.LEFT)
+        #         self.move_and_sense()
+        #         steps = self.check_front()
+        #         if steps > 0:
+        #             for _ in range(min(steps, 3)):
+        #                 self.movements.append(MOVEMENT.FORWARD)
+        #     return
+
         if not left_front:
             steps = self.check_front()
             if steps > 0:
@@ -218,17 +244,13 @@ class ExplorationAlgo:
                     if [robot_x, robot_y] != list(self.start_pos) and len(self.movements) > 2 and self.movements[
                         2] == MOVEMENT.FORWARD:
                         num_move += 1
-
             self.execute_algo_move(num_move=num_move, sense=sense, ir=ir)
-
         else:
             self.execute_algo_move(num_move=1, sense=sense, ir=ir)
 
     def sense(self, backtrack=0):
         # print("[EXPLORATION] sense")
         self.handler.robot.sense(backtrack)
-        # if self.status == STATUS.IMAGE_REC:
-        #     self.take_image()
 
     def check_left(self):
         robot_x, robot_y = self.handler.robot.get_location()
@@ -319,33 +341,23 @@ class ExplorationAlgo:
             # print("old dir: ",dir)
             dir = Bearing.next_bearing(dir)
             # print("new dir: ",dir)
-
         self.add_bearing(dir)
 
     def get_image_rec_target(self):
+        self.completed_partial_exploration = True
         try:
             explored = []
             unexplored = []
             result = None
             dir = None
-            # for i in self.handler.robot.map_img_rec:
-            #     print(i)
-            # for i in range(config.map_size['height']):
-            #     for j in range(config.map_size['width']):
-            #         if self.handler.robot.map_img_rec[config.map_size['height'] - i - 1][j] == 0:
-            #             if self.map.is_explored(j, config.map_size['height'] - i - 1) == 1:
-            #                 if self.map.is_obstacle(j, config.map_size['height'] - i - 1, sim = False):
-            #                     explored.append((j, config.map_size['height'] - i - 1))
-            #                     print((j, config.map_size['height'] - i - 1))
-            #             else:
-            #                 unexplored.append((j, config.map_size['height'] - i - 1))
-            #                 print((j, config.map_size['height'] - i - 1))
 
             robot_x, robot_y = self.handler.robot.get_location()
             for i in range(config.map_size['height']):
                 for k in range(robot_x - i, robot_x + i, 1):
                     for j in range(robot_y - i, robot_y + i):
                         if self.map.valid_range(j, k):
+                            if j<3 or k<3:
+                                continue
                             if self.handler.robot.map_img_rec[j][k] == 0:
                                 if self.map.is_explored(k, j) == 1:
                                     if self.map.is_obstacle(k, j, sim=False):
@@ -413,7 +425,7 @@ class ExplorationAlgo:
             print("IR no obstacle in the middle")
 
     def go_home(self):
-
+        self.handler.robot.update_map = False
         self.movements.clear()
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=1, goalY=18, waypointX=0,
                                                             waypointY=0, \
@@ -530,4 +542,38 @@ class ExplorationAlgo:
             self.execute_algo_move(sense=False, ir=False, num_move=1)
 
     def stop_ir(self):
+        print("[EXPLORATION] IR completed. Changing status...")
         self.ir_completed = True
+
+    def left_obstacle(self):
+        robot_x, robot_y = self.handler.robot.get_location()
+        robot_bearing = self.handler.robot.bearing
+        left_bottom = [
+            [0, 1],
+            [-1, 0],
+            [0, -1],
+            [1, 0]
+        ]
+        offsets = [
+            [-1, 0],
+            [0, -1],
+            [1, 0],
+            [0, 1]
+        ]
+        offset = offsets[int(robot_bearing / 2)]
+        pos = left_bottom[int(robot_bearing / 2)]
+        for i in range(2,4):
+            if self.map.valid_range(robot_y + pos[1] + offset[1]*i, robot_x + pos[0] + offset[0]*i):
+                if self.map.is_explored(robot_x + pos[0] + offset[0]*i, robot_y + pos[1] + offset[1]*i):
+                    if not self.map.is_free(robot_x + pos[0] + offset[0]*i, robot_y + pos[1] + offset[1]*i, sim=False):
+                        print(f'{robot_x + pos[0] + offset[0]*i}, {robot_y + pos[1] + offset[1]*i} is free')
+                        return True
+                else:
+                    print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} not explored')
+                    return False
+            else:
+                print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is not valide range')
+                return False
+        print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is free')
+        return False
+

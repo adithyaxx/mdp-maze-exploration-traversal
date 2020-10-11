@@ -146,6 +146,9 @@ class RealRobot(Robot):
 
     def left(self, sense, ir):
         # rotate anticlockwise by 90 deg
+        if ir:
+            self.take_image(before_turn=True)
+
         self.send('l83\n')
         self.send_map()
 
@@ -159,6 +162,9 @@ class RealRobot(Robot):
 
     def right(self, sense, ir):
         # rotate clockwise by 90 deg
+        if ir:
+            self.take_image(before_turn=True)
+
         self.send('r83\n')
         self.send_map()
 
@@ -246,21 +252,16 @@ class RealRobot(Robot):
         # super().execute_fastest_path(movements)
         return
 
-    def take_image(self):
+    def take_image(self, before_turn=False):
 
         try:
-            first, second, third = super().take_image()
-            # print(first, second, third)
+            first, second, third = super().take_image(before_turn)
             self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
             msg = self.get_msg()
-            # print("MESSAGE: ", msg)
-            # print("MESSAGE: ", msg == DONE_TAKING_PICTURE)
-            # print("MESSAGE: ", msg and msg == DONE_TAKING_PICTURE)
             if msg and msg[0] == DONE_TAKING_PICTURE:
                 return
             else:
-                # print("Recall")
-                self.take_image()
+                self.take_image(before_turn)
         except:
             print("No obstacle. Don't worry")
 
