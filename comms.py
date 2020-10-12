@@ -48,7 +48,7 @@ class ListenerThread(threading.Thread):
 
                 for msg in msges.split('\n'):
                     if msg:
-                        if msg in ANDROID_CMDS:
+                        if msg[0] in ANDROID_CMDS or msg[:3] in ANDROID_CMDS:
                             general_queue.put(msg)
                             logging.debug(
                                 '[GQ] Putting ' + msg + ' (' + str(general_queue.qsize()) + ' items in queue)')
