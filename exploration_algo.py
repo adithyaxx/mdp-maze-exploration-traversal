@@ -78,6 +78,8 @@ class ExplorationAlgo:
         current = time.time()
         elapsed = current - self.start
 
+        if self.map.get_coverage() >= self.coverage and self.handler.robot.update_map:
+            self.handler.robot.update_map = False
         if self.perform_fp:
             if self.handler.robot.x == 13 and self.handler.robot.y == 1:
                 return
