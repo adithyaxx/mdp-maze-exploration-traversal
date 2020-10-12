@@ -101,7 +101,8 @@ class ExplorationAlgo:
                 explored_hex, obstacles_hex = self.map.create_map_descriptor()
                 self.handler.simulator.text_area.insert('end', explored_hex, '\n\n')
                 self.handler.simulator.text_area.insert('end', obstacles_hex, '\n')
-                self.handler.robot.signal_exploration_ended()
+                if self.status == STATUS.IMAGE_REC:
+                    self.handler.robot.signal_exploration_ended()
                 if self.return_home and self.handler.robot.get_location() == (1, 18):
                     time.sleep(7)
                     self.reach_start()

@@ -203,8 +203,7 @@ class Simulator:
 
     def update_cell(self, x, y):
         # Start & End box
-        if ((0 <= y < 3) and (config.map_size['width'] - 3 <= x < config.map_size['width'])) or \
-                ((config.map_size['height'] - 3 <= y < config.map_size['height']) and (0 <= x < 3)):
+        if ((0 <= y <= 2) and (12 <= x <= 14)) or (17 <= y <= 19 and 0 <= x <= 2):
             color = 'gold'
         else:
             if map_is_explored[y][x] == 0:

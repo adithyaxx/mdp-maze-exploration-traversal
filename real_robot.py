@@ -51,6 +51,9 @@ class RealRobot(Robot):
         return True
 
     def send(self, msg):
+        # for x in range(config.map_size['height']):
+        #     print(map_virtual_w[x])
+
         if not self.connected:
             self.connect(self.host)
 
@@ -177,7 +180,7 @@ class RealRobot(Robot):
             self.take_image()
 
     def left_diag(self):
-        self.send('l37\n')
+        self.send('l33\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -186,7 +189,7 @@ class RealRobot(Robot):
         super().left_diag()
 
     def right_diag(self):
-        self.send('r37\n')
+        self.send('r33\n')
         self.send_map()
 
         while arduino_queue.qsize() < 1:
@@ -231,9 +234,9 @@ class RealRobot(Robot):
                     forward_diag = 0
 
                 if movement == MOVEMENT.LEFT_DIAG:
-                    agg_movements.append('l37')
+                    agg_movements.append('l33')
                 elif movement == MOVEMENT.RIGHT_DIAG:
-                    agg_movements.append('r37')
+                    agg_movements.append('r33')
                 elif movement == MOVEMENT.LEFT:
                     agg_movements.append('l83')
                 else:
@@ -253,15 +256,15 @@ class RealRobot(Robot):
         return
 
     def take_image(self, before_turn=False):
-
+        print('Take image')
         try:
             first, second, third = super().take_image(before_turn)
-            self.send('P[{},{}|{},{}|{},{}]'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
-            msg = self.get_msg()
-            if msg and msg[0] == DONE_TAKING_PICTURE:
-                return
-            else:
-                self.take_image(before_turn)
+            self.send('P[{},{}|{},{}|{},{}]\n'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
+            # msg = self.get_msg()
+            # if msg and msg[0] == DONE_TAKING_PICTURE:
+            #     return
+            # else:
+            #     self.take_image(before_turn)
         except:
             print("No obstacle. Don't worry")
 
