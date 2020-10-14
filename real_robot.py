@@ -256,7 +256,7 @@ class RealRobot(Robot):
         return
 
     def take_image(self, before_turn=False):
-        print('Take image')
+        # print('Take image')
         try:
             first, second, third = super().take_image(before_turn)
             self.send('P[{},{}|{},{}|{},{}]\n'.format(first[0], first[1], second[0], second[1], third[0], third[1]))

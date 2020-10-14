@@ -48,6 +48,7 @@ class ExplorationAlgo:
         self.start_time = 0
         self.partial_ir = False
         self.completed_partial_exploration = False
+        self.consecutive_left_turn = 0
         self.count = 0  # dummy count for testing
 
     def reset(self):
@@ -104,7 +105,7 @@ class ExplorationAlgo:
                 if self.status == STATUS.IMAGE_REC:
                     self.handler.robot.signal_exploration_ended()
                 if self.return_home and self.handler.robot.get_location() == (1, 18):
-                    time.sleep(7)
+                    # time.sleep(7)
                     self.reach_start()
                 self.handler.robot.calibrate()
                 return
@@ -179,6 +180,7 @@ class ExplorationAlgo:
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
     def left_wall_hugging(self):
+        print("Consecutive left turn: ", self.consecutive_left_turn)
         if len(self.movements) > 0:
             self.move_and_sense()
             return
@@ -208,6 +210,7 @@ class ExplorationAlgo:
         #     return
 
         if not left_front:
+            self.consecutive_left_turn = 0
             steps = self.check_front()
             if steps > 0:
                 for _ in range(min(steps, self.max_move)):
@@ -218,7 +221,10 @@ class ExplorationAlgo:
             if left_middle and left_back:
                 self.movements.append(MOVEMENT.LEFT)
                 self.movements.append(MOVEMENT.FORWARD)
+                self.consecutive_left_turn += 1
+
             else:
+                self.consecutive_left_turn = 0
                 steps = self.check_front()
                 if steps > 0:
                     if not left_middle:
@@ -226,6 +232,9 @@ class ExplorationAlgo:
                     self.movements.append(MOVEMENT.FORWARD)
                 else:
                     self.movements.append(MOVEMENT.RIGHT)
+        # if self.consecutive_left_turn > 1:
+        #     self.print("Error recovery")
+        #     self.error_recovery()
         self.move_and_sense()
 
     def move_and_sense(self, sense=True):
@@ -376,19 +385,17 @@ class ExplorationAlgo:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
                     print("No explored target for image rec")
-            print("Explored results: ", result)
+            # print("Explored results: ", result)
 
             while result == None and len(unexplored) > 0:
                 obs = unexplored.pop(0)
                 try:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
+                    pass
                     print("No unexplored target for image rec")
-            print("Unexplored results: ", result)
+            # print("Unexplored results: ", result)
 
-            # for p in self.map_img_rec:
-            #     print(p)
-            # print("\n")
             return result, dir
         except IndexError:
             pass
@@ -430,8 +437,8 @@ class ExplorationAlgo:
     def go_home(self):
         self.handler.robot.update_map = False
         self.movements.clear()
-        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=1, goalY=18, waypointX=0,
-                                                            waypointY=0, \
+        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=1, goalY=18, waypointX=2,
+                                                            waypointY=18, \
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
         print("Going Home from {}, len movements: {}".format(self.handler.robot.get_location(), len(self.movements)))
@@ -580,3 +587,37 @@ class ExplorationAlgo:
         print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is free')
         return False
 
+    def error_recovery(self):
+        pass
+        # try:
+        #     robot_x, robot_y = self.handler.robot.get_location()
+        #     for i in range(config.map_size['height']):
+        #         for k in range(robot_x - i, robot_x + i, 1):
+        #             for j in range(robot_y - i, robot_y + i):
+        #                 if self.map.valid_range(j, k):
+        #                     # if self.status == STATUS.LEFT_WALL_HUGGING:
+        #                         if (j > 2 and  j < 17) or (k > 2 or k < 12):
+        #                             continue
+        #                         # if self.map.is_explored(k, j):
+        #                         self.movements.clear()
+        #                         self.path_finder.find_fastest_path(diag=False, delay=0, goalX=k,
+        #                                                            goalY=j,
+        #                                                            waypointX=0,
+        #                                                            waypointY=0,
+        #                                                            startX=self.handler.robot.get_location()[0],
+        #                                                            startY=self.handler.robot.get_location()[1],
+        #                                                            sim=False)
+        #                         if self.movements is not None and self.status == STATUS.LEFT_WALL_HUGGING:
+        #                             if j < 3:
+        #                                 dir = Bearing.WEST
+        #                             elif j > 16:
+        #                                 dir = Bearing.EAST
+        #                             elif k < 3:
+        #                                 dir = Bearing.NORTH
+        #                             else:
+        #                                 dir = Bearing.SOUTH
+        #                             self.add_bearing(dir)
+        #
+        #
+        # except IndexError:
+        #     pass
