@@ -168,7 +168,12 @@ class RealRobot(Robot):
         if ir:
             self.take_image(before_turn=True)
 
-        self.send('r83\n')
+        can_calibrate = self.handler.map.find_left_wall_or_obstacle(self.x, self.y, self.handler.robot.bearing)
+
+        if can_calibrate:
+            self.send('c\nr83\n')
+        else:
+            self.send('r83\n')
         self.send_map()
 
         if sense:

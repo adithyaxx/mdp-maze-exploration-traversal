@@ -3,13 +3,13 @@ def convert_long(distance):
 
     if 0 <= distance <= 11:
         return 0
-    elif 11 < distance <= 18:
+    elif 11 < distance <= 19:
         return 1
-    elif 18 < distance <= 28:
+    elif 19 < distance <= 29:
         return 2
-    elif 28 < distance <= 38:
+    elif 29 < distance <= 39:
         return 3
-    elif 38 < distance <= 48:
+    elif 39 < distance <= 49:
         return 4
     return 5
 
