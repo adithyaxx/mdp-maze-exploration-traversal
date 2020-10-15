@@ -27,42 +27,43 @@ class RealRobot(Robot):
         try:
             self.socket.connect((self.host, self.port))
             self.connected = True
-            print("Connection established.")
+            logging.info("Connection established.")
             self.listener = ListenerThread(name='producer', socket=self.socket, handler=self.handler)
             self.listener.start()
             self.send('c\ns\n')
             # self.send('s')
         except socket.error as error:
             self.connected = False
-            print("Unable to establish connection. ", error)
+            logging.info("Unable to establish connection. " + str(error))
 
         return self.connected
+
 
     def disconnect(self):
         try:
             self.socket.shutdown(1)
             self.socket.close()
             self.connected = False
-            print("Socket closed.")
+            logging.info("Socket closed.")
         except socket.error as error:
-            print("Unable to close socket. ", error)
+            logging.info("Unable to close socket. " + str(error))
             return False
 
         return True
 
     def send(self, msg):
         # for x in range(config.map_size['height']):
-        #     print(map_virtual_w[x])
+        #     logging.debug(map_virtual_w[x])
 
         if not self.connected:
             self.connect(self.host)
 
         if self.connected:
-            print("[Info] Sending message: ", msg)
+            logging.debug("[Info] Sending message: " + str(msg))
             try:
                 self.socket.sendall(str.encode(msg))
             except socket.error as error:
-                print("Unable to send message. ", error)
+                logging.info("Unable to send message. " + str(error))
 
     def get_msg(self):
         # Handle other events
@@ -95,8 +96,6 @@ class RealRobot(Robot):
     def receive(self):
         msg = self.get_msg()
 
-        print('real_robot', msg)
-
         # Straight line correction
         # if abs(convert_short(msg[1]) - convert_short(msg[0])) > 0:
         #     if abs(float(msg[1]) - float(msg[0])) < 3:
@@ -108,7 +107,7 @@ class RealRobot(Robot):
         #         else:
         #             self.send('l' + str(int(angle)) + '\n')
         #
-        #         print('Straight line correction')
+        #         logging.debug('Straight line correction')
         #
         #         msg = self.get_msg()
 
@@ -118,8 +117,6 @@ class RealRobot(Robot):
                convert_short(msg[1]),
                convert_short(msg[0]),
                convert_long(msg[5])]
-
-        print(out)
 
         return out
 
@@ -261,7 +258,7 @@ class RealRobot(Robot):
         return
 
     def take_image(self, before_turn=False):
-        # print('Take image')
+        # logging.debug('Take image')
         try:
             first, second, third = super().take_image(before_turn)
             self.send('P[{},{}|{},{}|{},{}]\n'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
@@ -271,7 +268,7 @@ class RealRobot(Robot):
             # else:
             #     self.take_image(before_turn)
         except:
-            print("No obstacle. Don't worry")
+            logging.debug("No obstacle. Don't worry")
 
     def calibrate(self):
         self.send('c\nc\n')

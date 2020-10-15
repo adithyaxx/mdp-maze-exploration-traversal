@@ -4,7 +4,7 @@ import config
 import numpy as np
 from constants import Bearing, MOVEMENT
 from map import *
-
+import logging
 
 class STATUS:
     LEFT_WALL_HUGGING = "Left Wall Hugging",
@@ -75,7 +75,7 @@ class ExplorationAlgo:
         self.periodic_check()
 
     def periodic_check(self):
-        # print("[Exploration] Periodic Check")
+        # logging.debug("[Exploration] Periodic Check")
         current = time.time()
         elapsed = current - self.start
 
@@ -85,7 +85,7 @@ class ExplorationAlgo:
             if self.handler.robot.x == 13 and self.handler.robot.y == 1:
                 return
         else:
-            # print("Elapsed: ", elapsed)
+            # logging.debug("Elapsed: ", elapsed)
             if elapsed >= self.time_limit or \
  \
                     (self.status != STATUS.IMAGE_REC and self.map.get_coverage() >= self.coverage and (
@@ -113,7 +113,7 @@ class ExplorationAlgo:
         # if self.count == 300:
         #     self.stop_ir()
         # self.count += 1
-        # print("Status: ", self.status, self.count)
+        # logging.debug("Status: ", self.status, self.count)
 
         if self.status == STATUS.IMAGE_REC:
             if self.ir_completed or elapsed >= 300:
@@ -128,22 +128,22 @@ class ExplorationAlgo:
                     1, 18) and self.handler.robot.bearing == Bearing.WEST:
                 self.status = STATUS.SPELUNKING
                 # self.do_img_rec = False
-                print("Image rec to spelunk")
+                logging.debug("Image rec to spelunk")
 
             elif (self.handler.robot.get_location() == (1, 18) and self.handler.robot.bearing == Bearing.WEST) or \
                     list(self.handler.robot.get_location()) == list(self.start_pos):
-                # print("restarting")
+                # logging.debug("restarting")
                 # self.get_image_rec_target()
                 self.spelunkprep()
                 if self.temp_pos == None:
-                    print("Image Rec completed. Going Home")
+                    logging.debug("Image Rec completed. Going Home")
                     self.handler.robot.signal_exploration_ended()
                     self.go_home()
             elif self.start_pos == (-1, -1) and len(self.movements) == 0:
                 self.update_start_pos()
                 self.left_wall_hugging()
                 # self.ir_spelunk_delay = True
-                # print("updating start pos, ", self.temp_pos)
+                # logging.debug("updating start pos, ", self.temp_pos)
 
         #  if exploration is still incomplete after left wall hugging, try explore unknown grids using spelunking
         elif self.status == STATUS.LEFT_WALL_HUGGING and self.handler.robot.get_location() == (
@@ -164,7 +164,7 @@ class ExplorationAlgo:
             self.left_wall_hugging()
         else:
             if len(self.movements) <= 0:
-                # print("here")
+                # logging.debug("here")
                 self.spelunkprep()
                 if len(self.movements) <= 0:
                     if self.return_home:
@@ -173,15 +173,15 @@ class ExplorationAlgo:
             if self.status == STATUS.SPELUNKING:
                 self.move_and_sense()
             else:
-                # print("Current Status: ", self.status)
+                # logging.debug("Current Status: ", self.status)
                 # for i in self.handler.robot.map_img_rec:
-                #     print(i)
+                #     logging.debug(i)
                 self.move_and_sense(sense=True)
 
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
     def left_wall_hugging(self):
-        print("Consecutive left turn: ", self.consecutive_left_turn)
+        logging.debug("Consecutive left turn: " + str(self.consecutive_left_turn))
         if len(self.movements) > 0:
             self.move_and_sense()
             return
@@ -234,7 +234,7 @@ class ExplorationAlgo:
                 else:
                     self.movements.append(MOVEMENT.RIGHT)
         # if self.consecutive_left_turn > 1:
-        #     self.print("Error recovery")
+        #     self.logging.debug("Error recovery")
         #     self.error_recovery()
         self.move_and_sense()
 
@@ -262,7 +262,7 @@ class ExplorationAlgo:
             self.execute_algo_move(num_move=1, sense=sense, ir=ir)
 
     def sense(self, backtrack=0):
-        # print("[EXPLORATION] sense")
+        # logging.debug("[EXPLORATION] sense")
         self.handler.robot.sense(backtrack)
 
     def check_left(self):
@@ -331,18 +331,18 @@ class ExplorationAlgo:
             self.max_move = 1
         if self.status == STATUS.IMAGE_REC:
             result, dir = self.get_image_rec_target()
-            print("Getting image rec target")
-            print("Target: ", result)
+            logging.debug("Getting image rec target")
+            logging.debug("Target: " + str(result))
             self.start_pos = (-1, -1)
             self.temp_pos = result
-            # print("new start pos" ,self.temp_pos)
+            # logging.debug("new start pos" ,self.temp_pos)
         else:
             result, dir = self.get_spelunk_target()
 
         if result is None:
-            print("Warning: Unable to reach unexplored tile. Ending Exploration early.")
+            logging.debug("Warning: Unable to reach unexplored tile. Ending Exploration early.")
             # for i in self.handler.robot.map_img_rec:
-            #     print(i)
+            #     logging.debug(i)
 
             return
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=result[0], goalY=result[1],
@@ -351,9 +351,9 @@ class ExplorationAlgo:
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
         if self.status == STATUS.IMAGE_REC:
-            # print("old dir: ",dir)
+            # logging.debug("old dir: ",dir)
             dir = Bearing.next_bearing(dir)
-            # print("new dir: ",dir)
+            # logging.debug("new dir: ",dir)
         self.add_bearing(dir)
 
     def get_image_rec_target(self):
@@ -375,18 +375,18 @@ class ExplorationAlgo:
                                 if self.map.is_explored(k, j) == 1:
                                     if self.map.is_obstacle(k, j, sim=False):
                                         explored.append((k, j))
-                                        # print((j, config.map_size['height'] - i - 1))
+                                        # logging.debug((j, config.map_size['height'] - i - 1))
                                 else:
                                     unexplored.append((k, j))
-                                    # print((j, config.map_size['height'] - i - 1))
+                                    # logging.debug((j, config.map_size['height'] - i - 1))
 
             while result == None and len(explored) > 0:
                 obs = explored.pop(0)
                 try:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
-                    print("No explored target for image rec")
-            # print("Explored results: ", result)
+                    logging.debug("No explored target for image rec")
+            # logging.debug("Explored results: ", result)
 
             while result == None and len(unexplored) > 0:
                 obs = unexplored.pop(0)
@@ -394,8 +394,8 @@ class ExplorationAlgo:
                     result, dir = self.map.find_adjacent_free_space_front(obs[0], obs[1], ir=True)
                 except:
                     pass
-                    print("No unexplored target for image rec")
-            # print("Unexplored results: ", result)
+                    logging.debug("No unexplored target for image rec")
+            # logging.debug("Unexplored results: ", result)
 
             return result, dir
         except IndexError:
@@ -407,7 +407,7 @@ class ExplorationAlgo:
         dir = None
         while result == None and len(unexplored_grids) > 0:
             unknown_grid = unexplored_grids.pop(0)
-            # print("[CORE] Unknown grid: ", unknown_grid[0], unknown_grid[1])
+            # logging.debug("[CORE] Unknown grid: ", unknown_grid[0], unknown_grid[1])
             try:
                 result, dir = self.map.find_adjacent_free_space_front(unknown_grid[0], unknown_grid[1])
                 self.add_bearing(dir)
@@ -433,7 +433,7 @@ class ExplorationAlgo:
             else:
                 self.handler.move(sense=sense, ir=ir, steps=num_move)
         except:
-            print("IR no obstacle in the middle")
+            logging.debug("IR no obstacle in the middle")
 
     def go_home(self):
         self.handler.robot.update_map = False
@@ -442,7 +442,7 @@ class ExplorationAlgo:
                                                             waypointY=18, \
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
-        print("Going Home from {}, len movements: {}".format(self.handler.robot.get_location(), len(self.movements)))
+        logging.debug("Going Home from {}, len movements: {}".format(self.handler.robot.get_location(), len(self.movements)))
         self.status = STATUS.RETURN_HOME
 
     def add_bearing(self, dir):
@@ -453,7 +453,7 @@ class ExplorationAlgo:
             elif (m == MOVEMENT.RIGHT):
                 cur_dir = Bearing.next_bearing(cur_dir)
 
-        # print("cur dir: ", cur_dir, " dir: ", dir)
+        # logging.debug("cur dir: ", cur_dir, " dir: ", dir)
         if cur_dir == dir:
             return
 
@@ -494,7 +494,7 @@ class ExplorationAlgo:
                 self.movements.append(MOVEMENT.RIGHT)
 
         else:
-            print("Warning invalid direction")
+            logging.debug("Warning invalid direction")
 
     def set_status(self, do_img_rec, partial_ir):
         if do_img_rec:
@@ -547,13 +547,13 @@ class ExplorationAlgo:
         elif robot_bearing == Bearing.NORTH_WEST:
             self.movements.append(MOVEMENT.RIGHT_DIAG)
         else:
-            print("[EXPLORATION] Reached start: invalid direction")
+            logging.debug("[EXPLORATION] Reached start: invalid direction")
 
         for _ in range(len(self.movements)):
             self.execute_algo_move(sense=False, ir=False, num_move=1)
 
     def stop_ir(self):
-        print("[EXPLORATION] IR completed. Changing status...")
+        logging.debug("[EXPLORATION] IR completed. Changing status...")
         self.ir_completed = True
 
     def left_obstacle(self):
@@ -577,15 +577,15 @@ class ExplorationAlgo:
             if self.map.valid_range(robot_y + pos[1] + offset[1]*i, robot_x + pos[0] + offset[0]*i):
                 if self.map.is_explored(robot_x + pos[0] + offset[0]*i, robot_y + pos[1] + offset[1]*i):
                     if not self.map.is_free(robot_x + pos[0] + offset[0]*i, robot_y + pos[1] + offset[1]*i, sim=False):
-                        print(f'{robot_x + pos[0] + offset[0]*i}, {robot_y + pos[1] + offset[1]*i} is free')
+                        logging.debug(f'{robot_x + pos[0] + offset[0]*i}, {robot_y + pos[1] + offset[1]*i} is free')
                         return True
                 else:
-                    print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} not explored')
+                    logging.debug(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} not explored')
                     return False
             else:
-                print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is not valide range')
+                logging.debug(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is not valide range')
                 return False
-        print(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is free')
+        logging.debug(f'{robot_x + pos[0] + offset[0] * i}, {robot_y + pos[1] + offset[1] * i} is free')
         return False
 
     def error_recovery(self):

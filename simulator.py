@@ -172,24 +172,24 @@ class Simulator:
             msg = general_queue.get()
 
             if msg[:3] == START_EXPLORATION:
-                print('Starting exploration')
+                logging.debug('Starting exploration')
                 self.explore()
             elif msg[:3] == START_FASTEST_PATH:
-                print('Starting fp')
+                logging.debug('Starting fp')
                 self.findFP()
             elif msg[:3] == WAYPOINT:
-                print('Waypoint set')
+                logging.debug('Waypoint set')
                 xy = msg.split('|')
                 self.waypoint_x.set(int(xy[1]))
                 self.waypoint_y.set(abs(19 - int(xy[2])))
-                print('Waypoint set:', str(self.waypoint_x.get()), str(self.waypoint_y.get()))
+                logging.debug('Waypoint set: ' + str(self.waypoint_x.get()) + ", " + str(self.waypoint_y.get()))
             elif msg[:3] == RESET:
                 self.reset()
             elif msg[:3] == GET_MAP:
                 self.robot.send_map()
             elif msg == STOP_IR:
                 self.core.explorer.stop_ir()
-                print('Stopping IR')
+                logging.debug('Stopping IR')
 
         self.root.after(200, self.event_loop)
 

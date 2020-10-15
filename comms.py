@@ -6,8 +6,8 @@ import random
 import socket
 from constants import arduino_queue, general_queue
 
-logging.basicConfig(level=logging.DEBUG,
-                    format='(%(threadName)-9s) %(message)s', )
+# logging.basicConfig(level=logging.DEBUG,
+#                     format='(%(threadName)-9s) %(message)s', )
 
 START_EXPLORATION = 'ES|'
 START_FASTEST_PATH = 'FS|'
@@ -69,8 +69,8 @@ class ListenerThread(threading.Thread):
             sys.exit()
 
     def send(self, msg):
-        print("[Info] Sending message: ", msg)
+        logging.debug("[Info] Sending message: " + str(msg))
         try:
             self.socket.sendall(str.encode(msg))
         except socket.error as error:
-            print("Unable to send message. ", error)
+            logging.debug("Unable to send message. " + str(error))

@@ -3,6 +3,7 @@ from copy import deepcopy
 import config
 from constants import Bearing, MOVEMENT
 from map import *
+import logging
 
 INFINITE_COST = 9999
 MOVE_COST = 10
@@ -42,7 +43,7 @@ class FastestPathAlgo():
         self.delay = 10
 
     def check_valid_open(self, node):
-        # print("Node ({}, {}) : {} {} {} {}".format(node.x, node.y, self.map.valid_range(node.y, node.x) , \
+        # logging.debug("Node ({}, {}) : {} {} {} {}".format(node.x, node.y, self.map.valid_range(node.y, node.x) , \
         #                     map_virtual[node.y][node.x] , map_is_explored[node.y][node.x] == 1, self.map.is_virtual_wall(node.x, node.y)))
         return self.map.valid_range(node.y, node.x) and self.map.is_valid_open(node.x,
                                                                                node.y) and not self.map.is_virtual_wall(
@@ -161,7 +162,7 @@ class FastestPathAlgo():
             'width'] - 1 and self.waypoint.y > 0 and self.waypoint.y < config.map_size['height'] - 1:
             path_found_wp = self.run()
             if (not path_found_wp):
-                print("[FASTEST PATH] No path found from start to waypoint")
+                logging.debug("[FASTEST PATH] No path found from start to waypoint")
 
             else:
                 self.start_node = self.closed_list.pop(len(self.closed_list) - 1)
@@ -174,9 +175,9 @@ class FastestPathAlgo():
                 path_found_wp = self.run()
 
                 if (not path_found_wp):
-                    print("[FASTEST PATH] No path found from waypoint to goal")
+                    logging.debug("[FASTEST PATH] No path found from waypoint to goal")
         else:
-            print("[FASTEST PATH] Waypoints out of bound")
+            logging.debug("[FASTEST PATH] Waypoints out of bound")
 
         self.temp_path = deepcopy(self.closed_list)
         self.closed_list.clear()
@@ -190,7 +191,7 @@ class FastestPathAlgo():
 
         path_found_fp = self.run()
         if (not path_found_fp):
-            print("[FASTEST PATH] No path found from start to goal")
+            logging.debug("[FASTEST PATH] No path found from start to goal")
             return
 
         if path_found_wp and path_found_fp:
@@ -208,7 +209,7 @@ class FastestPathAlgo():
 
         if sim:
             self.get_fastest_path_movements(self.fastest_path_goal_node)
-            # print("[FASTEST PATH] EXECUTING FASTEST PATH")
+            # logging.debug("[FASTEST PATH] EXECUTING FASTEST PATH")
             self.handler.robot.execute_fastest_path(self.movements)
             # return
         else:
@@ -217,12 +218,12 @@ class FastestPathAlgo():
 
     def run(self):
 
-        # print("[FASTEST PATH] Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
+        # logging.debug("[FASTEST PATH] Finding a fastest path from ({} , {}) to ({} , {})".format(self.start_node.x, self.start_node.y,
         #                                                                   self.goal_node.x, self.goal_node.y))
 
         start = time.time()
 
-        # print("open list: ", self.open_list)
+        # logging.debug("open list: ", self.open_list)
         while len(self.open_list) > 0:
 
             best_index = self.best_first()
@@ -233,10 +234,10 @@ class FastestPathAlgo():
 
             if (current_node == self.goal_node):
                 end = time.time()
-                print("[FASTEST PATH] Fastest path found in {:0.5f} second".format(end - start))
+                logging.debug("[FASTEST PATH] Fastest path found in {:0.5f} second".format(end - start))
                 return True
 
-            # print("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g,
+            # logging.debug("Open: ({} , {}) g = {} h = {} f = {} dir = {}".format(current_node.x, current_node.y, current_node.g,
             #                                                              current_node.h,
             #                                                              current_node.g + current_node.h,
             #                                                              current_node.dir))
@@ -249,9 +250,9 @@ class FastestPathAlgo():
 
                 neighbour = Node(current_node.x + neighbour_position[0], current_node.y + neighbour_position[1],
                                  current_node)
-                # print("children: {}  {} ".format(neighbour.x, neighbour.y))
+                # logging.debug("children: {}  {} ".format(neighbour.x, neighbour.y))
                 if (not self.check_valid_open(neighbour)):
-                    # print("Invalid children: {}  {} ".format(neighbour.x, neighbour.y))
+                    # logging.debug("Invalid children: {}  {} ".format(neighbour.x, neighbour.y))
                     continue
 
                 if (neighbour in self.closed_list):
@@ -261,7 +262,7 @@ class FastestPathAlgo():
                 if (neighbour not in self.open_list):
                     neighbour.dir = dir
                     neighbour.g = self.cost_g(dir, curDir) + current_node.g
-                    # print("neighbour g: {} , parent g: {}".format( self.cost_g(current_node, neighbour, dir) , current_node.g))
+                    # logging.debug("neighbour g: {} , parent g: {}".format( self.cost_g(current_node, neighbour, dir) , current_node.g))
                     neighbour.h = self.cost_h(neighbour)
                     self.open_list.append(neighbour)
 
@@ -277,7 +278,7 @@ class FastestPathAlgo():
                         self.open_list[index].parent = current_node
 
         end = time.time()
-        print("[FASTEST PATH] No path found in {:0.2f}".format(end - start))
+        logging.debug("[FASTEST PATH] No path found in {:0.2f}".format(end - start))
 
         return False
 
@@ -293,12 +294,12 @@ class FastestPathAlgo():
                 self.get_target_movement(node.dir, self.path[0].dir)
 
         # for y in range(config.map_size['height']):
-        #     print((map_virtual)[y])
+        #     logging.debug((map_virtual)[y])
 
-        print("[FASTEST PATH] Total cost: {}".format(goal_node.g))
+        logging.debug("[FASTEST PATH] Total cost: {}".format(goal_node.g))
         #
         # for m in self.movements:
-        #     print(m)
+        #     logging.debug(m)
 
     # def execute_fastest_path(self):
     #     num_move = 1

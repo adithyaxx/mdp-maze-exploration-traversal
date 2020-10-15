@@ -1,3 +1,5 @@
+import logging
+
 import config
 from constants import *
 from map import *
@@ -24,7 +26,7 @@ class Robot:
 
     # recalculate center of robot
     def move(self, sense, ir, steps=1):
-        print('f' + str(steps))
+        logging.debug('f' + str(steps))
         self.consecutive_forward += 1
         for _ in range(steps):
             if self.bearing == Bearing.NORTH:
@@ -50,7 +52,7 @@ class Robot:
         if ir:
             self.take_image(before_turn=True)
         # rotate anticlockwise by 90 deg
-        print('l90')
+        logging.debug('l90')
         self.bearing = Bearing.prev_bearing(self.bearing)
         self.just_turn = True
         if sense:
@@ -62,7 +64,7 @@ class Robot:
     def right(self, sense, ir):
         if ir:
             self.take_image(before_turn=True)
-        print('r90')
+        logging.debug('r90')
         # rotate clockwise by 90 deg
         self.bearing = Bearing.next_bearing(self.bearing)
         self.just_turn = True
@@ -73,15 +75,15 @@ class Robot:
         self.handler.simulator.update_map(radius=3)
 
     def left_diag(self):
-        print('l33')
+        logging.debug('l33')
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
 
     def right_diag(self):
-        print('r33')
+        logging.debug('r33')
         self.bearing = Bearing.next_bearing_diag(self.bearing)
 
     def move_diag(self, steps=1):
-        print('h' + str(steps))
+        logging.debug('h' + str(steps))
         if self.bearing == Bearing.NORTH_EAST:
             self.x += steps
             self.y -= steps
@@ -96,7 +98,7 @@ class Robot:
             self.y -= steps
 
     def calibrate(self):
-        print("CALIBRATE")
+        logging.debug("CALIBRATE")
 
     def signal_exploration_ended(self):
         return
@@ -324,10 +326,10 @@ class Robot:
                 if self.just_turn:
                     self.just_turn = False
                 self.consecutive_forward = 1
-                print("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
-                print("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
-                print("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-                print("\n")
+                logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
+                logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
+                logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+                logging.debug("\n")
                 return img_pos[2], img_pos[1], img_pos[0]
 
     def execute_fastest_path(self, movements):

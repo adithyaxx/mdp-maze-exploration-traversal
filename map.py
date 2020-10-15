@@ -1,3 +1,5 @@
+import logging
+
 import config
 import numpy as np
 from constants import Bearing
@@ -144,7 +146,7 @@ class Map:
         try:
             return map_is_explored[y][x]
         except IndexError:
-            print(y, x, sep="; ")
+            logging.debug(str(y) + ", " + str(x))
 
     def is_obstacle(self, x, y, sim=True, use_confidence=False):
         if sim:
@@ -163,13 +165,13 @@ class Map:
 
     def set_map(self, y, x, stat):
         if not self.valid_range(y, x):
-            # print( "Warning: map to be set is out of bound!", tag="Map", lv='debug' )
+            # logging.debug( "Warning: map to be set is out of bound!", tag="Map", lv='debug' )
             return
 
         if (stat in self.mapStat):
             self.__map[y][x] = self.mapStat.index(stat)
         # else:
-        #     print( "Error: set map wrong status!", tag="Map", lv='quiet' )
+        #     logging.debug( "Error: set map wrong status!", tag="Map", lv='quiet' )
 
     def mark_explored(self, x, y, is_explored, is_obstacle, is_sim):
         try:
@@ -193,7 +195,7 @@ class Map:
         for i in range(3):
             for j in range(3):
                 if (self.valid_range(y + j - 1, x + i - 1) and map_virtual[y + j - 1][x + i - 1] == 0):
-                    # print(y + j - 1, x + i - 1)
+                    # logging.debug(y + j - 1, x + i - 1)
                     map_virtual[y + j - 1][x + i - 1] = 2
 
     def set_virtual_wall_border(self):
@@ -253,9 +255,6 @@ class Map:
 
         obstacles_hex = ("".join(obstacles_hex))
 
-        print(explored_hex)
-        print(obstacles_hex)
-
         return explored_hex, obstacles_hex
 
     def decode_map_descriptor(self, obstacles_hex):
@@ -279,7 +278,7 @@ class Map:
                 map_sim[y][x] = map_bin[y][x]
                 map_virtual[y][x] = map_bin[y][x]
 
-        print(map_sim)
+        logging.debug(map_sim)
 
     def clear_map_for_real_exploration(self):
         for x in range(config.map_size['width']):
@@ -311,7 +310,7 @@ class Map:
         try:
             for i in range(-1, 2):
                 for j in range(-1, 2):
-                    # print(map_virtual[y + j][x + i])
+                    # logging.debug(map_virtual[y + j][x + i])
                     if not self.is_explored(x + i, y + j) or map_virtual[y + j][x + i] != 0:
                         return False
             return True
@@ -369,7 +368,7 @@ class Map:
 
         for k, v in center.items():
             for e in v:
-                # print("coordinates: ", e, k)
+                # logging.debug("coordinates: ", e, k)
                 if e[0] > 0 and e[0] < config.map_size['width'] - 1 and e[1] > 0 and e[1] < config.map_size[
                     'height'] - 1 and self.is_free_space(e[0], e[1]):
                     return e, k
@@ -422,7 +421,7 @@ class Map:
 
             return left_obstacle
         except IndexError:
-            print('Index error during calibration check')
+            logging.debug('Index error during calibration check')
             pass
 
 
