@@ -116,7 +116,7 @@ class ExplorationAlgo:
         # logging.debug("Status: ", self.status, self.count)
 
         if self.status == STATUS.IMAGE_REC:
-            if self.ir_completed or elapsed >= 300:
+            if self.ir_completed or elapsed >= 360:
                 self.handler.robot.signal_exploration_ended()
                 # m = np.multiply(map_partial_explored, map_is_explored) == map_partial_explored
                 if self.completed_partial_exploration:
