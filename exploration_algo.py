@@ -137,6 +137,7 @@ class ExplorationAlgo:
                 self.spelunkprep()
                 if self.temp_pos == None:
                     print("Image Rec completed. Going Home")
+                    self.handler.robot.signal_exploration_ended()
                     self.go_home()
             elif self.start_pos == (-1, -1) and len(self.movements) == 0:
                 self.update_start_pos()
