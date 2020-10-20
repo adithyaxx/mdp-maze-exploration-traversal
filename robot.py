@@ -18,6 +18,7 @@ class Robot:
         self.consecutive_forward = 1
         # self.ir_current_island = True
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
+        self.prev_loc = [((0,0),Bearing.NORTH)] # tuple of location coordinates and bearing
 
     # check that center of robot is not at the border and lies within the map
     def validate(self, x, y):
@@ -44,9 +45,11 @@ class Robot:
             if sense:
                 self.sense()
                 self.handler.simulator.update_map(radius=3)
+            self.add_prev_location()
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
+
 
     def left(self, sense, ir):
         if ir:
@@ -60,6 +63,7 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
+        self.add_prev_location()
 
     def right(self, sense, ir):
         if ir:
@@ -73,14 +77,17 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
+        self.add_prev_location()
 
     def left_diag(self):
         logging.debug('l33')
         self.bearing = Bearing.prev_bearing_diag(self.bearing)
+        self.add_prev_location()
 
     def right_diag(self):
         logging.debug('r33')
         self.bearing = Bearing.next_bearing_diag(self.bearing)
+        self.add_prev_location()
 
     def move_diag(self, steps=1):
         logging.debug('h' + str(steps))
@@ -96,6 +103,7 @@ class Robot:
         else:
             self.x -= steps
             self.y -= steps
+        self.add_prev_location()
 
     def calibrate(self):
         logging.debug("CALIBRATE")
@@ -233,6 +241,7 @@ class Robot:
         self.x = 1
         self.bearing = Bearing.NORTH
         self.just_turn = False
+        self.prev_loc = [((0,0),Bearing.NORTH)]
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
                 self.map_img_rec[i][j] = 0
@@ -326,6 +335,14 @@ class Robot:
                 if self.just_turn:
                     self.just_turn = False
                 self.consecutive_forward = 1
+                print(
+                    "[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
+                print(
+                    "[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
+                print(
+                    "[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+                print("\n")
+
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
@@ -361,3 +378,14 @@ class Robot:
     def stop_ir_current_island(self):
         # self.ir_current_island = False
         self.consecutive_forward = 1
+
+    def add_prev_location(self):
+        self.prev_loc.append(((self.x, self.y), self.bearing))
+
+    def revert_loop(self):
+        for _ in range(8):
+            self.prev_loc.pop(len(self.prev_loc) - 1)
+        return self.prev_loc(len(self.prev_loc) - 1)
+
+    def pop_prev_loc(self):
+        self.prev_loc.pop(len(self.prev_loc) - 1)

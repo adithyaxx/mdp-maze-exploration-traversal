@@ -49,7 +49,6 @@ class ExplorationAlgo:
         self.partial_ir = False
         self.completed_partial_exploration = False
         self.consecutive_left_turn = 0
-        self.count = 0  # dummy count for testing
 
     def reset(self):
         self.handler.robot.update_map = True
@@ -164,7 +163,6 @@ class ExplorationAlgo:
             self.left_wall_hugging()
         else:
             if len(self.movements) <= 0:
-                # logging.debug("here")
                 self.spelunkprep()
                 if len(self.movements) <= 0:
                     if self.return_home:
@@ -185,6 +183,10 @@ class ExplorationAlgo:
         if len(self.movements) > 0:
             self.move_and_sense()
             return
+
+        elif self.consecutive_left_turn == 3:
+            self.logging.debug("Error recovery")
+            self.error_recovery()
 
         left_front, left_middle, left_back = self.check_left()
         # if left_front and left_middle and left_back and not self.completed_partial_exploration:
@@ -211,7 +213,7 @@ class ExplorationAlgo:
         #     return
 
         if not left_front:
-            # self.consecutive_left_turn = 0
+            self.consecutive_left_turn = 0
             steps = self.check_front()
             if steps > 0:
                 for _ in range(min(steps, self.max_move)):
@@ -222,10 +224,10 @@ class ExplorationAlgo:
             if left_middle and left_back:
                 self.movements.append(MOVEMENT.LEFT)
                 self.movements.append(MOVEMENT.FORWARD)
-                # self.consecutive_left_turn += 1
+                self.consecutive_left_turn += 1
 
             else:
-                # self.consecutive_left_turn = 0
+                self.consecutive_left_turn = 0
                 steps = self.check_front()
                 if steps > 0:
                     if not left_middle:
@@ -233,9 +235,6 @@ class ExplorationAlgo:
                     self.movements.append(MOVEMENT.FORWARD)
                 else:
                     self.movements.append(MOVEMENT.RIGHT)
-        # if self.consecutive_left_turn > 1:
-        #     self.logging.debug("Error recovery")
-        #     self.error_recovery()
         self.move_and_sense()
 
     def move_and_sense(self, sense=True):
@@ -456,42 +455,49 @@ class ExplorationAlgo:
         # logging.debug("cur dir: ", cur_dir, " dir: ", dir)
         if cur_dir == dir:
             return
+        if dir == Bearing.next_bearing(cur_dir):
+            self.movements.append(MOVEMENT.RIGHT)
+        elif dir == Bearing.next_bearing(cur_dir):
+            self.movements.append(MOVEMENT.LEFT)
+        elif dir == Bearing.next_bearing(Bearing.next_bearing(cur_dir)):
+            self.movements.append(MOVEMENT.RIGHT)
+            self.movements.append(MOVEMENT.RIGHT)
 
-        if cur_dir == Bearing.NORTH:
-            if dir == Bearing.WEST:
-                self.movements.append(MOVEMENT.LEFT)
-            elif dir == Bearing.EAST:
-                self.movements.append(MOVEMENT.RIGHT)
-            else:
-                self.movements.append(MOVEMENT.RIGHT)
-                self.movements.append(MOVEMENT.RIGHT)
-
-        elif cur_dir == Bearing.SOUTH:
-            if dir == Bearing.WEST:
-                self.movements.append(MOVEMENT.RIGHT)
-            elif dir == Bearing.EAST:
-                self.movements.append(MOVEMENT.LEFT)
-            else:
-                self.movements.append(MOVEMENT.RIGHT)
-                self.movements.append(MOVEMENT.RIGHT)
-
-        elif cur_dir == Bearing.EAST:
-            if dir == Bearing.NORTH:
-                self.movements.append(MOVEMENT.LEFT)
-            elif dir == Bearing.SOUTH:
-                self.movements.append(MOVEMENT.RIGHT)
-            else:
-                self.movements.append(MOVEMENT.RIGHT)
-                self.movements.append(MOVEMENT.RIGHT)
-
-        elif cur_dir == Bearing.WEST:
-            if dir == Bearing.SOUTH:
-                self.movements.append(MOVEMENT.LEFT)
-            elif dir == Bearing.NORTH:
-                self.movements.append(MOVEMENT.RIGHT)
-            else:
-                self.movements.append(MOVEMENT.RIGHT)
-                self.movements.append(MOVEMENT.RIGHT)
+        # if cur_dir == Bearing.NORTH:
+        #     if dir == Bearing.WEST:
+        #         self.movements.append(MOVEMENT.LEFT)
+        #     elif dir == Bearing.EAST:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #     else:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #
+        # elif cur_dir == Bearing.SOUTH:
+        #     if dir == Bearing.WEST:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #     elif dir == Bearing.EAST:
+        #         self.movements.append(MOVEMENT.LEFT)
+        #     else:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #
+        # elif cur_dir == Bearing.EAST:
+        #     if dir == Bearing.NORTH:
+        #         self.movements.append(MOVEMENT.LEFT)
+        #     elif dir == Bearing.SOUTH:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #     else:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #
+        # elif cur_dir == Bearing.WEST:
+        #     if dir == Bearing.SOUTH:
+        #         self.movements.append(MOVEMENT.LEFT)
+        #     elif dir == Bearing.NORTH:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #     else:
+        #         self.movements.append(MOVEMENT.RIGHT)
+        #         self.movements.append(MOVEMENT.RIGHT)
 
         else:
             logging.debug("Warning invalid direction")
@@ -589,33 +595,21 @@ class ExplorationAlgo:
         return False
 
     def error_recovery(self):
-        # pass
-        try:
-            robot_x, robot_y = self.handler.robot.get_location()
-            for i in range(config.map_size['height']):
-                for k in range(robot_x - i, robot_x + i, 1):
-                    for j in range(robot_y - i, robot_y + i):
-                        if self.map.valid_range(j, k):
-                            if (j > 2 and  j < 17) or (k > 2 or k < 12):
-                                continue
-                            self.movements.clear()
-                            self.path_finder.find_fastest_path(diag=False, delay=0, goalX=k,
-                                                               goalY=j,
-                                                               waypointX=0,
-                                                               waypointY=0,
-                                                               startX=self.handler.robot.get_location()[0],
-                                                               startY=self.handler.robot.get_location()[1],
-                                                               sim=False)
-                            if self.movements is not None and self.status == STATUS.LEFT_WALL_HUGGING:
-                                if j < 3:
-                                    dir = Bearing.WEST
-                                elif j > 16:
-                                    dir = Bearing.EAST
-                                elif k < 3:
-                                    dir = Bearing.NORTH
-                                else:
-                                    dir = Bearing.SOUTH
-                                self.add_bearing(dir)
-                                return
-        except IndexError:
-            pass
+        cur_bearing = self.handler.robot.bearing
+        prev_loc = self.handler.robot.revert_loop()
+        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
+                                                            waypointY=0, \
+                                                            startX=self.handler.robot.get_location()[0],
+                                                            startY=self.handler.robot.get_location()[1], sim=False)
+
+        self.consecutive_left_turn = 0
+        self.add_bearing(prev_loc[1])
+        movement_len = len(self.movements)
+
+        for _ in range(len(self.movements)):
+            self.move_and_sense()
+            self.handler.robot.pop_prev_loc()
+
+
+
+
