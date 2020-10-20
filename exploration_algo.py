@@ -187,6 +187,7 @@ class ExplorationAlgo:
         elif self.consecutive_left_turn == 3:
             self.logging.debug("Error recovery")
             self.error_recovery()
+            return
 
         left_front, left_middle, left_back = self.check_left()
         # if left_front and left_middle and left_back and not self.completed_partial_exploration:
@@ -595,19 +596,21 @@ class ExplorationAlgo:
         return False
 
     def error_recovery(self):
-        cur_bearing = self.handler.robot.bearing
         prev_loc = self.handler.robot.revert_loop()
-        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
-                                                            waypointY=0, \
-                                                            startX=self.handler.robot.get_location()[0],
-                                                            startY=self.handler.robot.get_location()[1], sim=False)
+        # self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
+        #                                                     waypointY=0, \
+        #                                                     startX=self.handler.robot.get_location()[0],
+        #                                                     startY=self.handler.robot.get_location()[1], sim=False)
 
         self.consecutive_left_turn = 0
-        self.add_bearing(prev_loc[1])
-
-        while len(self.movements) > 0:
-            self.move_and_sense()
-            self.handler.robot.pop_prev_loc()
+        self.movements.append(MOVEMENT.LEFT)
+        self.move_and_sense()
+        # self.handler.robot.pop_prev_loc()
+        # self.add_bearing(prev_loc[1])
+        #
+        # while len(self.movements) > 0:
+        #     self.move_and_sense()
+        #     self.handler.robot.pop_prev_loc()
 
 
 
