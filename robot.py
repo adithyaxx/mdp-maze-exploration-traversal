@@ -383,7 +383,7 @@ class Robot:
         self.prev_loc.append(((self.x, self.y), self.bearing))
 
     def revert_loop(self):
-        for _ in range(8):
+        for _ in range(6):
             self.prev_loc.pop(len(self.prev_loc) - 1)
         return self.prev_loc(len(self.prev_loc) - 1)
 
