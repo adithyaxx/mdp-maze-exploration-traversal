@@ -58,6 +58,7 @@ class ExplorationAlgo:
         self.ir_completed = False
         self.partial_ir = False
         self.count = 0
+        self.consecutive_left_turn = 0
         self.completed_partial_exploration = False
         # for i in range(config.map_size['height']):
         #     for j in range(config.map_size['width']):
@@ -185,7 +186,7 @@ class ExplorationAlgo:
             return
 
         elif self.consecutive_left_turn == 3:
-            self.logging.debug("Error recovery")
+            logging.debug("Error recovery")
             self.error_recovery()
             return
 
@@ -447,11 +448,14 @@ class ExplorationAlgo:
 
     def add_bearing(self, dir):
         cur_dir = self.handler.robot.bearing
-        for m in self.movements:
-            if (m == MOVEMENT.LEFT):
-                cur_dir = Bearing.prev_bearing(cur_dir)
-            elif (m == MOVEMENT.RIGHT):
-                cur_dir = Bearing.next_bearing(cur_dir)
+        if self.movements!= None and len(self.movements) > 0:
+            for m in self.movements:
+                if (m == MOVEMENT.LEFT):
+                    cur_dir = Bearing.prev_bearing(cur_dir)
+                elif (m == MOVEMENT.RIGHT):
+                    cur_dir = Bearing.next_bearing(cur_dir)
+        else:
+            self.movements = []
 
         # logging.debug("cur dir: ", cur_dir, " dir: ", dir)
         if cur_dir == dir:
@@ -597,19 +601,21 @@ class ExplorationAlgo:
 
     def error_recovery(self):
         prev_loc = self.handler.robot.revert_loop()
+        print("prev loc: ", prev_loc)
         self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
                                                             waypointY=0, \
                                                             startX=self.handler.robot.get_location()[0],
                                                             startY=self.handler.robot.get_location()[1], sim=False)
 
-        # self.consecutive_left_turn = 0
+        self.consecutive_left_turn = 0
         # self.movements.append(MOVEMENT.LEFT)
         # self.move_and_sense()
         # self.handler.robot.pop_prev_loc()
         self.add_bearing(prev_loc[1])
 
-        while len(self.movements) > 0:
+        while self.movements!=None and len(self.movements)>0:
             self.move_and_sense()
+            print(self.movements)
             self.handler.robot.pop_prev_loc()
 
 

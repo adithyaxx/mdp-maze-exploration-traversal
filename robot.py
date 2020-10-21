@@ -45,7 +45,7 @@ class Robot:
             if sense:
                 self.sense()
                 self.handler.simulator.update_map(radius=3)
-            # self.add_prev_location()
+            self.add_prev_location()
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
@@ -63,7 +63,7 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
-        # self.add_prev_location()
+        self.add_prev_location()
 
     def right(self, sense, ir):
         if ir:
@@ -77,7 +77,7 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
-        # self.add_prev_location()
+        self.add_prev_location()
 
     def left_diag(self):
         logging.debug('l33')
@@ -335,6 +335,14 @@ class Robot:
                 if self.just_turn:
                     self.just_turn = False
                 self.consecutive_forward = 1
+                # print(
+                #     "[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
+                # print(
+                #     "[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
+                # print(
+                #     "[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
+                # print("\n")
+
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
@@ -372,6 +380,7 @@ class Robot:
         self.consecutive_forward = 1
 
     def add_prev_location(self):
+        print("adding prev loc: ", self.prev_loc)
         self.prev_loc.append(((self.x, self.y), self.bearing))
 
     def revert_loop(self, loop=10):

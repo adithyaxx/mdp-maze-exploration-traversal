@@ -261,7 +261,7 @@ class RealRobot(Robot):
         # logging.debug('Take image')
         try:
             first, second, third = super().take_image(before_turn)
-            bearing = super().bearing
+            bearing = self.bearing
             if bearing == Bearing.NORTH:
                 bearing = 'N'
             elif bearing == Bearing.EAST:
