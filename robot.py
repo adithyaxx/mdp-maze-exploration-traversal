@@ -18,7 +18,7 @@ class Robot:
         self.consecutive_forward = 1
         # self.ir_current_island = True
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
-        self.prev_loc = [((0,0),Bearing.NORTH)] # tuple of location coordinates and bearing
+        self.prev_loc = [((1,18),Bearing.NORTH)] # tuple of location coordinates and bearing
 
     # check that center of robot is not at the border and lies within the map
     def validate(self, x, y):
@@ -241,7 +241,7 @@ class Robot:
         self.x = 1
         self.bearing = Bearing.NORTH
         self.just_turn = False
-        self.prev_loc = [((0,0),Bearing.NORTH)]
+        self.prev_loc = [((1,18),Bearing.NORTH)]
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
                 self.map_img_rec[i][j] = 0
@@ -335,14 +335,6 @@ class Robot:
                 if self.just_turn:
                     self.just_turn = False
                 self.consecutive_forward = 1
-                # print(
-                #     "[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
-                # print(
-                #     "[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
-                # print(
-                #     "[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
-                # print("\n")
-
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[0][0], img_pos[0][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[1][0], img_pos[1][1]))  # take photo command
                 logging.debug("[ROBOT] Image taken at {}, {}".format(img_pos[2][0], img_pos[2][1]))  # take photo command
@@ -380,11 +372,10 @@ class Robot:
         self.consecutive_forward = 1
 
     def add_prev_location(self):
-        print("adding prev loc: ", self.prev_loc)
         self.prev_loc.append(((self.x, self.y), self.bearing))
 
-    def revert_loop(self, loop=10):
-        for _ in range(loop):
+    def revert_loop(self):
+        for _ in range(10):
             if len(self.prev_loc) > 1:
                 self.prev_loc.pop(len(self.prev_loc) - 1)
             else:
