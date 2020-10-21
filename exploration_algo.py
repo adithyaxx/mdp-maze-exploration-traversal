@@ -605,7 +605,7 @@ class ExplorationAlgo:
         # self.consecutive_left_turn = 0
         # self.movements.append(MOVEMENT.LEFT)
         # self.move_and_sense()
-        self.handler.robot.pop_prev_loc()
+        # self.handler.robot.pop_prev_loc()
         self.add_bearing(prev_loc[1])
 
         while len(self.movements) > 0:

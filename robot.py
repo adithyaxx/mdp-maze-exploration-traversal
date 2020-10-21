@@ -383,4 +383,4 @@ class Robot:
         return self.prev_loc[len(self.prev_loc) - 1]
 
     def pop_prev_loc(self):
-        self.prev_loc.pop[len(self.prev_loc) - 1]
+        self.prev_loc.pop(len(self.prev_loc) - 1)
