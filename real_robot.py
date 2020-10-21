@@ -261,12 +261,16 @@ class RealRobot(Robot):
         # logging.debug('Take image')
         try:
             first, second, third = super().take_image(before_turn)
-            self.send('P[{},{}|{},{}|{},{}]\n'.format(first[0], first[1], second[0], second[1], third[0], third[1]))
-            # msg = self.get_msg()
-            # if msg and msg[0] == DONE_TAKING_PICTURE:
-            #     return
-            # else:
-            #     self.take_image(before_turn)
+            bearing = super().bearing
+            if bearing == Bearing.NORTH:
+                bearing = 'N'
+            elif bearing == Bearing.EAST:
+                bearing = 'E'
+            elif bearing == Bearing.SOUTH:
+                bearing = 'S'
+            else:
+                bearing = 'W'
+            self.send('P[{},{}|{},{}|{},{}|{}]\n'.format(first[0], first[1], second[0], second[1], third[0], third[1], bearing))
         except:
             logging.debug("No obstacle. Don't worry")
 
