@@ -18,7 +18,7 @@ class Robot:
         self.consecutive_forward = 1
         # self.ir_current_island = True
         self.map_img_rec = [[0 for _ in range(config.map_size['width'])] for _ in range(config.map_size['height'])]
-        # self.prev_loc = [((0,0),Bearing.NORTH)] # tuple of location coordinates and bearing
+        self.prev_loc = [((0,0),Bearing.NORTH)] # tuple of location coordinates and bearing
 
     # check that center of robot is not at the border and lies within the map
     def validate(self, x, y):
@@ -241,7 +241,7 @@ class Robot:
         self.x = 1
         self.bearing = Bearing.NORTH
         self.just_turn = False
-        # self.prev_loc = [((0,0),Bearing.NORTH)]
+        self.prev_loc = [((0,0),Bearing.NORTH)]
         for i in range(config.map_size['height']):
             for j in range(config.map_size['width']):
                 self.map_img_rec[i][j] = 0
@@ -374,10 +374,13 @@ class Robot:
     def add_prev_location(self):
         self.prev_loc.append(((self.x, self.y), self.bearing))
 
-    def revert_loop(self):
-        for _ in range(6):
-            self.prev_loc.pop(len(self.prev_loc) - 1)
-        return self.prev_loc(len(self.prev_loc) - 1)
+    def revert_loop(self, loop=10):
+        for _ in range(loop):
+            if len(self.prev_loc) > 1:
+                self.prev_loc.pop(len(self.prev_loc) - 1)
+            else:
+                return self.prev_loc[0]
+        return self.prev_loc[len(self.prev_loc) - 1]
 
     def pop_prev_loc(self):
-        self.prev_loc.pop(len(self.prev_loc) - 1)
+        self.prev_loc.pop[len(self.prev_loc) - 1]

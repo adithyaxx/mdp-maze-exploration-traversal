@@ -597,20 +597,20 @@ class ExplorationAlgo:
 
     def error_recovery(self):
         prev_loc = self.handler.robot.revert_loop()
-        # self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
-        #                                                     waypointY=0, \
-        #                                                     startX=self.handler.robot.get_location()[0],
-        #                                                     startY=self.handler.robot.get_location()[1], sim=False)
+        self.movements = self.path_finder.find_fastest_path(diag=False, delay=0, goalX=prev_loc[0][0], goalY=prev_loc[0][1], waypointX=0,
+                                                            waypointY=0, \
+                                                            startX=self.handler.robot.get_location()[0],
+                                                            startY=self.handler.robot.get_location()[1], sim=False)
 
-        self.consecutive_left_turn = 0
-        self.movements.append(MOVEMENT.LEFT)
-        self.move_and_sense()
-        # self.handler.robot.pop_prev_loc()
-        # self.add_bearing(prev_loc[1])
-        #
-        # while len(self.movements) > 0:
-        #     self.move_and_sense()
-        #     self.handler.robot.pop_prev_loc()
+        # self.consecutive_left_turn = 0
+        # self.movements.append(MOVEMENT.LEFT)
+        # self.move_and_sense()
+        self.handler.robot.pop_prev_loc()
+        self.add_bearing(prev_loc[1])
+
+        while len(self.movements) > 0:
+            self.move_and_sense()
+            self.handler.robot.pop_prev_loc()
 
 
 
