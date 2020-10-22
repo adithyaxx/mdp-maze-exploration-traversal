@@ -188,6 +188,7 @@ class ExplorationAlgo:
         elif self.consecutive_left_turn == 2:
             logging.debug("Error recovery")
             self.error_recovery()
+            self.move_and_sense()
             return
 
         left_front, left_middle, left_back = self.check_left()
