@@ -613,7 +613,7 @@ class ExplorationAlgo:
         #                                                     startX=self.handler.robot.get_location()[0],
         #                                                     startY=self.handler.robot.get_location()[1], sim=False)
         #
-        # self.consecutive_left_turn = 0
+        self.consecutive_left_turn = 0
         # self.add_bearing(prev_loc[1])
         # while self.movements!=None and len(self.movements)>0:
         #     self.move_and_sense()
