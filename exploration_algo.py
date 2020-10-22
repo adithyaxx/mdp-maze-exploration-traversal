@@ -186,6 +186,7 @@ class ExplorationAlgo:
             return
 
         elif self.consecutive_left_turn == 2:
+            print("error")
             logging.debug("Error recovery")
             self.error_recovery()
             self.move_and_sense()
@@ -539,6 +540,7 @@ class ExplorationAlgo:
 
     def reach_start(self):
         robot_bearing = self.handler.robot.bearing
+        self.movements.clear()
         if robot_bearing == Bearing.NORTH:
             return
         elif robot_bearing == Bearing.EAST:
