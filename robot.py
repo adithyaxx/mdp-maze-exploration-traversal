@@ -45,7 +45,7 @@ class Robot:
             if sense:
                 self.sense()
                 self.handler.simulator.update_map(radius=3)
-            self.add_prev_location()
+            # self.add_prev_location()
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
@@ -63,7 +63,7 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
-        self.add_prev_location()
+        # self.add_prev_location()
 
     def right(self, sense, ir):
         if ir:
@@ -77,7 +77,7 @@ class Robot:
         if ir:
             self.take_image()
         self.handler.simulator.update_map(radius=3)
-        self.add_prev_location()
+        # self.add_prev_location()
 
     def left_diag(self):
         logging.debug('l33')
