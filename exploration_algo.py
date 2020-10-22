@@ -175,7 +175,10 @@ class ExplorationAlgo:
                 # logging.debug("Current Status: ", self.status)
                 # for i in self.handler.robot.map_img_rec:
                 #     logging.debug(i)
-                self.move_and_sense(sense=True)
+                try:
+                    self.move_and_sense(sense=True)
+                except:
+                    pass
 
         self.handler.simulator.job = self.handler.simulator.root.after(self.delay, self.periodic_check)
 
@@ -186,7 +189,6 @@ class ExplorationAlgo:
             return
 
         elif self.consecutive_left_turn == 2:
-            print("error")
             logging.debug("Error recovery")
             self.error_recovery()
             self.move_and_sense()
@@ -513,7 +515,7 @@ class ExplorationAlgo:
         if do_img_rec:
             self.status = STATUS.IMAGE_REC
             self.max_move = 3
-            self.set_optimized(False)
+            self.set_optimized(True)
             if partial_ir:
                 self.partial_ir = True
             # self.set_optimized(True)
